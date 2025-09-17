@@ -178,7 +178,7 @@ Best values per metric are in **bold**.
 
 ## Training Your Own Models
 
-Use the scripts under `model_training/`—especially `train.py`—to build and evaluate models on your datasets.
+Use the scripts under `model_training/`, especially `train.py`, to build and evaluate models on your datasets.
 
 ---
 
@@ -230,7 +230,7 @@ AMP-Identifier/
 
 ## Copyright & Contact
 
-This software is being registered with the Brazilian National Institute of Industrial Property (INPI). All rights reserved.
+This tool is being registered with the Brazilian National Institute of Industrial Property (INPI). All rights reserved.
 
 **Lead Developer:**
 
