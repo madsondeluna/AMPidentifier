@@ -1,21 +1,24 @@
-# AMP-Identifier: A Tool for Antimicrobial Peptide (AMP) Prediction and Analysis
+# AMPidentifier: A Tool for Antimicrobial Peptide (AMP) Prediction and Analysis
 
 ```python
-████████████████████████████████████████████████████████████████████████████████
-█▌                                                                            ▐█
-█▌     _    __  __ ____            ___    _            _   _  __ _            ▐█
-█▌    / \  |  \/  |  _ \          |_ _|__| | ___ _ __ | |_(_)/ _(_) ___ _ __  ▐█
-█▌   / _ \ | |\/| | |_) |  _____   | |/ _` |/ _ \ '_ \| __| | |_| |/ _ \ '__| ▐█
-█▌  / ___ \| |  | |  __/  |_____|  | | (_| |  __/ | | | |_| |  _| |  __/ |    ▐█
-█▌ /_/   \_\_|  |_|_|             |___\__,_|\___|_| |_|\__|_|_| |_|\___|_|    ▐█
-█▌                                                                            ▐█
-████████████████████████████████████████████████████████████████████████████████
+
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
+//                                                                    //
+//      _    __  __ ____  _     _            _   _  __ _              //
+//     / \  |  \/  |  _ \(_) __| | ___ _ __ | |_(_)/ _(_) ___ _ __    //
+//    / _ \ | |\/| | |_) | |/ _` |/ _ \ '_ \| __| | |_| |/ _ \ '__|   //
+//   / ___ \| |  | |  __/| | (_| |  __/ | | | |_| |  _| |  __/ |      //
+//  /_/   \_\_|  |_|_|   |_|\__,_|\___|_| |_|\__|_|_| |_|\___|_|      //
+//                                                                    //
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
 
 ```
 
-The **AMP-Identifier** is a Python tool for predicting and analyzing Antimicrobial Peptides (AMPs) from amino-acid sequences. It leverages a set of pre-trained Machine Learning models and offers flexible prediction modes, including an ensemble voting system, to provide robust results.
+The **AMPidentifier** is a Python tool for predicting and analyzing Antimicrobial Peptides (AMPs) from amino-acid sequences. It leverages a set of pre-trained Machine Learning models and offers flexible prediction modes, including an ensemble voting system, to provide robust results.
 
-Beyond classification, AMP-Identifier computes and exports dozens of physicochemical descriptors for each sequence (via `modlamp`) and bundles them into a detailed report.
+Beyond classification, AMPidentifier computes and exports dozens of physicochemical descriptors for each sequence (via `modlamp`) and bundles them into a detailed report.
 
 ---
 
@@ -23,7 +26,7 @@ Beyond classification, AMP-Identifier computes and exports dozens of physicochem
 ## Tool Workflow 
 
 - [Input: FASTA file](#arguments)
-  - processed by [AMP-Identifier CLI](#how-to-use-cli)
+  - processed by [AMPidentifier CLI](#how-to-use-cli)
     - → [Physicochemical Feature Extraction](#key-features)
       - produces [features.csv](#outputs)
     - → [Model Inference](#how-to-use-cli)
@@ -183,7 +186,7 @@ Use the scripts under `model_training/`, especially `train.py`, to build and eva
 ## Project Layout (Proposed)
 
 ```text
-AMP-Identifier/
+AMPidentifier/
 ├── .gitignore                  # Instruct Git to ignore files (e.g., virtual env)
 ├── LICENSE                     # Software license (e.g., MIT)
 ├── README.md                   # Main project documentation
@@ -286,5 +289,5 @@ AMP-Identifier/
 If this tool or its outputs support your research, please cite the repository:
 
 ```text
-Luna-Aragão, M. A., da Silva, R. L., Pacífico, J., Santos-Silva, C. A. & Benko‑Iseppon, A. M. (2025). AMP-Identifier: A Python toolkit for predicting antimicrobial peptides using ensemble machine learning and physicochemical descriptors. GitHub repository. https://github.com/madsondeluna/AMPIdentifier
+Luna-Aragão, M. A., da Silva, R. L., Pacífico, J., Santos-Silva, C. A. & Benko‑Iseppon, A. M. (2025). AMPidentifier: A Python toolkit for predicting antimicrobial peptides using ensemble machine learning and physicochemical descriptors. GitHub repository. https://github.com/madsondeluna/AMPIdentifier
 ```
