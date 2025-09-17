@@ -1,18 +1,16 @@
 # AMP-Identifier: A Tool for Antimicrobial Peptide (AMP) Prediction and Analysis
 
 ```python
-BANNER = r"""
-████████████████████████████████████████████████████████████████████████████████
-█▌                                                                            ▐█
-█▌     _    __  __ ____            ___    _            _   _  __ _            ▐█
-█▌    / \  |  \/  |  _ \          |_ _|__| | ___ _ __ | |_(_)/ _(_) ___ _ __  ▐█
-█▌   / _ \ | |\/| | |_) |  _____   | |/ _` |/ _ \ '_ \| __| | |_| |/ _ \ '__| ▐█
-█▌  / ___ \| |  | |  __/  |_____|  | | (_| |  __/ | | | |_| |  _| |  __/ |    ▐█
-█▌ /_/   \_\_|  |_|_|             |___\__,_|\___|_| |_|\__|_|_| |_|\___|_|    ▐█
-█▌                                                                            ▐█
-████████████████████████████████████████████████████████████████████████████████
-"""
-print(BANNER)
+                    ████████████████████████████████████████████████████████████████████████████████
+                    █▌                                                                            ▐█
+                    █▌     _    __  __ ____            ___    _            _   _  __ _            ▐█
+                    █▌    / \  |  \/  |  _ \          |_ _|__| | ___ _ __ | |_(_)/ _(_) ___ _ __  ▐█
+                    █▌   / _ \ | |\/| | |_) |  _____   | |/ _` |/ _ \ '_ \| __| | |_| |/ _ \ '__| ▐█
+                    █▌  / ___ \| |  | |  __/  |_____|  | | (_| |  __/ | | | |_| |  _| |  __/ |    ▐█
+                    █▌ /_/   \_\_|  |_|_|             |___\__,_|\___|_| |_|\__|_|_| |_|\___|_|    ▐█
+                    █▌                                                                            ▐█
+                    ████████████████████████████████████████████████████████████████████████████████
+
 ```
 
 The **AMP-Identifier** is a Python tool for predicting and analyzing Antimicrobial Peptides (AMPs) from amino-acid sequences. It leverages a set of pre-trained Machine Learning models and offers flexible prediction modes, including an ensemble voting system, to provide robust results.
@@ -228,12 +226,65 @@ AMP-Identifier/
 
 ---
 
-## Copyright & Contact
 
-This tool is being registered with the Brazilian National Institute of Industrial Property (INPI). All rights reserved.
+## Contributors
 
-**Lead Developer:**
+### Lead Developer
 
-Madson A. de Luna Aragão  
-PhD Candidate in Bioinformatics @ UFMG  
-Belo Horizonte, Minas Gerais, Brazil
+- **Madson A. de Luna Aragão** — PhD Candidate in Bioinformatics, UFMG  
+  Belo Horizonte, Minas Gerais, Brazil  
+  **Responsibilities:** project lead, software architecture, ML pipelines, documentation.  
+  **Contacts:** madsondeluna@gmail.com 
+
+### Collaborators
+
+- **Rafael L. da Silva** — Masters Student, UFPE — Collaborator  
+  **Contributions:** data preprocessing, pipeline testing, literature review.
+
+### Advisory Team
+
+- **Ana M. Benko‑Iseppon, PhD** — Principal Investigator, UFPE — PhD Advisor  
+  **Contributions:** scientific supervision, study design, biological validation.
+
+- **João Pacífico, PhD** — Principal Investigator, UPE — Co‑PhD Advisor  
+  **Contributions:** computational analysis review, dataset curation, evaluation protocol, reproducibility.
+
+- **Carlos A. dos Santos-Silva, PhD** — Professor, CESMAC — Co‑PhD Advisor  
+  **Contributions:** structural biology expertise, evaluation protocol, benchmarking strategy, reproducibility.
+
+---
+
+### Quick Reference (tabular)
+
+| Name                       | Role / Responsibilities                                   | Affiliation | Location         |
+|----------------------------|------------------------------------------------------------|-------------|------------------|
+| Madson A. de Luna-Aragão, MSc  | Lead developer; architecture; ML; docs                     | UFMG        | Belo Horizonte, BR |
+| Rafael L. da Silva, BSc        | Collaborator; preprocessing; pipeline testing; lit. review | UFPE        | Recife, BR       |
+| Ana M. Benko‑Iseppon, PhD | Supervision; study design; review, validation                  | UFPE        | Recife, BR       |
+| João Pacífico, PhD        | Co‑PhD Advisor; computational review; evaluation       | UPE         | Petrolina, BR       |
+| Carlos A. dos Santos-Silva, PhD      | Co‑PhD Advisor; pipeline testing, review    | CESMAC        | Recife, BR       |
+
+
+---
+
+## Funding & Acknowledgments
+
+- This research was supported by **FACEPE** — Fundação de Amparo à Pesquisa do Estado de Pernambuco (Brazil).
+- We thank our advisory and collaborator team for scientific guidance and technical feedback.
+
+---
+
+## Intellectual Property
+
+- This tool is **under submission for registration** with the **INPI** — Instituto Nacional da Propriedade Industrial (Brazilian National Institute of Industrial Property).
+- All rights reserved. Usage and distribution are subject to the project license terms.
+
+---
+
+## How to Cite
+
+If this tool or its outputs support your research, please cite the repository:
+
+```text
+Luna-Aragão, M. A., da Silva, R. L., Pacífico, J., Santos-Silva, C. A. & Benko‑Iseppon, A. M. (2025). AMP-Identifier: A Python toolkit for predicting antimicrobial peptides using ensemble machine learning and physicochemical descriptors. GitHub repository. https://github.com/madsondeluna/AMPIdentifier
+```
