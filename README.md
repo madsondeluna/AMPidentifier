@@ -256,6 +256,7 @@ AMPidentifier/
 │       ├── evaluation_report.txt     # (Generated) Detailed text report
 │       └── evaluation_report.csv     # (Generated) Comparative CSV report
 │
+├── img/                        # Images directory
 └── tests/                      # Unit tests to ensure code quality
     ├── __init__.py             # Package initializer
     └── test_prediction.py      # Tests for prediction functions
