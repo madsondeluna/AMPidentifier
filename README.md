@@ -1,4 +1,5 @@
-# AMPidentifier: A Tool for Antimicrobial Peptide (AMP) Prediction and Physicochemical Assessment
+# AMPidentifier
+> A Tool for Antimicrobial Peptide (AMP) Prediction and Fast Physicochemical Assessment
 
 ```python 
 
