@@ -158,6 +158,52 @@ Best values per metric are in **bold**.
 
 ---
 
+## Benchmarking (Real Data) 
+
+|                                | **Predicted: 0** (Negative) | **Predicted: 1** (Positive) | **Actual Total** |
+| :----------------------------- | :-------------------------: | :-------------------------: | :--------------: |
+| **Actual: 0** (Negative Dataset) | **TN = 720** (73.25%)       | **FP = 263** (26.75%)       |       983        |
+| **Actual: 1** (Positive Dataset) | **FN = 91** (9.26%)         | **TP = 892** (90.74%)       |       983        |
+| **Predicted Total**             |             811             |            1155             |    **1966**      |
+
+### Table Explanation
+
+This table is a confusion matrix, a fundamental tool for evaluating the performance of a classification model. It compares the actual values from your data with the predictions made by the model.
+
+- **Rows (Actual):** Represent the true class of each sample.  
+  - *Actual: 0*: Samples that are truly negative (from your "negative dataset").  
+  - *Actual: 1*: Samples that are truly positive (from your "positive dataset").  
+
+- **Columns (Predicted):** Represent the class that the model assigned to each sample.  
+  - *Predicted: 0*: Samples that the model classified as negative.  
+  - *Predicted: 1*: Samples that the model classified as positive.  
+
+---
+
+### The four central quadrants represent the classification results:
+
+- **TN (True Negative):**  
+  - Value: 720  
+  - Meaning: The model correctly predicted 720 samples as negative, and they were indeed negative.  
+  - The rate of 73.25% (720/983) represents the model's **specificity**.  
+
+- **FP (False Positive):**  
+  - Value: 263  
+  - Meaning: The model incorrectly predicted 263 samples as positive when they were actually negative.  
+  - This is also known as a **Type I Error**.  
+
+- **FN (False Negative):**  
+  - Value: 91  
+  - Meaning: The model incorrectly predicted 91 samples as negative when they were actually positive.  
+  - This is also known as a **Type II Error**.  
+
+- **TP (True Positive):**  
+  - Value: 892  
+  - Meaning: The model correctly predicted 892 samples as positive, and they were indeed positive.  
+  - The rate of 90.74% (892/983) represents the model's **sensitivity (or recall)**.  
+
+---
+
 ## Outputs
 
 - `physicochemical_features.csv`: Detailed table of computed descriptors.
