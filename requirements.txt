@@ -3,6 +3,7 @@ numpy
 pandas
 scikit-learn
 joblib
+tqdm
 
 # Library for bioinformatics
 biopython
