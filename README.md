@@ -127,7 +127,7 @@ The entry point is `main.py`.
 ---
 
 <p align="center">
-  <img src="/img/logo-use.png" alt="AMPidentifer in use on terminal"/>
+  <img src="/img/logo-use2.png" alt="AMPidentifer in use on terminal"/>
 </p>
 
 ---
