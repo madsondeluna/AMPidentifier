@@ -2,6 +2,7 @@
 
 import pandas as pd
 import joblib
+import os
 from typing import Optional
 
 def load_model(model_path: str):
@@ -21,13 +22,31 @@ def load_model(model_path: str):
         print(f"An error occurred while loading the model: {e}")
         return None
 
-def predict_sequences(model, features_df: pd.DataFrame) -> Optional[pd.DataFrame]:
+def load_scaler(scaler_path: str):
+    """
+    Loads a StandardScaler from a specified path.
+
+    Returns the loaded scaler object or None if an error occurs.
+    """
+    try:
+        scaler = joblib.load(scaler_path)
+        print(f"Scaler loaded successfully from {scaler_path}")
+        return scaler
+    except FileNotFoundError:
+        print(f"Error: Scaler file not found at '{scaler_path}'")
+        return None
+    except Exception as e:
+        print(f"An error occurred while loading the scaler: {e}")
+        return None
+
+def predict_sequences(model, features_df: pd.DataFrame, scaler=None) -> Optional[pd.DataFrame]:
     """
     Performs predictions using a loaded model and a features DataFrame.
 
     Args:
         model: The loaded machine learning model object.
         features_df (pd.DataFrame): DataFrame containing the sequence features.
+        scaler: Optional StandardScaler to normalize features before prediction.
 
     Returns:
         A DataFrame with sequences and their predictions, or None on failure.
@@ -52,6 +71,10 @@ def predict_sequences(model, features_df: pd.DataFrame) -> Optional[pd.DataFrame
     
     # Select and reorder columns to match the model's training data
     X = features_df[model_features]
+
+    # --- NEW: Apply normalization if scaler is provided ---
+    if scaler is not None:
+        X = pd.DataFrame(scaler.transform(X), columns=X.columns, index=X.index)
 
     # Perform prediction
     predictions = model.predict(X)

@@ -7,6 +7,7 @@ import joblib
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from amp_identifier.feature_extraction import calculate_physicochemical_features
 from amp_identifier.data_io import load_fasta_sequences
 
@@ -59,8 +60,23 @@ def main():
         X, y, test_size=0.2, random_state=42, stratify=y
     )
     
+    # --- NEW: Normalize features using StandardScaler ---
+    print("Step 3.1: Normalizing features with StandardScaler...")
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    # Convert back to DataFrame to preserve column names
+    X_train_scaled = pd.DataFrame(X_train_scaled, columns=X_train.columns, index=X_train.index)
+    X_test_scaled = pd.DataFrame(X_test_scaled, columns=X_test.columns, index=X_test.index)
+    
+    # Save the scaler for later use in predictions
+    scaler_path = os.path.join(OUTPUT_DIR, "feature_scaler.pkl")
+    joblib.dump(scaler, scaler_path)
+    print(f"Scaler saved to {scaler_path}")
+    
     # Save test data once for all models to be evaluated on the same set
-    X_test.to_csv(TEST_FEATURES_PATH, index=False)
+    X_test_scaled.to_csv(TEST_FEATURES_PATH, index=False)
     y_test.to_frame().to_csv(TEST_LABELS_PATH, index=False)
     print("Test data saved for evaluation script.")
 
@@ -74,7 +90,7 @@ def main():
     # --- NEW: Loop to train and save each model ---
     for model_name, model in models.items():
         print(f"\n--- Training {model_name.upper()} model ---")
-        model.fit(X_train, y_train)
+        model.fit(X_train_scaled, y_train)
         print(f"Model {model_name.upper()} training complete.")
         
         model_path = os.path.join(OUTPUT_DIR, f"amp_model_{model_name}.pkl")

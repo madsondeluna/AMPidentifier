@@ -14,6 +14,7 @@ DATA_DIR = "model_training/data"
 MODEL_DIR = "model_training/saved_model"
 TEST_FEATURES_PATH = os.path.join(DATA_DIR, "test_features.csv")
 TEST_LABELS_PATH = os.path.join(DATA_DIR, "test_labels.csv")
+SCALER_PATH = os.path.join(MODEL_DIR, "feature_scaler.pkl")
 # --- NEW: Define output report paths ---
 TXT_REPORT_PATH = os.path.join(MODEL_DIR, "evaluation_report.txt")
 CSV_REPORT_PATH = os.path.join(MODEL_DIR, "evaluation_report.csv")
@@ -21,11 +22,12 @@ CSV_REPORT_PATH = os.path.join(MODEL_DIR, "evaluation_report.csv")
 def main():
     """
     Main function to evaluate all trained models found in the saved_model directory.
+    Note: The test features are already normalized (saved from train.py).
     """
     print("--- Evaluating All Trained Models ---")
 
-    # Load the single test dataset
-    print("Loading test data...")
+    # Load the single test dataset (already normalized)
+    print("Loading test data (already normalized)...")
     try:
         X_test = pd.read_csv(TEST_FEATURES_PATH)
         y_test = pd.read_csv(TEST_LABELS_PATH).squeeze()
@@ -50,7 +52,7 @@ def main():
         
         model = joblib.load(model_path)
         
-        # Make predictions
+        # Make predictions (data is already normalized)
         y_pred = model.predict(X_test)
         y_pred_proba = model.predict_proba(X_test)[:, 1]
 
