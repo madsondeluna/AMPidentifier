@@ -346,8 +346,6 @@ AMPidentifier/
 
 ### Key Components
 
-- **feature_scaler.pkl**: Essential file for predictions. All models depend on it for feature normalization.
-- **normalization-info/**: Complete documentation about the StandardScaler implementation and its impact.
 - **Modular Design**: Each component is independent and can be used separately or as part of the full pipeline.
 - **Pre-trained Models**: Three models (RF, SVM, GB) ready to use individually or in ensemble mode.
 - **External Model Support**: Users can load their own `.pkl` models for comparison and extended analysis.
