@@ -339,31 +339,35 @@ AMPidentifier/
 
 AMPidentifier was designed to provide a robust, open-source alternative to existing AMP prediction tools. To ensure transparency and reproducibility, we benchmark AMPidentifier against other widely-used AMP classifiers, including both web-based servers and command-line tools.
 
-This comparison uses a standardized test dataset from the independent benchmark study by **Zulfiqar et al. (2024)**: "Machine Learning-Assisted Prediction and Generation of Antimicrobial Peptides" ([Small Sci. 2024, 2400579](https://onlinelibrary.wiley.com/doi/10.1002/smsc.202400579)). All tools are evaluated on the same dataset to ensure fair and unbiased comparison across multiple performance metrics. The goal is to position AMPidentifier within the current landscape of AMP prediction tools and highlight its strengths in ensemble learning and modular design.
+This comparison uses a standardized test dataset from the independent benchmark study by **Zulfiqar et al. (2024)**: "Machine Learning-Assisted Prediction and Generation of Antimicrobial Peptides" ([Small Sci. 2024, 2400579](https://onlinelibrary.wiley.com/doi/10.1002/smsc.202400579)). All tools are evaluated on the same dataset to ensure fair and unbiased comparison across multiple performance metrics. 
+
+**Important:** AMPidentifier will be evaluated using its **ensemble mode** (default recommended configuration), which combines predictions from all three internal models (Random Forest, SVM, Gradient Boosting) through majority voting. This represents the tool's best practice configuration as recommended by the authors and supported by literature as the optimal approach for AMP classification.
+
+The goal is to position AMPidentifier within the current landscape of AMP prediction tools and highlight its strengths in ensemble learning and modular design.
 
 ### Comparison with State-of-the-Art Tools
 
 **Benchmark Dataset:** Independent test set from Zulfiqar et al. (2024) - [DOI: 10.1002/smsc.202400579](https://onlinelibrary.wiley.com/doi/10.1002/smsc.202400579)
 
-| Tool                | Type       | Open Source | Modular | Ensemble | External Models | TP  | TN  | FP  | FN  | Reference/URL |
-|---------------------|------------|:-----------:|:-------:|:--------:|:---------------:|----:|----:|----:|----:|---------------|
-| **AMPidentifier**   | CLI/Local  | Yes         | Yes     | Yes      | Yes             | TBA | TBA | TBA | TBA | This work     |
-| AMPScanner v2       | Web        | TBA         | No      | TBA      | No              | TBA | TBA | TBA | TBA | TBA           |
-| iAMP-2L             | Web        | TBA         | No      | TBA      | No              | TBA | TBA | TBA | TBA | TBA           |
-| CAMPR3              | Web        | TBA         | No      | TBA      | No              | TBA | TBA | TBA | TBA | TBA           |
-| AMPlify             | CLI/Web    | TBA         | TBA     | TBA      | TBA             | TBA | TBA | TBA | TBA | TBA           |
-| AMPDiscover         | CLI        | TBA         | TBA     | TBA      | TBA             | TBA | TBA | TBA | TBA | TBA           |
+| Tool                | TP  | TN  | FP  | FN  | Type       | Open Source | Modular | Ensemble | External Models | Reference/URL |
+|---------------------|----:|----:|----:|----:|------------|:-----------:|:-------:|:--------:|:---------------:|---------------|
+| **AMPidentifier**   | TBA | TBA | TBA | TBA | CLI/Local  | Yes         | Yes     | Yes      | Yes             | This work     |
+| AMPScanner v2       | TBA | TBA | TBA | TBA | Web        | TBA         | No      | TBA      | No              | TBA           |
+| iAMP-2L             | TBA | TBA | TBA | TBA | Web        | TBA         | No      | TBA      | No              | TBA           |
+| CAMPR3              | TBA | TBA | TBA | TBA | Web        | TBA         | No      | TBA      | No              | TBA           |
+| AMPlify             | TBA | TBA | TBA | TBA | CLI/Web    | TBA         | TBA     | TBA      | TBA             | TBA           |
+| AMPDiscover         | TBA | TBA | TBA | TBA | CLI        | TBA         | TBA     | TBA      | TBA             | TBA           |
 
 **Column Descriptions:**
+- **TP (True Positive):** Number of correctly predicted AMP sequences
+- **TN (True Negative):** Number of correctly predicted non-AMP sequences
+- **FP (False Positive):** Number of non-AMP sequences incorrectly predicted as AMP
+- **FN (False Negative):** Number of AMP sequences incorrectly predicted as non-AMP
 - **Type:** Deployment format (Web-based server, CLI tool, or Local application)
 - **Open Source:** Publicly available source code (Yes/No)
 - **Modular:** Can individual models (RF, SVM, GB) be used separately? (Yes/No)
 - **Ensemble:** Supports ensemble/voting prediction across multiple models? (Yes/No)
 - **External Models:** Allows integration of user-provided custom models (.pkl)? (Yes/No)
-- **TP (True Positive):** Number of correctly predicted AMP sequences
-- **TN (True Negative):** Number of correctly predicted non-AMP sequences
-- **FP (False Positive):** Number of non-AMP sequences incorrectly predicted as AMP
-- **FN (False Negative):** Number of AMP sequences incorrectly predicted as non-AMP
 
 **Note:** Benchmarking is currently in progress. Results will be updated as comparative experiments are completed using the standardized independent test set from Zulfiqar et al. (2024). All tools will be evaluated under identical conditions to ensure fair comparison. The confusion matrix values (TP, TN, FP, FN) provide a direct view of prediction performance across all tools.
 
