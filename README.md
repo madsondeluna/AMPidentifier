@@ -347,7 +347,7 @@ The goal is to position AMPidentifier within the current landscape of AMP predic
 
 ### Comparison with State-of-the-Art Tools
 
-**Benchmark Dataset:** Independent test set from Zulfiqar et al. (2024): [DOI: 10.1002/smsc.202400579](https://onlinelibrary.wiley.com/doi/10.1002/smsc.202400579)
+**Benchmark Dataset:** Independent test set from Zulfiqar et al. (2024), [DOI: 10.1002/smsc.202400579](https://onlinelibrary.wiley.com/doi/10.1002/smsc.202400579)
 
 | Tool                | TP  | TN  | FP  | FN  | Type       | Open Source | Modular | Ensemble | External Models | Reference/URL |
 |---------------------|----:|----:|----:|----:|------------|:-----------:|:-------:|:--------:|:---------------:|---------------|
