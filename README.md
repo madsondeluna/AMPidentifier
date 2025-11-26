@@ -385,14 +385,19 @@ AMPidentifier/
 
 ## Funding & Acknowledgments
 
+- **Principal Holder:** This software is officially registered under the **UFPE** — Universidade Federal de Pernambuco (Federal University of Pernambuco, Brazil).
 - This research was supported by **FACEPE** — Fundação de Amparo à Pesquisa do Estado de Pernambuco (Brazil).
-- We thank our advisory and collaborator team for scientific guidance and technical feedback.
+- We acknowledge the **PPGGBM** — Programa de Pós-Graduação em Genética e Biologia Molecular (Graduate Program in Genetics and Molecular Biology) at UFPE for institutional support.
 
 ---
 
 ## Intellectual Property
 
-- This tool is **under submission for registration** with the **INPI** — Instituto Nacional da Propriedade Industrial (Brazilian National Institute of Industrial Property).
+- This tool is **officially registered** with the **INPI** — Instituto Nacional da Propriedade Industrial (Brazilian National Institute of Industrial Property).
+- **Registration Number:** BR 51 2025 005859-4
+- **Registration Date:** November 18, 2025
+- **Title:** AMPidentifier: A modular python toolkit for predicting antimicrobial peptides using ensemble machine learning
+- **Registered Authors:** Madson Aslan de Luna Aragão, Rafael Lins da Silva, João Pacífico Bezerra Neto, Carlos Alberto dos Santos Silva, Ana Maria Benko-Iseppon
 - All rights reserved. Usage and distribution are subject to the project license terms.
 
 ---
