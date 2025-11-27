@@ -349,9 +349,22 @@ This comparison uses a standardized test dataset from the independent benchmark 
 
 The goal is to position AMPidentifier within the current landscape of AMP prediction tools and highlight its strengths in ensemble learning and modular design.
 
-### Comparison with State-of-the-Art Tools
+### Benchmark Dataset Description
 
-**Benchmark Dataset:** Independent test set from Zulfiqar et al. (2024), [DOI: 10.1002/smsc.202400579](https://onlinelibrary.wiley.com/doi/10.1002/smsc.202400579)
+The benchmark dataset used for comparative evaluation is organized by antimicrobial activity type and contains balanced positive (AMP) and negative (non-AMP) sequences:
+
+| Activity Type    | Positive Sequences | Negative Sequences | Total Sequences |
+|------------------|-------------------:|-------------------:|----------------:|
+| Antibacterial    | 984                | 984                | 1,968           |
+| Antifungal       | 1,384              | 1,384              | 2,768           |
+| Antiviral        | 739                | 739                | 1,478           |
+| **Total**        | **3,107**          | **3,107**          | **6,214**       |
+
+All sequences are stored in `benchmarking/base/` directory as FASTA files (`bacterial_pos.fasta`, `bacterial_neg.fasta`, `fungal_pos.fasta`, `fungal_neg.fasta`, `viral_pos.fasta`, `viral_neg.fasta`).
+
+**Dataset Source:** Independent test set from Zulfiqar et al. (2024), [DOI: 10.1002/smsc.202400579](https://onlinelibrary.wiley.com/doi/10.1002/smsc.202400579)
+
+### Comparison with State-of-the-Art Tools
 
 | Tool                | Acc (%) | Antibacterial | Antifungal | Antiviral | Type       | Open Source | Modular | Ensemble | External Models |
 |---------------------|--------:|:-------------:|:----------:|:---------:|------------|:-----------:|:-------:|:--------:|:---------------:|
