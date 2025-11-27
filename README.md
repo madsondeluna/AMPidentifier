@@ -319,6 +319,10 @@ AMPidentifier/
 │       ├── evaluation_report.txt     # (Generated) Detailed text report
 │       └── evaluation_report.csv     # (Generated) Comparative CSV report
 │
+├── benchmarking/               # Benchmarking datasets and results
+│   ├── base/                   # Base datasets for benchmarking
+│   └── results/                # Benchmark results and comparisons
+│
 ├── img/                        # Images directory
 │   └── logo-use.png            # Terminal usage screenshot
 │
@@ -349,20 +353,20 @@ The goal is to position AMPidentifier within the current landscape of AMP predic
 
 **Benchmark Dataset:** Independent test set from Zulfiqar et al. (2024), [DOI: 10.1002/smsc.202400579](https://onlinelibrary.wiley.com/doi/10.1002/smsc.202400579)
 
-| Tool                | TP  | TN  | FP  | FN  | Type       | Open Source | Modular | Ensemble | External Models | Reference/URL |
-|---------------------|----:|----:|----:|----:|------------|:-----------:|:-------:|:--------:|:---------------:|---------------|
-| **AMPidentifier**   | TBA | TBA | TBA | TBA | CLI/Local  | Yes         | Yes     | Yes      | Yes             | This work     |
-| AMPScanner v2       | TBA | TBA | TBA | TBA | Web        | TBA         | No      | TBA      | No              | TBA           |
-| iAMP-2L             | TBA | TBA | TBA | TBA | Web        | TBA         | No      | TBA      | No              | TBA           |
-| CAMPR3              | TBA | TBA | TBA | TBA | Web        | TBA         | No      | TBA      | No              | TBA           |
-| AMPlify             | TBA | TBA | TBA | TBA | CLI/Web    | TBA         | TBA     | TBA      | TBA             | TBA           |
-| AMPDiscover         | TBA | TBA | TBA | TBA | CLI        | TBA         | TBA     | TBA      | TBA             | TBA           |
+| Tool                | Acc (%) | Antibacterial | Antifungal | Antiviral | Type       | Open Source | Modular | Ensemble | External Models |
+|---------------------|--------:|:-------------:|:----------:|:---------:|------------|:-----------:|:-------:|:--------:|:---------------:|
+| **AMPidentifier**   | TBA     | TBA           | TBA        | TBA       | CLI/Local  | Yes         | Yes     | Yes      | Yes             |
+| AMPScanner v2       | TBA     | TBA           | TBA        | TBA       | Web        | TBA         | No      | TBA      | No              |
+| iAMP-2L             | TBA     | TBA           | TBA        | TBA       | Web        | TBA         | No      | TBA      | No              |
+| CAMPR3              | TBA     | TBA           | TBA        | TBA       | Web        | TBA         | No      | TBA      | No              |
+| AMPlify             | TBA     | TBA           | TBA        | TBA       | CLI/Web    | TBA         | TBA     | TBA      | TBA             |
+| AMPDiscover         | TBA     | TBA           | TBA        | TBA       | CLI        | TBA         | TBA     | TBA      | TBA             |
 
 **Column Descriptions:**
-- **TP (True Positive):** Number of correctly predicted AMP sequences
-- **TN (True Negative):** Number of correctly predicted non-AMP sequences
-- **FP (False Positive):** Number of non-AMP sequences incorrectly predicted as AMP
-- **FN (False Negative):** Number of AMP sequences incorrectly predicted as non-AMP
+- **Acc (%):** Overall accuracy percentage on the benchmark dataset, calculated as (TP + TN) / (TP + TN + FP + FN) × 100, where TP = True Positives, TN = True Negatives, FP = False Positives, FN = False Negatives
+- **Antibacterial:** Accuracy on antibacterial peptide subset, calculated as correctly predicted antibacterial sequences / total antibacterial sequences × 100
+- **Antifungal:** Accuracy on antifungal peptide subset, calculated as correctly predicted antifungal sequences / total antifungal sequences × 100
+- **Antiviral:** Accuracy on antiviral peptide subset, calculated as correctly predicted antiviral sequences / total antiviral sequences × 100
 - **Type:** Deployment format (Web-based server, CLI tool, or Local application)
 - **Open Source:** Publicly available source code (Yes/No)
 - **Modular:** Can individual models (RF, SVM, GB) be used separately? (Yes/No)
