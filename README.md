@@ -368,12 +368,12 @@ All sequences are stored in `benchmarking/base/` directory as FASTA files (`bact
 
 | Tool                | Acc (%) | Antibacterial | Antifungal | Antiviral | Type       | Open Source | Modular | Models Available | Ensemble | External Models |
 |---------------------|--------:|:-------------:|:----------:|:---------:|------------|:-----------:|:-------:|:----------------:|:--------:|:---------------:|
-| **AMPidentifier**   | TBA     | TBA           | TBA        | TBA       | CLI/Local  | Yes         | Yes     | RF, SVM, GB      | Yes      | Yes             |
-| AMPScanner v2       | TBA     | TBA           | TBA        | TBA       | Web        | TBA         | No      | TBA              | TBA      | No              |
-| iAMP-2L             | TBA     | TBA           | TBA        | TBA       | Web        | TBA         | No      | TBA              | TBA      | No              |
-| CAMPR3              | TBA     | TBA           | TBA        | TBA       | Web        | TBA         | Yes     | SVM, RF, ANN, DA | TBA      | No              |
-| AMPlify             | TBA     | TBA           | TBA        | TBA       | CLI/Web    | TBA         | TBA     | TBA              | TBA      | TBA             |
-| AMPDiscover         | TBA     | TBA           | TBA        | TBA       | CLI        | TBA         | TBA     | TBA              | TBA      | TBA             |
+| **AMPidentifier**   | -       | -             | -          | -         | CLI/Local  | Yes         | Yes     | RF, SVM, GB      | Yes      | Yes             |
+| AMPScanner v2       | -       | -             | -          | -         | Web        | -           | No      | -                | -        | No              |
+| iAMP-2L             | -       | -             | -          | -         | Web        | -           | No      | -                | -        | No              |
+| CAMPR3              | -       | -             | -          | -         | Web        | -           | Yes     | SVM, RF, ANN, DA | -        | No              |
+| AMPlify             | -       | -             | -          | -         | CLI/Web    | -           | -       | -                | -        | -               |
+| AMPDiscover         | -       | -             | -          | -         | CLI        | -           | -       | -                | -        | -               |
 
 **Column Descriptions:**
 - **Acc (%):** Overall accuracy percentage on the benchmark dataset, calculated as (TP + TN) / (TP + TN + FP + FN) × 100, where TP = True Positives, TN = True Negatives, FP = False Positives, FN = False Negatives
@@ -387,7 +387,11 @@ All sequences are stored in `benchmarking/base/` directory as FASTA files (`bact
 - **Ensemble:** Supports ensemble/voting prediction across multiple models? (Yes/No)
 - **External Models:** Allows integration of user-provided custom models (.pkl)? (Yes/No)
 
-**Note:** Benchmarking is currently in progress. Results will be updated as comparative experiments are completed using the standardized independent test set from Zulfiqar et al. (2024). All tools will be evaluated under identical conditions to ensure fair comparison. The confusion matrix values (TP, TN, FP, FN) provide a direct view of prediction performance across all tools.
+**Benchmarking Status:**
+
+Comparative benchmarking experiments against other AMP prediction tools are currently **in progress**. Performance metrics (accuracy values) will be updated as experiments are completed using the standardized independent test set described above. All tools will be evaluated under identical conditions to ensure fair and unbiased comparison.
+
+**Note:** Complete validation results for AMPidentifier's internal models (Random Forest, SVM, Gradient Boosting) are already available in the [Pre-Trained Internal Models](#pre-trained-internal-models) section, including detailed performance metrics (Accuracy, Precision, Recall, Specificity, F1-Score, MCC, AUC-ROC) and confusion matrix analysis in the [Benchmarking (Using the Ensemble Mode)](#benchmarking-using-the-ensemble-mode---real-data) section.
 
 ---
 
