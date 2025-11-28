@@ -65,7 +65,7 @@
 
 ## About
 
-The **AMPidentifier** is a Python tool for predicting and analyzing Antimicrobial Peptides (AMPs) from amino-acid sequences. It leverages a set of pre-trained Machine Learning models with **StandardScaler normalization** and offers flexible prediction modes, including an ensemble voting system, to provide robust results.
+The **AMPidentifier** is a Python tool for predicting and analyzing Antimicrobial Peptides (AMPs) from amino-acid sequences. It leverages a set of pre-trained Machine Learning models and offers flexible prediction modes, including an ensemble voting system, to provide robust results.
 
 **Unlike web servers or closed-source tools**, AMPidentifier operates as a **fully open and modular framework**. It includes pre-trained models (Random Forest, SVM, Gradient Boosting) that work both **individually** and in **ensemble mode**. Users can also **integrate external models** (`.pkl` files) to expand their analyses and compare different approaches side-by-side.
 
@@ -241,7 +241,7 @@ python3 main.py --input my_sequences.fasta --output_dir ./compare_svm --model sv
 
 ## Pre-Trained Internal Models
 
-Three models are distributed and evaluated on the same dataset for fair comparison. All models are trained with **StandardScaler normalization** for optimal performance.
+Three models are distributed and evaluated on the same dataset for fair comparison.
 
 ### Performance Summary
 
