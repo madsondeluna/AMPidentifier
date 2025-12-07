@@ -17,7 +17,7 @@
     <nav class="navbar">
         <div class="navbar-container">
             <a href="index.html" class="navbar-brand">
-                🧬 AMPidentifier
+                ⟨⟩ AMPidentifier
             </a>
             <ul class="navbar-nav">
                 <li><a href="index.html" class="nav-link">Home</a></li>
@@ -78,7 +78,7 @@
                     <div class="grid grid-2" style="margin-top: 2rem;">
                         <div
                             style="padding: 1.5rem; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
-                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">1️⃣ Entrada FASTA</h3>
+                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">① Entrada FASTA</h3>
                             <p style="color: var(--text-secondary);">
                                 Usuários fornecem sequências de aminoácidos em formato FASTA padrão. Múltiplas
                                 sequências podem ser processadas em uma única execução.
@@ -87,7 +87,7 @@
 
                         <div
                             style="padding: 1.5rem; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
-                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">2️⃣ Extração de Features</h3>
+                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">② Extração de Features</h3>
                             <p style="color: var(--text-secondary);">
                                 Calcula descritores físico-químicos usando a biblioteca modlamp, aplica normalização
                                 StandardScaler e gera arquivo CSV com propriedades detalhadas.
@@ -96,7 +96,7 @@
 
                         <div
                             style="padding: 1.5rem; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
-                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">3️⃣ Seleção de Modelo</h3>
+                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">③ Seleção de Modelo</h3>
                             <p style="color: var(--text-secondary);">
                                 Escolha entre modelo único (RF, SVM ou GB), modo Ensemble (recomendado) ou modelos
                                 externos personalizados para comparação.
@@ -105,7 +105,7 @@
 
                         <div
                             style="padding: 1.5rem; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
-                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">4️⃣ Predição e Resultados</h3>
+                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">④ Predição e Resultados</h3>
                             <p style="color: var(--text-secondary);">
                                 Gera relatório de predição com classificações AMP vs não-AMP, scores de confiança e
                                 comparação lado a lado dos modelos.
@@ -120,18 +120,18 @@
                 <div class="glass-card">
                     <h2 style="color: #667eea; margin-bottom: 1.5rem; font-size: 2rem;">Características Principais</h2>
                     <ul style="color: var(--text-secondary); line-height: 2; list-style-position: inside;">
-                        <li>✅ <strong>Múltiplos Modelos Internos:</strong> Três modelos ML pré-treinados (Random Forest,
+                        <li>▸ <strong>Múltiplos Modelos Internos:</strong> Três modelos ML pré-treinados (Random Forest,
                             Gradient Boosting, SVM)</li>
-                        <li>✅ <strong>Votação Ensemble:</strong> Voto majoritário entre modelos internos para melhorar
+                        <li>▸ <strong>Votação Ensemble:</strong> Voto majoritário entre modelos internos para melhorar
                             robustez</li>
-                        <li>✅ <strong>Seleção de Modelo:</strong> Escolha um modelo interno específico sob demanda</li>
-                        <li>✅ <strong>Comparação com Modelos Externos:</strong> Carregue modelos .pkl externos para
+                        <li>▸ <strong>Seleção de Modelo:</strong> Escolha um modelo interno específico sob demanda</li>
+                        <li>▸ <strong>Comparação com Modelos Externos:</strong> Carregue modelos .pkl externos para
                             comparação lado a lado</li>
-                        <li>✅ <strong>Geração de Features:</strong> Calcule e exporte um conjunto extenso de descritores
+                        <li>▸ <strong>Geração de Features:</strong> Calcule e exporte um conjunto extenso de descritores
                             físico-químicos</li>
-                        <li>✅ <strong>Design Modular:</strong> Cada componente opera independentemente e pode ser usado
+                        <li>▸ <strong>Design Modular:</strong> Cada componente opera independentemente e pode ser usado
                             separadamente</li>
-                        <li>✅ <strong>Features Normalizadas:</strong> StandardScaler garante performance consistente e
+                        <li>▸ <strong>Features Normalizadas:</strong> StandardScaler garante performance consistente e
                             otimizada dos modelos</li>
                     </ul>
                 </div>
@@ -177,11 +177,11 @@
 
                     <div
                         style="background: rgba(67, 233, 123, 0.1); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #43e97b;">
-                        <h3 style="color: #43e97b; margin-bottom: 1rem;">📊 Métricas do Ensemble:</h3>
+                        <h3 style="color: #43e97b; margin-bottom: 1rem;">▦ Métricas do Ensemble:</h3>
                         <ul style="color: var(--text-secondary); line-height: 2; list-style: none; padding-left: 0;">
-                            <li>• <strong>Acurácia:</strong> 87.47%</li>
-                            <li>• <strong>Sensibilidade (Recall):</strong> 85.96%</li>
-                            <li>• <strong>Especificidade:</strong> 88.98%</li>
+                            <li>▸ <strong>Acurácia:</strong> 87.47%</li>
+                            <li>▸ <strong>Sensibilidade (Recall):</strong> 85.96%</li>
+                            <li>▸ <strong>Especificidade:</strong> 88.98%</li>
                         </ul>
                     </div>
                 </div>
@@ -284,9 +284,9 @@
                             Instituto Nacional da Propriedade Industrial (Brasil).
                         </p>
                         <ul style="color: var(--text-secondary); line-height: 1.8; list-style: none; padding-left: 0;">
-                            <li>📋 <strong>Número de Registro:</strong> BR 51 2025 005859-4</li>
-                            <li>📅 <strong>Data de Registro:</strong> 18 de Novembro de 2025</li>
-                            <li>📝 <strong>Título:</strong> AMPidentifier: A modular python toolkit for predicting
+                            <li>▫ <strong>Número de Registro:</strong> BR 51 2025 005859-4</li>
+                            <li>▫ <strong>Data de Registro:</strong> 18 de Novembro de 2025</li>
+                            <li>▫ <strong>Título:</strong> AMPidentifier: A modular python toolkit for predicting
                                 antimicrobial peptides using ensemble machine learning</li>
                         </ul>
                     </div>
