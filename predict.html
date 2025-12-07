@@ -247,8 +247,14 @@ ANOTHERSEQUENCE</pre>
 
                 } catch (error) {
                     console.error('Prediction error:', error);
-                    showError(error.message || 'Erro ao processar predição. Verifique a configuração da API.');
                     hideLoading();
+
+                    // Se for erro de JSON, mostrar mensagem específica
+                    if (error.message && error.message.includes('JSON')) {
+                        showError('⚠️ Modo Demonstração Ativo: Este portal está configurado apenas para visualização. Para predições reais, use a ferramenta CLI do AMPidentifier ou configure uma API backend.');
+                    } else {
+                        showError(error.message || 'Erro ao processar predição.');
+                    }
                 }
             });
         }
