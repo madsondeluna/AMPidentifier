@@ -5,23 +5,54 @@
 
 /* CSS Variables - Design System */
 :root {
-    /* Colors - Inspired by biological/molecular themes */
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --accent-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    /* Color Palette - Gray, White, Purple */
+    --primary-purple: #8b5cf6;
+    --primary-purple-light: #a78bfa;
+    --primary-purple-dark: #7c3aed;
+    --accent-purple: #c4b5fd;
+    --accent-lavender: #e9d5ff;
 
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #13131a;
-    --bg-tertiary: #1a1a24;
+    /* Grayscale */
+    --gray-50: #fafafa;
+    --gray-100: #f4f4f5;
+    --gray-200: #e4e4e7;
+    --gray-300: #d4d4d8;
+    --gray-400: #a1a1aa;
+    --gray-500: #71717a;
+    --gray-600: #52525b;
+    --gray-700: #3f3f46;
+    --gray-800: #27272a;
+    --gray-900: #18181b;
 
-    --text-primary: #ffffff;
-    --text-secondary: #b4b4c8;
-    --text-muted: #6e6e8f;
+    /* Backgrounds */
+    --bg-primary: #0f0f14;
+    --bg-secondary: #1a1a24;
+    --bg-tertiary: #25253a;
 
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-shadow: rgba(0, 0, 0, 0.3);
+    /* Glass Effects - Frozen Glass */
+    --glass-bg: rgba(139, 92, 246, 0.03);
+    --glass-border: rgba(167, 139, 250, 0.15);
+    --glass-shadow: rgba(139, 92, 246, 0.1);
+    --glass-highlight: rgba(255, 255, 255, 0.05);
+
+    /* Text Colors */
+    --text-primary: #fafafa;
+    --text-secondary: #d4d4d8;
+    --text-muted: #a1a1aa;
+    --text-purple: #c4b5fd;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+    --gradient-secondary: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+    --gradient-accent: linear-gradient(135deg, #e9d5ff 0%, #c4b5fd 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+
+    /* Shadows - Elegant and Layered */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(139, 92, 246, 0.1);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(139, 92, 246, 0.15);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(139, 92, 246, 0.2);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(139, 92, 246, 0.25);
+    --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.15);
 
     /* Spacing */
     --spacing-xs: 0.5rem;
@@ -33,14 +64,14 @@
 
     /* Border Radius */
     --radius-sm: 8px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    --radius-xl: 32px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
 
     /* Transitions */
-    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Reset & Base Styles */
@@ -64,7 +95,7 @@ body {
     position: relative;
 }
 
-/* Animated Background */
+/* Animated Background - Purple Tones */
 body::before {
     content: '';
     position: fixed;
@@ -73,9 +104,9 @@ body::before {
     width: 100%;
     height: 100%;
     background:
-        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 20%, rgba(67, 233, 123, 0.05) 0%, transparent 50%);
+        radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(167, 139, 250, 0.04) 0%, transparent 50%);
     z-index: -1;
     animation: backgroundShift 20s ease-in-out infinite;
 }
@@ -94,27 +125,49 @@ body::before {
     }
 }
 
-/* Liquid Glass Card - Subtle Version */
+/* Frozen Glass Card - Elegant Purple Tint */
 .glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: linear-gradient(135deg,
+            rgba(139, 92, 246, 0.04) 0%,
+            rgba(167, 139, 250, 0.02) 100%);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     padding: var(--spacing-lg);
     box-shadow:
-        0 4px 16px 0 rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        var(--shadow-md),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+        inset 0 -1px 0 0 rgba(139, 92, 246, 0.05);
     transition: all var(--transition-base);
     position: relative;
+    overflow: hidden;
+}
+
+.glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(167, 139, 250, 0.3) 50%,
+            transparent 100%);
+    opacity: 0.5;
 }
 
 .glass-card:hover {
     transform: translateY(-2px);
     box-shadow:
-        0 8px 24px 0 rgba(0, 0, 0, 0.25),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
+        var(--shadow-lg),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 0 rgba(139, 92, 246, 0.1);
+    border-color: rgba(167, 139, 250, 0.25);
+    background: linear-gradient(135deg,
+            rgba(139, 92, 246, 0.06) 0%,
+            rgba(167, 139, 250, 0.03) 100%);
 }
 
 /* Navigation */
@@ -266,14 +319,14 @@ body::before {
 }
 
 .btn-primary {
-    background: var(--primary-gradient);
+    background: var(--gradient-primary);
     color: white;
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    box-shadow: var(--shadow-md), 0 0 20px rgba(139, 92, 246, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.6);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
 }
 
 .btn-secondary {
@@ -289,14 +342,14 @@ body::before {
 }
 
 .btn-success {
-    background: var(--accent-gradient);
+    background: var(--gradient-secondary);
     color: white;
-    box-shadow: 0 4px 16px rgba(67, 233, 123, 0.4);
+    box-shadow: var(--shadow-md), 0 0 16px rgba(167, 139, 250, 0.25);
 }
 
 .btn-success:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(67, 233, 123, 0.6);
+    box-shadow: var(--shadow-lg), 0 0 24px rgba(167, 139, 250, 0.4);
 }
 
 /* Form Elements */
@@ -326,9 +379,9 @@ body::before {
 
 .form-control:focus {
     outline: none;
-    border-color: rgba(102, 126, 234, 0.5);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary-purple-light);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    background: rgba(139, 92, 246, 0.05);
 }
 
 textarea.form-control {
@@ -366,19 +419,20 @@ select.form-control {
     width: 80px;
     height: 80px;
     margin: 0 auto var(--spacing-md);
-    background: var(--primary-gradient);
+    background: var(--gradient-primary);
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    font-size: 2.5rem;
+    color: white;
+    box-shadow: var(--shadow-md), var(--shadow-glow);
     transition: all var(--transition-base);
 }
 
 .feature-card:hover .feature-icon {
     transform: scale(1.05);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(139, 92, 246, 0.5);
 }
 
 .feature-title {
@@ -410,7 +464,7 @@ select.form-control {
 }
 
 .data-table thead {
-    background: rgba(102, 126, 234, 0.1);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(124, 58, 237, 0.08) 100%);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -442,8 +496,8 @@ select.form-control {
 .spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.1);
-    border-top-color: #667eea;
+    border: 4px solid rgba(139, 92, 246, 0.1);
+    border-top-color: var(--primary-purple);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: var(--spacing-xl) auto;
