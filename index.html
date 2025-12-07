@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AMPidentifier - Ferramenta de predição de peptídeos antimicrobianos usando machine learning">
+    <meta name="keywords" content="AMP, antimicrobial peptides, machine learning, bioinformatics">
+    <meta name="author" content="Madson A. de Luna Aragão">
+
+    <title>AMPidentifier - Antimicrobial Peptide Prediction</title>
+
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">
+                🧬 AMPidentifier
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="index.html" class="nav-link active">Home</a></li>
+                <li><a href="predict.html" class="nav-link">Predict</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="https://github.com/madsondeluna/AMPIdentifier" class="nav-link" target="_blank">GitHub</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Hero Section -->
+            <section class="hero">
+                <h1 class="hero-title">AMPidentifier</h1>
+                <p class="hero-subtitle">
+                    Uma ferramenta de predição de Peptídeos Antimicrobianos (AMPs) usando Machine Learning Ensemble
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="predict.html" class="btn btn-primary">Começar Predição</a>
+                    <a href="about.html" class="btn btn-secondary">Saiba Mais</a>
+                </div>
+            </section>
+
+            <!-- Features Grid - Minimalist -->
+            <section class="grid grid-3" style="margin-top: 4rem;">
+                <div class="glass-card feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3 class="feature-title">Ensemble Learning</h3>
+                    <p class="feature-description">
+                        Combina Random Forest, SVM e Gradient Boosting para predições robustas com 87.47% de acurácia
+                    </p>
+                </div>
+
+                <div class="glass-card feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Análise Completa</h3>
+                    <p class="feature-description">
+                        Calcula dezenas de descritores físico-químicos e exporta resultados em CSV
+                    </p>
+                </div>
+
+                <div class="glass-card feature-card">
+                    <div class="feature-icon">🔬</div>
+                    <h3 class="feature-title">Open Source</h3>
+                    <p class="feature-description">
+                        Código aberto, modular e flexível. Use modelos individuais ou personalizados
+                    </p>
+                </div>
+            </section>
+
+            <!-- Performance Metrics -->
+            <section style="margin-top: 4rem;">
+                <h2 class="text-center"
+                    style="font-size: 2.5rem; margin-bottom: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Performance dos Modelos
+                </h2>
+
+                <div class="glass-card">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Métrica</th>
+                                    <th>Random Forest</th>
+                                    <th>SVM</th>
+                                    <th>Gradient Boosting</th>
+                                    <th>Ensemble</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Accuracy</strong></td>
+                                    <td>88.45%</td>
+                                    <td>87.40%</td>
+                                    <td>85.85%</td>
+                                    <td><strong style="color: #43e97b;">87.47%</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Precision</strong></td>
+                                    <td>89.10%</td>
+                                    <td>88.80%</td>
+                                    <td>86.65%</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Recall</strong></td>
+                                    <td>87.62%</td>
+                                    <td>85.58%</td>
+                                    <td>84.75%</td>
+                                    <td><strong style="color: #43e97b;">85.96%</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Specificity</strong></td>
+                                    <td>89.28%</td>
+                                    <td>89.21%</td>
+                                    <td>86.94%</td>
+                                    <td><strong style="color: #43e97b;">88.98%</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>F1-Score</strong></td>
+                                    <td>88.36%</td>
+                                    <td>87.16%</td>
+                                    <td>85.69%</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>AUC-ROC</strong></td>
+                                    <td>95.03%</td>
+                                    <td>93.56%</td>
+                                    <td>92.89%</td>
+                                    <td>-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted text-center mt-2">
+                        <strong>Recomendação:</strong> Use o modo Ensemble para resultados mais robustos e confiáveis
+                    </p>
+                </div>
+            </section>
+
+            <!-- Call to Action -->
+            <section style="margin-top: 4rem; margin-bottom: 4rem; text-align: center;">
+                <div class="glass-card" style="padding: 3rem;">
+                    <h2 style="font-size: 2rem; margin-bottom: 1rem;">
+                        Pronto para começar?
+                    </h2>
+                    <p class="text-secondary" style="margin-bottom: 2rem; font-size: 1.1rem;">
+                        Experimente o AMPidentifier agora e descubra peptídeos antimicrobianos em suas sequências
+                    </p>
+                    <a href="predict.html" class="btn btn-success" style="font-size: 1.1rem; padding: 1rem 2.5rem;">
+                        Iniciar Predição →
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="static/js/main.js"></script>
+</body>
+
+</html>

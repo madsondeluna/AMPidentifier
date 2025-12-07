@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sobre o AMPidentifier - Ferramenta de predição de peptídeos antimicrobianos">
+    <title>About - AMPidentifier</title>
+
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">
+                🧬 AMPidentifier
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="predict.html" class="nav-link">Predict</a></li>
+                <li><a href="about.html" class="nav-link active">About</a></li>
+                <li><a href="https://github.com/madsondeluna/AMPIdentifier" class="nav-link" target="_blank">GitHub</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <section class="hero" style="padding: 2rem 0;">
+                <h1 class="hero-title" style="font-size: 3rem;">Sobre o AMPidentifier</h1>
+                <p class="hero-subtitle">
+                    Uma ferramenta modular e open-source para predição de peptídeos antimicrobianos
+                </p>
+            </section>
+
+            <!-- About Section -->
+            <section>
+                <div class="glass-card">
+                    <h2 style="color: #667eea; margin-bottom: 1.5rem; font-size: 2rem;">O que é o AMPidentifier?</h2>
+                    <p
+                        style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem; text-align: justify;">
+                        O <strong>AMPidentifier</strong> é uma ferramenta Python para predição e análise de Peptídeos
+                        Antimicrobianos (AMPs)
+                        a partir de sequências de aminoácidos. Ele utiliza um conjunto de modelos de Machine Learning
+                        pré-treinados e oferece
+                        modos de predição flexíveis, incluindo um sistema de votação ensemble, para fornecer resultados
+                        robustos.
+                    </p>
+                    <p
+                        style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem; text-align: justify;">
+                        <strong>Diferentemente de servidores web ou ferramentas de código fechado</strong>, o
+                        AMPidentifier opera como um
+                        <strong>framework totalmente aberto e modular</strong>. Ele inclui modelos pré-treinados (Random
+                        Forest, SVM, Gradient Boosting)
+                        que funcionam tanto <strong>individualmente</strong> quanto em <strong>modo ensemble</strong>.
+                        Os usuários também podem
+                        <strong>integrar modelos externos</strong> (arquivos .pkl) para expandir suas análises e
+                        comparar diferentes abordagens lado a lado.
+                    </p>
+                    <p style="color: var(--text-secondary); line-height: 1.8; text-align: justify;">
+                        Além da classificação, o AMPidentifier calcula e exporta dezenas de descritores físico-químicos
+                        para cada sequência
+                        (via biblioteca <code>modlamp</code>) e os agrupa em um relatório detalhado.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Workflow -->
+            <section style="margin-top: 2rem;">
+                <div class="glass-card">
+                    <h2 style="color: #667eea; margin-bottom: 1.5rem; font-size: 2rem;">Fluxo de Trabalho</h2>
+                    <div class="grid grid-2" style="margin-top: 2rem;">
+                        <div
+                            style="padding: 1.5rem; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">1️⃣ Entrada FASTA</h3>
+                            <p style="color: var(--text-secondary);">
+                                Usuários fornecem sequências de aminoácidos em formato FASTA padrão. Múltiplas
+                                sequências podem ser processadas em uma única execução.
+                            </p>
+                        </div>
+
+                        <div
+                            style="padding: 1.5rem; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">2️⃣ Extração de Features</h3>
+                            <p style="color: var(--text-secondary);">
+                                Calcula descritores físico-químicos usando a biblioteca modlamp, aplica normalização
+                                StandardScaler e gera arquivo CSV com propriedades detalhadas.
+                            </p>
+                        </div>
+
+                        <div
+                            style="padding: 1.5rem; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">3️⃣ Seleção de Modelo</h3>
+                            <p style="color: var(--text-secondary);">
+                                Escolha entre modelo único (RF, SVM ou GB), modo Ensemble (recomendado) ou modelos
+                                externos personalizados para comparação.
+                            </p>
+                        </div>
+
+                        <div
+                            style="padding: 1.5rem; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                            <h3 style="color: #667eea; margin-bottom: 0.5rem;">4️⃣ Predição e Resultados</h3>
+                            <p style="color: var(--text-secondary);">
+                                Gera relatório de predição com classificações AMP vs não-AMP, scores de confiança e
+                                comparação lado a lado dos modelos.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Key Features -->
+            <section style="margin-top: 2rem;">
+                <div class="glass-card">
+                    <h2 style="color: #667eea; margin-bottom: 1.5rem; font-size: 2rem;">Características Principais</h2>
+                    <ul style="color: var(--text-secondary); line-height: 2; list-style-position: inside;">
+                        <li>✅ <strong>Múltiplos Modelos Internos:</strong> Três modelos ML pré-treinados (Random Forest,
+                            Gradient Boosting, SVM)</li>
+                        <li>✅ <strong>Votação Ensemble:</strong> Voto majoritário entre modelos internos para melhorar
+                            robustez</li>
+                        <li>✅ <strong>Seleção de Modelo:</strong> Escolha um modelo interno específico sob demanda</li>
+                        <li>✅ <strong>Comparação com Modelos Externos:</strong> Carregue modelos .pkl externos para
+                            comparação lado a lado</li>
+                        <li>✅ <strong>Geração de Features:</strong> Calcule e exporte um conjunto extenso de descritores
+                            físico-químicos</li>
+                        <li>✅ <strong>Design Modular:</strong> Cada componente opera independentemente e pode ser usado
+                            separadamente</li>
+                        <li>✅ <strong>Features Normalizadas:</strong> StandardScaler garante performance consistente e
+                            otimizada dos modelos</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Performance -->
+            <section style="margin-top: 2rem;">
+                <div class="glass-card">
+                    <h2 style="color: #667eea; margin-bottom: 1.5rem; font-size: 2rem;">Performance do Ensemble</h2>
+
+                    <div class="table-container" style="margin-bottom: 1.5rem;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Predito: Negativo</th>
+                                    <th>Predito: Positivo</th>
+                                    <th>Total Real</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Real: Negativo</strong></td>
+                                    <td><strong style="color: #43e97b;">TN = 1179</strong> (88.98%)</td>
+                                    <td><strong style="color: #f5576c;">FP = 146</strong> (11.02%)</td>
+                                    <td>1325</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Real: Positivo</strong></td>
+                                    <td><strong style="color: #f5576c;">FN = 186</strong> (14.04%)</td>
+                                    <td><strong style="color: #43e97b;">TP = 1139</strong> (85.96%)</td>
+                                    <td>1325</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total Predito</strong></td>
+                                    <td>1365</td>
+                                    <td>1285</td>
+                                    <td><strong>2650</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div
+                        style="background: rgba(67, 233, 123, 0.1); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #43e97b;">
+                        <h3 style="color: #43e97b; margin-bottom: 1rem;">📊 Métricas do Ensemble:</h3>
+                        <ul style="color: var(--text-secondary); line-height: 2; list-style: none; padding-left: 0;">
+                            <li>• <strong>Acurácia:</strong> 87.47%</li>
+                            <li>• <strong>Sensibilidade (Recall):</strong> 85.96%</li>
+                            <li>• <strong>Especificidade:</strong> 88.98%</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contributors -->
+            <section style="margin-top: 2rem;">
+                <div class="glass-card">
+                    <h2 style="color: #667eea; margin-bottom: 1.5rem; font-size: 2rem;">Equipe</h2>
+
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="color: #43e97b; margin-bottom: 1rem;">Desenvolvedor Principal</h3>
+                        <div style="padding: 1rem; background: rgba(255, 255, 255, 0.02); border-radius: 8px;">
+                            <p style="color: var(--text-primary); font-weight: 600; margin-bottom: 0.5rem;">
+                                Madson A. de Luna Aragão, MSc
+                            </p>
+                            <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                Doutorando em Bioinformática, UFMG - Belo Horizonte, MG, Brasil
+                            </p>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                                <strong>Responsabilidades:</strong> Liderança do projeto, arquitetura de software,
+                                pipelines de ML, documentação
+                            </p>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                                <strong>Contato:</strong> madsondeluna@gmail.com
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="color: #43e97b; margin-bottom: 1rem;">Colaboradores</h3>
+                        <div style="padding: 1rem; background: rgba(255, 255, 255, 0.02); border-radius: 8px;">
+                            <p style="color: var(--text-primary); font-weight: 600; margin-bottom: 0.5rem;">
+                                Rafael L. da Silva, BSc
+                            </p>
+                            <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                Mestrando, UFPE
+                            </p>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                                <strong>Contribuições:</strong> Pré-processamento de dados, testes de pipeline, revisão
+                                de literatura
+                            </p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 style="color: #43e97b; margin-bottom: 1rem;">Equipe de Orientação</h3>
+                        <div style="display: grid; gap: 1rem;">
+                            <div style="padding: 1rem; background: rgba(255, 255, 255, 0.02); border-radius: 8px;">
+                                <p style="color: var(--text-primary); font-weight: 600;">Ana M. Benko-Iseppon, PhD</p>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Investigadora Principal,
+                                    UFPE - Orientadora</p>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(255, 255, 255, 0.02); border-radius: 8px;">
+                                <p style="color: var(--text-primary); font-weight: 600;">João Pacífico, PhD</p>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Investigador Principal, UPE
+                                    - Co-orientador</p>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(255, 255, 255, 0.02); border-radius: 8px;">
+                                <p style="color: var(--text-primary); font-weight: 600;">Carlos A. dos Santos-Silva, PhD
+                                </p>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Professor, CESMAC -
+                                    Co-orientador</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Funding -->
+            <section style="margin-top: 2rem;">
+                <div class="glass-card">
+                    <h2 style="color: #667eea; margin-bottom: 1.5rem; font-size: 2rem;">Financiamento e Agradecimentos
+                    </h2>
+                    <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem;">
+                        <strong>Detentor Principal:</strong> Este software está oficialmente registrado sob a
+                        <strong>UFPE</strong> -
+                        Universidade Federal de Pernambuco (Brasil).
+                    </p>
+                    <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem;">
+                        Esta pesquisa foi apoiada pela <strong>FACEPE</strong> - Fundação de Amparo à Pesquisa do Estado
+                        de Pernambuco (Brasil).
+                    </p>
+                    <p style="color: var(--text-secondary); line-height: 1.8;">
+                        Agradecemos ao <strong>PPGGBM</strong> - Programa de Pós-Graduação em Genética e Biologia
+                        Molecular da UFPE
+                        pelo suporte institucional.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Intellectual Property -->
+            <section style="margin-top: 2rem;">
+                <div class="glass-card">
+                    <h2 style="color: #667eea; margin-bottom: 1.5rem; font-size: 2rem;">Propriedade Intelectual</h2>
+                    <div
+                        style="background: rgba(102, 126, 234, 0.1); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #667eea;">
+                        <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 0.5rem;">
+                            Esta ferramenta está <strong>oficialmente registrada</strong> no <strong>INPI</strong> -
+                            Instituto Nacional da Propriedade Industrial (Brasil).
+                        </p>
+                        <ul style="color: var(--text-secondary); line-height: 1.8; list-style: none; padding-left: 0;">
+                            <li>📋 <strong>Número de Registro:</strong> BR 51 2025 005859-4</li>
+                            <li>📅 <strong>Data de Registro:</strong> 18 de Novembro de 2025</li>
+                            <li>📝 <strong>Título:</strong> AMPidentifier: A modular python toolkit for predicting
+                                antimicrobial peptides using ensemble machine learning</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Citation -->
+            <section style="margin-top: 2rem; margin-bottom: 4rem;">
+                <div class="glass-card">
+                    <h2 style="color: #667eea; margin-bottom: 1.5rem; font-size: 2rem;">Como Citar</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Se esta ferramenta ou seus resultados apoiarem sua pesquisa, por favor cite o repositório:
+                    </p>
+                    <div
+                        style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 12px; overflow-x: auto;">
+                        <pre style="color: #43e97b; margin: 0; white-space: pre-wrap; font-size: 0.9rem;">Luna-Aragão, M. A., da Silva, R. L., Pacífico, J., Santos-Silva, C. A. & Benko-Iseppon, A. M. (2025). 
+AMPidentifier: A Python toolkit for predicting antimicrobial peptides using ensemble machine learning 
+and physicochemical descriptors. GitHub repository. https://github.com/madsondeluna/AMPIdentifier</pre>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="static/js/main.js"></script>
+</body>
+
+</html>

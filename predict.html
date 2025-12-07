@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Predição de peptídeos antimicrobianos - AMPidentifier">
+    <title>Predict - AMPidentifier</title>
+
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">
+                🧬 AMPidentifier
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="predict.html" class="nav-link active">Predict</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="https://github.com/madsondeluna/AMPIdentifier" class="nav-link" target="_blank">GitHub</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <section class="hero" style="padding: 2rem 0;">
+                <h1 class="hero-title" style="font-size: 3rem;">Predição de AMPs</h1>
+                <p class="hero-subtitle">
+                    Cole suas sequências em formato FASTA e escolha o modelo de predição
+                </p>
+            </section>
+
+            <!-- Prediction Form -->
+            <section>
+                <div class="glass-card">
+                    <form id="prediction-form">
+                        <div class="form-group">
+                            <label for="fasta-input" class="form-label">
+                                Sequências FASTA
+                                <span class="text-muted" style="font-weight: 400; font-size: 0.9rem;">
+                                    (Cole suas sequências ou use o exemplo)
+                                </span>
+                            </label>
+                            <textarea id="fasta-input" class="form-control"
+                                placeholder=">sequence_1&#10;KRIVQRIKDFLRNLVPRTES&#10;>sequence_2&#10;RTCESQSHKFKGQCRDDFCYTKQCVVNKACHVGGRCVKPFCCK"
+                                required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="button" id="load-example" class="btn btn-secondary"
+                                data-example=">sp|P0C8L5|AMP1_HUMAN Antimicrobial peptide 1&#10;KRIVQRIKDFLRNLVPRTES&#10;>sp|P81534|DEF1_PHAVU Defensin-1&#10;RTCESQSHKFKGQCRDDFCYTKQCVVNKACHVGGRCVKPFCCK&#10;>sp|P0DJI8|DEF1_HUMAN Defensin-1&#10;DCYCRIPACIAGERRYGTCIYQGRLWAFCC">
+                                📋 Carregar Exemplo
+                            </button>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="model-select" class="form-label">
+                                Modelo de Predição
+                            </label>
+                            <select id="model-select" class="form-control">
+                                <option value="ensemble" selected>🎯 Ensemble (Recomendado) - Combina RF + SVM + GB
+                                </option>
+                                <option value="rf">🌲 Random Forest - Melhor acurácia individual (88.45%)</option>
+                                <option value="svm">⚡ Support Vector Machine - Alta precisão (88.80%)</option>
+                                <option value="gb">📊 Gradient Boosting - Boa generalização (85.85%)</option>
+                            </select>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>💡 Dica:</strong> O modo Ensemble combina os três modelos através de votação
+                            majoritária,
+                            proporcionando predições mais robustas e confiáveis. Recomendado para uso geral.
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem;">
+                            🚀 Executar Predição
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <section id="loading" class="hidden" style="text-align: center; margin-top: 2rem;">
+                <div class="glass-card">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 1rem; color: var(--text-secondary);">
+                        Processando suas sequências...<br>
+                        <small>Extraindo features e executando predição</small>
+                    </p>
+                </div>
+            </section>
+
+            <!-- Error Message -->
+            <div id="error-message" class="alert alert-error hidden" style="margin-top: 2rem;">
+                Erro ao processar predição
+            </div>
+
+            <!-- Results Section -->
+            <section id="results-container" class="hidden" style="margin-top: 3rem;">
+                <h2
+                    style="font-size: 2rem; margin-bottom: 1.5rem; text-align: center; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Resultados da Predição
+                </h2>
+
+                <!-- Predictions Table -->
+                <div class="glass-card" style="margin-bottom: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                        <h3 style="margin: 0;">📊 Predições</h3>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button onclick="downloadPredictions('csv')" class="btn btn-success">
+                                💾 Download CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div id="predictions-table"></div>
+                    </div>
+                </div>
+
+                <!-- Features Table -->
+                <div class="glass-card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                        <h3 style="margin: 0;">🔬 Features Físico-Químicas</h3>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button onclick="downloadFeatures('csv')" class="btn btn-success">
+                                💾 Download CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div id="features-table"></div>
+                    </div>
+                </div>
+
+                <!-- New Prediction Button -->
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button onclick="window.location.reload()" class="btn btn-secondary">
+                        🔄 Nova Predição
+                    </button>
+                </div>
+            </section>
+
+            <!-- Information Cards -->
+            <section style="margin-top: 3rem;">
+                <div class="grid grid-2">
+                    <div class="glass-card">
+                        <h3 style="color: #667eea; margin-bottom: 1rem;">📝 Formato FASTA</h3>
+                        <p class="text-secondary" style="margin-bottom: 1rem;">
+                            O formato FASTA é um formato de texto para representar sequências de nucleotídeos ou
+                            peptídeos:
+                        </p>
+                        <pre
+                            style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; color: #43e97b;">
+>sequence_id Description
+AMINOACIDSEQUENCE
+>another_sequence
+ANOTHERSEQUENCE</pre>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3 style="color: #667eea; margin-bottom: 1rem;">⚙️ Sobre os Modelos</h3>
+                        <ul style="color: var(--text-secondary); line-height: 1.8;">
+                            <li><strong>Random Forest:</strong> Melhor acurácia geral (88.45%)</li>
+                            <li><strong>SVM:</strong> Alta precisão e especificidade</li>
+                            <li><strong>Gradient Boosting:</strong> Boa generalização</li>
+                            <li><strong>Ensemble:</strong> Combina os três para máxima robustez</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="static/js/main.js"></script>
+    <script>
+        // API Configuration - VOCÊ PRECISARÁ CONFIGURAR ISSO
+        const API_URL = 'https://your-api-endpoint.com/api/predict';
+
+        // Override the prediction form handler for GitHub Pages
+        const predictionForm = document.getElementById('prediction-form');
+        if (predictionForm) {
+            predictionForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const fastaSequence = document.getElementById('fasta-input').value;
+                const modelChoice = document.getElementById('model-select').value;
+
+                showLoading();
+                hideResults();
+                hideError();
+
+                try {
+                    // OPÇÃO 1: Chamar API externa (você precisará hospedar o backend separadamente)
+                    // const response = await fetch(API_URL, {
+                    //     method: 'POST',
+                    //     headers: { 'Content-Type': 'application/json' },
+                    //     body: JSON.stringify({
+                    //         fasta_sequence: fastaSequence,
+                    //         model: modelChoice
+                    //     })
+                    // });
+
+                    // OPÇÃO 2: Demonstração com dados mockados (temporário)
+                    // Simular processamento
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                    // Dados de exemplo
+                    const mockData = {
+                        success: true,
+                        timestamp: new Date().toISOString(),
+                        model: modelChoice,
+                        num_sequences: 3,
+                        predictions: [
+                            { 'Sequence_ID': 'P0C8L5', 'Sequence': 'KRIVQRIKDFLRNLVPRTES', 'Prediction': 'AMP', 'RF_Prediction': 1, 'SVM_Prediction': 1, 'GB_Prediction': 1, 'Ensemble_Vote': 'AMP' },
+                            { 'Sequence_ID': 'P81534', 'Sequence': 'RTCESQSHKFKGQCRDDFCYTKQCVVNKACHVGGRCVKPFCCK', 'Prediction': 'AMP', 'RF_Prediction': 1, 'SVM_Prediction': 1, 'GB_Prediction': 1, 'Ensemble_Vote': 'AMP' },
+                            { 'Sequence_ID': 'P0DJI8', 'Sequence': 'DCYCRIPACIAGERRYGTCIYQGRLWAFCC', 'Prediction': 'AMP', 'RF_Prediction': 1, 'SVM_Prediction': 1, 'GB_Prediction': 0, 'Ensemble_Vote': 'AMP' }
+                        ],
+                        features: [
+                            { 'Sequence_ID': 'P0C8L5', 'Length': 20, 'Hydrophobicity': 0.425, 'Charge': 3.0, 'pI': 10.84, 'Aromaticity': 0.15, 'Instability': 42.3, 'Aliphatic': 1.15, 'Molecular_Weight': 2456.89, 'GRAVY': -0.235, 'Helix_Fraction': 0.45 },
+                            { 'Sequence_ID': 'P81534', 'Length': 43, 'Hydrophobicity': 0.312, 'Charge': 2.0, 'pI': 8.92, 'Aromaticity': 0.09, 'Instability': 38.7, 'Aliphatic': 0.89, 'Molecular_Weight': 4823.45, 'GRAVY': -0.512, 'Helix_Fraction': 0.23 },
+                            { 'Sequence_ID': 'P0DJI8', 'Length': 30, 'Hydrophobicity': 0.289, 'Charge': 1.0, 'pI': 7.45, 'Aromaticity': 0.13, 'Instability': 35.2, 'Aliphatic': 0.76, 'Molecular_Weight': 3345.67, 'GRAVY': -0.387, 'Helix_Fraction': 0.33 }
+                        ],
+                        predictions_columns: ['Sequence_ID', 'Sequence', 'Prediction', 'RF_Prediction', 'SVM_Prediction', 'GB_Prediction', 'Ensemble_Vote'],
+                        features_columns: ['Sequence_ID', 'Length', 'Hydrophobicity', 'Charge', 'pI', 'Aromaticity', 'Instability', 'Aliphatic', 'Molecular_Weight', 'GRAVY', 'Helix_Fraction']
+                    };
+
+                    displayResults(mockData);
+                    hideLoading();
+
+                    // Mostrar aviso sobre dados mockados
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-info';
+                    alert.style.marginTop = '1rem';
+                    alert.innerHTML = '<strong>ℹ️ Modo Demonstração:</strong> Estes são resultados de exemplo. Para predições reais, você precisa configurar a API backend.';
+                    document.getElementById('results-container').insertBefore(alert, document.getElementById('results-container').firstChild);
+
+                } catch (error) {
+                    console.error('Prediction error:', error);
+                    showError(error.message || 'Erro ao processar predição. Verifique a configuração da API.');
+                    hideLoading();
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
