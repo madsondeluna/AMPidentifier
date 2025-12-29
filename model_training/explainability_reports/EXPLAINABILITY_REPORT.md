@@ -1,6 +1,6 @@
 # Model Explainability Report
 
-**Generated:** 2025-12-29 02:52:27
+**Generated:** 2025-12-29 04:17:49
 
 ---
 
@@ -63,6 +63,14 @@ SHAP (SHapley Additive exPlanations) is a game-theoretic approach to explain mac
    - Shows relationship between feature values and SHAP values
    - Reveals non-linear relationships and interactions
 
+5. **Interaction Plots:** `rf_interaction_*.png` (RF/GB only)
+   - Shows strong interactions between pairs of features
+   - How one feature's effect depends on another
+
+6. **Decision Plot:** `rf_decision_plot.png`
+   - Traces the model's decision path for select samples
+   - Shows how features cooperatively shift prediction from base value
+
 ---
 
 ## SVM Model Analysis
@@ -99,6 +107,14 @@ SHAP (SHapley Additive exPlanations) is a game-theoretic approach to explain mac
    - Shows relationship between feature values and SHAP values
    - Reveals non-linear relationships and interactions
 
+5. **Interaction Plots:** `svm_interaction_*.png` (RF/GB only)
+   - Shows strong interactions between pairs of features
+   - How one feature's effect depends on another
+
+6. **Decision Plot:** `svm_decision_plot.png`
+   - Traces the model's decision path for select samples
+   - Shows how features cooperatively shift prediction from base value
+
 ---
 
 ## GB Model Analysis
@@ -134,6 +150,14 @@ SHAP (SHapley Additive exPlanations) is a game-theoretic approach to explain mac
 4. **Dependence Plots:** `gb_dependence_*.png`
    - Shows relationship between feature values and SHAP values
    - Reveals non-linear relationships and interactions
+
+5. **Interaction Plots:** `gb_interaction_*.png` (RF/GB only)
+   - Shows strong interactions between pairs of features
+   - How one feature's effect depends on another
+
+6. **Decision Plot:** `gb_decision_plot.png`
+   - Traces the model's decision path for select samples
+   - Shows how features cooperatively shift prediction from base value
 
 ---
 
@@ -186,6 +210,8 @@ For each model (RF, SVM, GB):
 - `{model}_bar_plot.png` - Feature importance bar plot
 - `{model}_waterfall_sample_*.png` - Individual prediction explanations
 - `{model}_dependence_*.png` - Feature dependence plots
+- `{model}_interaction_*.png` - Interaction plots (RF/GB)
+- `{model}_decision_plot.png` - Decision path plots
 - `{model}_feature_importance.csv` - Feature importance table
 
 ### Comparison Files

@@ -2,7 +2,7 @@
 
 **Data:** 2025-12-29  
 **Branch:** beta  
-**Status:** Concluído ✅
+**Status:** Concluído 
 
 ---
 

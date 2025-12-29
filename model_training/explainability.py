@@ -284,6 +284,129 @@ def plot_dependence_plots(shap_values, X_data, model_name, feature_names, top_n=
     print(f"Dependence plots saved for top {top_n} features")
 
 
+def plot_interaction_analysis(explainer, X_data, model_name, feature_names, top_n=3):
+    """
+    Calculate and plot SHAP interaction values.
+    Only feasible for Tree-based models (RF, GB).
+    """
+    # Skip for SVM or non-tree models
+    if model_name == 'svm':
+        print(f"Skipping interaction analysis for {model_name.upper()} (computationally expensive/unsupported)")
+        return
+
+    print(f"Calculating interaction values for {model_name.upper()}...")
+    
+    try:
+        # Calculate interaction values
+        # Shape: (n_samples, n_features, n_features, n_classes) for binary
+        shap_interaction = explainer.shap_interaction_values(X_data)
+        
+        # Handle binary classification shape
+        if isinstance(shap_interaction, list):
+            interaction_values = shap_interaction[1]
+        elif len(shap_interaction.shape) == 4:
+             # (samples, features, features, classes) -> get positive class
+            interaction_values = shap_interaction[:, :, :, 1]
+        else:
+            interaction_values = shap_interaction
+            
+        # Get absolute mean interaction strength (diagonal is main effect, off-diagonal is interaction)
+        # We set diagonal to 0 to find strongest interactions between DIFFERENT features
+        tmp_interaction = np.abs(interaction_values).mean(0)
+        np.fill_diagonal(tmp_interaction, 0)
+        
+        # Find top interactions
+        # Flatten and sort indices
+        flat_indices = np.argsort(-tmp_interaction.ravel())
+        top_indices = flat_indices[:top_n]
+        
+        print(f"Generating top {top_n} interaction plots for {model_name.upper()}...")
+        
+        for idx in top_indices:
+            # Convert flat index back to 2D
+            row_idx, col_idx = np.unravel_index(idx, tmp_interaction.shape)
+            
+            feature_i = feature_names[row_idx]
+            feature_j = feature_names[col_idx]
+            
+            plt.figure(figsize=(10, 6))
+            shap.dependence_plot(
+                (feature_i, feature_j),
+                interaction_values,
+                X_data,
+                feature_names=feature_names,
+                show=False
+            )
+            
+            plt.title(f'SHAP Interaction: {feature_i} vs {feature_j}\n{model_name.upper()} Model',
+                     fontsize=14, fontweight='bold')
+            plt.tight_layout()
+            
+            safe_name_i = feature_i.replace('/', '_').replace(' ', '_')
+            safe_name_j = feature_j.replace('/', '_').replace(' ', '_')
+            
+            output_path = os.path.join(EXPLAINABILITY_DIR, 
+                                     f'{model_name}_interaction_{safe_name_i}_vs_{safe_name_j}.png')
+            plt.savefig(output_path, dpi=300, bbox_inches='tight')
+            plt.close()
+            
+        print(f"Interaction plots saved")
+        
+    except Exception as e:
+        print(f"Could not calculate interactions for {model_name}: {e}")
+
+
+def plot_decision_plot(shap_values, X_data, model_name, feature_names):
+    """
+    Generate SHAP decision plot.
+    Shows the path of model decisions for a subset of samples.
+    """
+    print(f"Generating decision plot for {model_name.upper()}...")
+    
+    # Handle SHAP values format
+    if isinstance(shap_values, list):
+        shap_values_plot = shap_values[1]
+        base_value = shap_values[1].mean() # Approximation if base_value not available directly
+    elif len(shap_values.shape) == 3:
+        shap_values_plot = shap_values[:, :, 1]
+        base_value = 0 # TreeExplainer usually centers on log-odds
+    else:
+        shap_values_plot = shap_values
+        base_value = 0
+        
+    # Select a subset of samples (e.g., 20) to keep the plot readable
+    n_samples = 20
+    # Select 10 positive (AMP) and 10 negative (non-AMP) if possible, or just random
+    # Since we don't have labels here easily, we'll take top and bottom predictions based on SHAP sum
+    
+    shap_sums = shap_values_plot.sum(axis=1)
+    sorted_indices = np.argsort(shap_sums)
+    
+    # Pick 10 lowest and 10 highest probability samples
+    low_indices = sorted_indices[:10]
+    high_indices = sorted_indices[-10:]
+    subset_indices = np.concatenate([low_indices, high_indices])
+    
+    plt.figure(figsize=(10, 8))
+    shap.decision_plot(
+        base_value,
+        shap_values_plot[subset_indices],
+        X_data.iloc[subset_indices] if isinstance(X_data, pd.DataFrame) else X_data[subset_indices],
+        feature_names=feature_names,
+        show=False,
+        link='logit' # Assuming classification, logit link makes it probability-like
+    )
+    
+    plt.title(f'SHAP Decision Plot (20 Samples) - {model_name.upper()} Model', fontsize=16, fontweight='bold')
+    plt.tight_layout()
+    
+    output_path = os.path.join(EXPLAINABILITY_DIR, f'{model_name}_decision_plot.png')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    print(f"Decision plot saved to {output_path}")
+
+
 def generate_feature_importance_table(shap_values, feature_names, model_name):
     """
     Generate a table with feature importance rankings.
@@ -451,6 +574,14 @@ def generate_markdown_report(all_importances, model_names):
             f.write(f"4. **Dependence Plots:** `{model_name}_dependence_*.png`\n")
             f.write(f"   - Shows relationship between feature values and SHAP values\n")
             f.write(f"   - Reveals non-linear relationships and interactions\n\n")
+
+            f.write(f"5. **Interaction Plots:** `{model_name}_interaction_*.png` (RF/GB only)\n")
+            f.write(f"   - Shows strong interactions between pairs of features\n")
+            f.write(f"   - How one feature's effect depends on another\n\n")
+
+            f.write(f"6. **Decision Plot:** `{model_name}_decision_plot.png`\n")
+            f.write(f"   - Traces the model's decision path for select samples\n")
+            f.write(f"   - Shows how features cooperatively shift prediction from base value\n\n")
             
             f.write("---\n\n")
         
@@ -498,6 +629,8 @@ def generate_markdown_report(all_importances, model_names):
         f.write("- `{model}_bar_plot.png` - Feature importance bar plot\n")
         f.write("- `{model}_waterfall_sample_*.png` - Individual prediction explanations\n")
         f.write("- `{model}_dependence_*.png` - Feature dependence plots\n")
+        f.write("- `{model}_interaction_*.png` - Interaction plots (RF/GB)\n")
+        f.write("- `{model}_decision_plot.png` - Decision path plots\n")
         f.write("- `{model}_feature_importance.csv` - Feature importance table\n\n")
         
         f.write("### Comparison Files\n\n")
@@ -540,6 +673,10 @@ def main():
         plot_waterfall_examples(shap_values, X_sample, model_name, feature_names, n_examples=3)
         plot_dependence_plots(shap_values, X_sample, model_name, feature_names, top_n=5)
         
+        # New Analyses
+        plot_interaction_analysis(explainer, X_sample, model_name, feature_names, top_n=3)
+        plot_decision_plot(shap_values, X_sample, model_name, feature_names)
+        
         # Generate feature importance table
         importance_df = generate_feature_importance_table(shap_values, feature_names, model_name)
         all_importances[model_name] = importance_df
@@ -564,6 +701,8 @@ def main():
     print("  - Feature importance bar plots (3)")
     print("  - Waterfall plots (9 total, 3 per model)")
     print("  - Dependence plots (15 total, 5 per model)")
+    print("  - Interaction plots (6 total, 3 per RF/GB)")
+    print("  - Decision plots (3 total)")
     print("  - Feature importance tables (3 CSV files)")
     print("  - Model comparison plot and table")
     print("  - Comprehensive Markdown report")
