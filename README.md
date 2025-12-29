@@ -532,13 +532,6 @@ Comparative benchmarking experiments against other AMP prediction tools are curr
 
 ---
 
-
-
----
-
-
----
-
 ## Model Explainability & Interpretability (SHAP Analysis)
 
 To ensure transparency and biological validity, we employed **SHAP (SHapley Additive exPlanations)** to dissect the decision-making process of our models. This analysis reveals that our models are not "black boxes" but rather learn to prioritize physicochemical features consistent with known antimicrobial peptide (AMP) biology.
