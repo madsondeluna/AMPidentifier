@@ -2,13 +2,23 @@
 
 **Data:** 2025-12-29  
 **Branch:** beta  
-**Status:** Implementado
+**Status:** Concluído ✅
 
 ---
 
 ## Resumo Executivo
 
-Foi implementado um sistema completo de explicabilidade para os três modelos de predição de AMPs usando SHAP (SHapley Additive exPlanations). O objetivo é demonstrar que os modelos **não são caixas pretas** e fornecer insights sobre quais features contribuem mais para as predições.
+Foi implementado um sistema completo de explicabilidade para os três modelos de predição de AMPs usando SHAP. A análise foi executada com sucesso e gerou relatórios detalhados que comprovam a transparência dos modelos.
+
+### Principais Resultados da Análise
+
+- **Random Forest:** `Charge` (Carga) e `ChargeDensity` são as features mais decisivas.
+- **SVM:** `Length` (Comprimento) e `ChargeDensity` dominam a decisão.
+- **Gradient Boosting:** Altamente focado em `Charge`, seguido por `ChargeDensity`.
+
+Existe um consenso claro entre os modelos de que propriedades relacionadas à **Carga** (Charge, ChargeDensity) e **Estrutura** (Length, MW) são fundamentais para identificar Peptídeos Antimicrobianos, o que é biologicamente coerente.
+
+Todas as visualizações e tabelas foram geradas e salvas em `model_training/explainability_reports/`.
 
 ---
 
