@@ -543,6 +543,77 @@ Comparative benchmarking experiments against other AMP prediction tools are curr
 
 ---
 
+
+---
+
+## 🔬 Model Explainability & Interpretability (SHAP Analysis)
+
+To ensure transparency and biological validity, we employed **SHAP (SHapley Additive exPlanations)** to dissect the decision-making process of our models. This analysis reveals that our models are not "black boxes" but rather learn to prioritize physicochemical features consistent with known antimicrobial peptide (AMP) biology.
+
+### 1. Random Forest (RF) - The "Electrostatic Balanced" Model
+**Behavior:** Robustly balances charge-based features with structural properties.
+
+#### Global Feature Importance (Summary Plot)
+Red points indicate high feature values, blue points indicate low values. The horizontal position shows the impact on model output (positive SHAP = AMP prediction).
+
+![RF Summary](model_training/explainability_reports/rf_summary_plot.png)
+
+**Technical Interpretation:**
+*   **Charge & ChargeDensity (Top Predictors):** High positive charge is the strongest driver for AMP classification, aligning with the electrostatic attraction mechanism required for membrane interaction.
+*   **Biological Nuance:** The model correctly identifies that while hydrophobicity matters, the *electrostatic trigger* is the primary filter.
+
+#### Non-Linear Interactions (Interaction Plots)
+The model captures complex synergies between features.
+
+![RF Interaction](model_training/explainability_reports/rf_interaction_Length_vs_Aromaticity.png)
+> **Length vs. Aromaticity:** The importance of aromatic residues (membrane anchors like Trp/Phe) is modulated by peptide length. Specific length windows maximize the stabilization effect of aromatic rings.
+
+#### Decision Trajectory (Decision Plot)
+Visualizing the cumulative decision path for individual samples.
+
+![RF Decision](model_training/explainability_reports/rf_decision_plot.png)
+
+---
+
+### 2. Gradient Boosting (GB) - The "Aggressive Electrostatic" Model
+**Behavior:** Extremely opinionated, focusing heavily on error correction via charge detection.
+
+#### Dominance of Charge
+![GB Summary](model_training/explainability_reports/gb_summary_plot.png)
+
+**Technical Interpretation:**
+*   **Massive Weight on Charge:** The model acts almost as a specialized "Cation Detector". If the net charge is insufficient, the probability of being an AMP drops precipitously.
+*   **Precision:** This aggressive filtering likely reduces false positives among neutral peptides but might miss anionic AMPs.
+
+#### Structural Dependencies
+![GB Interaction](model_training/explainability_reports/gb_interaction_Length_vs_Aromaticity.png)
+> GB also validates the Length-Aromaticity synergy, confirming it as a robust biological signal rather than a model artifact.
+
+---
+
+### 3. Support Vector Machine (SVM) - The "Geometric/Structural" Model
+**Behavior:** Operates on a distinct decision hyperplane, prioritizing geometry over pure chemistry.
+
+#### Divergent Feature Priority
+![SVM Summary](model_training/explainability_reports/svm_summary_plot.png)
+
+**Technical Interpretation:**
+*   **Length is King:** Unlike tree-based models, SVM identifies `Length` and `Molecular Weight` as the primary discriminators.
+*   **Geometric Separation:** The RBF kernel finds that "slicing" the data space by peptide size provides the most efficient initial separation hyperplane.
+*   **Ensemble Value:** This divergence is critical. The SVM covers the "blind spots" of the tree models (e.g., detecting AMPs that lack extreme charge but fit the structural profile), making the final ensemble significantly more robust.
+
+---
+
+### 📊 Cross-Model Consensus
+
+| Feature | Random Forest | Gradient Boosting | SVM | Biological Consensus |
+|:---:|:---:|:---:|:---:|:---|
+| **Charge** | **Primary** | **Dominant** | Secondary | Essential for initial attraction |
+| **Length** | Secondary | Secondary | **Primary** | Determines mode of action (pore vs carpet) |
+| **ChargeDensity** | High | High | High | Concentrated charge is more potent |
+
+This triangulation confirms that our ensemble captures both the **chemical rules** (RF/GB) and the **structural/geometric constraints** (SVM) of antimicrobial peptides.
+
 ## Contributing
 
 We welcome contributions from the community! Whether you want to report bugs, suggest new features, improve documentation, or contribute code, your input is valuable.
