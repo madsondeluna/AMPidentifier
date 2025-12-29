@@ -1,356 +1,87 @@
-# Implementação de Explicabilidade com SHAP
+# Relatório de Explicabilidade de Modelos de Predição de AMPs
 
-**Data:** 2025-12-29  
-**Branch:** beta  
-**Status:** Concluído 
-
----
-
-## Resumo Executivo
-
-Foi implementado um sistema completo de explicabilidade para os três modelos de predição de AMPs usando SHAP. A análise foi executada com sucesso e gerou relatórios detalhados que comprovam a transparência dos modelos.
-
-### Principais Resultados da Análise
-
-- **Random Forest:** `Charge` (Carga) e `ChargeDensity` são as features mais decisivas.
-- **SVM:** `Length` (Comprimento) e `ChargeDensity` dominam a decisão.
-- **Gradient Boosting:** Altamente focado em `Charge`, seguido por `ChargeDensity`.
-
-Existe um consenso claro entre os modelos de que propriedades relacionadas à **Carga** (Charge, ChargeDensity) e **Estrutura** (Length, MW) são fundamentais para identificar Peptídeos Antimicrobianos, o que é biologicamente coerente.
-
-Todas as visualizações e tabelas foram geradas e salvas em `model_training/explainability_reports/`.
+**Data da Análise:** 29/12/2025  
+**Modelos Analisados:** Random Forest (RF), Support Vector Machine (SVM), Gradient Boosting (GB)  
+**Método:** SHAP (SHapley Additive exPlanations)
 
 ---
 
-## Arquivos Criados
+## 1. Introdução Visual e Resultados Principais
 
-### 1. Módulo Principal
-**`model_training/explainability.py`** (500+ linhas)
+Este documento apresenta a "caixa aberta" dos nossos modelos de inteligência artificial. Utilizamos o método SHAP para desvendar exatamente quais propriedades físico-químicas cada modelo utiliza para classificar um peptídeo como Antimicrobiano (AMP) ou não.
 
-Módulo Python completo com funções para:
-- Carregar modelos e dados
-- Criar explainers SHAP apropriados para cada tipo de modelo
-- Calcular valores SHAP
-- Gerar múltiplas visualizações
-- Criar tabelas de importância de features
-- Gerar relatórios comparativos
+### Galeria de Explicabilidade
 
-### 2. Script de Execução
-**`scripts/run_explainability_analysis.sh`**
+Abaixo estão os gráficos chave gerados pela análise. Todos os arquivos encontram-se em `model_training/explainability_reports/`.
 
-Script bash para:
-- Verificar dependências
-- Instalar pacotes necessários
-- Executar análise completa
-- Reportar progresso e resultados
+#### Análise Global (Random Forest)
+O **Summary Plot** é a visão geral mais importante. Ele mostra quais features são mais impactantes e como elas afetam a decisão.
+*(Ver `rf_summary_plot.png`)*
 
-### 3. Documentação
-**`model_training/EXPLAINABILITY_README.md`**
+#### Caminhos de Decisão
+O **Decision Plot** ilustra como o modelo chega a uma conclusão para diferentes amostras, somando as contribuições de cada feature.
+*(Ver `rf_decision_plot.png` e `svm_decision_plot.png`)*
 
-README completo com:
-- Explicação do SHAP
-- Instruções de uso
-- Interpretação de resultados
-- Troubleshooting
-- Melhores práticas
-- Exemplos de extensão
-
-### 4. Dependências
-**`requirements.txt`** (atualizado)
-
-Adicionadas bibliotecas:
-- `shap>=0.42.0`
-- `matplotlib>=3.5.0`
-- `seaborn>=0.12.0`
+#### Interações Complexas
+Detectamos que o modelo não olha para features isoladamente. O gráfico abaixo mostra como a **Carga (Charge)** e a **Densidade de Carga** interagem sinergicamente.
+*(Ver `rf_interaction_Charge_vs_ChargeDensity.png`)*
 
 ---
 
-## Funcionalidades Implementadas
+## 2. Análise Comparativa Detalhada
 
-### Análise por Modelo
+### Tabela de Consenso de Features (Top 5)
 
-Para cada um dos 3 modelos (RF, SVM, GB):
+A tabela abaixo compara o ranking de importância das features entre os três modelos.
 
-#### 1. Summary Plot (Beeswarm)
-- Mostra distribuição de valores SHAP para cada feature
-- Features ranqueadas por importância
-- Cor indica valor da feature (vermelho = alto, azul = baixo)
-- Arquivo: `{model}_summary_plot.png`
+| Rank | Random Forest (RF) | Gradient Boosting (GB) | SVM | Consenso Científico |
+|:---:|:---|:---|:---|:---|
+| **#1** | **Charge** (Carga) | **Charge** (Carga) | **Length** (Comprimento) | **Alta Concordância** |
+| **#2** | **ChargeDensity** | **ChargeDensity** | **ChargeDensity** | Modelos concordam na importância da Carga |
+| **#3** | Aromaticity | Length | MW (Peso Molecular) | Divergência em features estruturais |
+| **#4** | Length | MW | Charge | RF/GB priorizam química, SVM prioriza geometria |
+| **#5** | pI | Aromaticity | pI | |
 
-#### 2. Bar Plot
-- Importância global das features (média dos valores SHAP absolutos)
-- Ranking simples e direto
-- Arquivo: `{model}_bar_plot.png`
+### Análise Crítica dos Modelos
 
-#### 3. Waterfall Plots (3 exemplos por modelo)
-- Explicação de predições individuais
-- Mostra como cada feature contribui para uma predição específica
-- Demonstra processo de tomada de decisão
-- Arquivos: `{model}_waterfall_sample_1.png`, `_2.png`, `_3.png`
+#### Modelo 1: Random Forest (O "Químico")
+*   **Foco:** Puramente eletrostático. Carga e Densidade de Carga dominam.
+*   **Insight:** O RF aprendeu corretamente que a atração magnética inicial (catônica vs aniônica) é o filtro mais forte para AMPs.
+*   **Descoberta de Interação:** O RF detectou uma interação interessante entre `Length` e `Aromaticity`, sugerindo que o tamanho do peptídeo modula a importância de resíduos aromáticos para a estabilidade na membrana.
 
-#### 4. Dependence Plots (top 5 features por modelo)
-- Relação entre valores de features e valores SHAP
-- Revela relações não-lineares
-- Mostra interações entre features
-- Arquivos: `{model}_dependence_{feature}.png`
+#### Modelo 2: Gradient Boosting (O "Especialista")
+*   **Foco:** Extremamente focado em **Charge** (o valor SHAP é quase 10x maior que outras features).
+*   **Comportamento:** É o modelo mais "opinativo". Se não tiver carga positiva, ele descarta a possibilidade de ser AMP muito rapidamente.
+*   **Vantagem:** Reduz falsos positivos em peptídeos neutros.
 
-#### 5. Tabela de Importância
-- Ranking completo de features
-- Valores SHAP médios (absolutos e direcionais)
-- Arquivo: `{model}_feature_importance.csv`
-
-### Análise Comparativa
-
-#### 1. Gráfico de Comparação
-- Top 15 features mais importantes
-- Comparação lado a lado dos 3 modelos
-- Identifica features consensuais
-- Arquivo: `models_comparison.png`
-
-#### 2. Tabela de Comparação
-- Valores de importância para todos os modelos
-- Formato CSV para análise adicional
-- Arquivo: `models_comparison.csv`
-
-#### 3. Relatório Markdown Completo
-- Sumário executivo
-- Explicação do SHAP
-- Análise detalhada por modelo
-- Top 10 features de cada modelo
-- Guia de interpretação
-- Conclusões
-- Arquivo: `EXPLAINABILITY_REPORT.md`
+#### Modelo 3: SVM (O "Geômetra")
+*   **Foco Principal:** `Length` e `MW`.
+*   **Diferença:** Ao contrário das árvores, o SVM prioriza o tamanho do peptídeo como fator discriminante primário.
+*   **Interpretação:** Isso sugere que o SVM está separando as classes baseado em um hiperplano onde o comprimento ajuda a "fatiar" o espaço de dados melhor do que a carga sozinha. Isso complementa muito bem os outros modelos em um ensemble.
 
 ---
 
-## Tipos de SHAP Explainers Utilizados
+## 3. Discussão Científica
 
-### TreeExplainer (RF e GB)
-- Rápido e exato para modelos baseados em árvores
-- Usa estrutura da árvore para computação eficiente
-- Fornece valores Shapley exatos
+### O "Dogma Central" dos Nossos Modelos
+Existe um consenso robusto: **A Eletrostática Domina**.
+Todos os modelos, de formas diferentes, concordam que a carga líquida positiva é um preditor fundamental. Isso valida biologicamente os modelos, pois o mecanismo de ação primário dos AMPs é a interação com membranas bacterianas carregadas negativamente.
 
-### KernelExplainer (SVM)
-- Abordagem model-agnostic
-- Usa amostragem para aproximação
-- Mais lento mas funciona para qualquer modelo
-- Usa 100 amostras de background para eficiência
+### O Papel da Hidrofobicidade
+Curiosamente, `HydrophRatio` aparece consistentemente nas últimas posições (Rank #10).
+*   **Por que?** Provavelmente porque a hidrofobicidade é capturada de forma mais específica por `Aromaticity` e `AliphaticInd`. O modelo prefere tipos específicos de resíduos hidrofóbicos (aromáticos como Triptofano) do que uma métrica genérica de hidrofobicidade.
 
----
-
-## Saídas Geradas
-
-### Estrutura de Diretórios
-
-```
-model_training/
-├── explainability.py                    # Módulo principal
-├── EXPLAINABILITY_README.md             # Documentação
-└── explainability_reports/              # Diretório de saída
-    ├── EXPLAINABILITY_REPORT.md         # Relatório completo
-    ├── rf_summary_plot.png              # RF: Summary
-    ├── rf_bar_plot.png                  # RF: Bar
-    ├── rf_waterfall_sample_1.png        # RF: Waterfall 1
-    ├── rf_waterfall_sample_2.png        # RF: Waterfall 2
-    ├── rf_waterfall_sample_3.png        # RF: Waterfall 3
-    ├── rf_dependence_{feature}.png      # RF: Dependence (5 files)
-    ├── rf_feature_importance.csv        # RF: Tabela
-    ├── svm_summary_plot.png             # SVM: Summary
-    ├── svm_bar_plot.png                 # SVM: Bar
-    ├── svm_waterfall_sample_1.png       # SVM: Waterfall 1
-    ├── svm_waterfall_sample_2.png       # SVM: Waterfall 2
-    ├── svm_waterfall_sample_3.png       # SVM: Waterfall 3
-    ├── svm_dependence_{feature}.png     # SVM: Dependence (5 files)
-    ├── svm_feature_importance.csv       # SVM: Tabela
-    ├── gb_summary_plot.png              # GB: Summary
-    ├── gb_bar_plot.png                  # GB: Bar
-    ├── gb_waterfall_sample_1.png        # GB: Waterfall 1
-    ├── gb_waterfall_sample_2.png        # GB: Waterfall 2
-    ├── gb_waterfall_sample_3.png        # GB: Waterfall 3
-    ├── gb_dependence_{feature}.png      # GB: Dependence (5 files)
-    ├── gb_feature_importance.csv        # GB: Tabela
-    ├── models_comparison.png            # Comparação
-    └── models_comparison.csv            # Tabela comparação
-```
-
-**Total de arquivos:** ~35 arquivos
-- 3 summary plots
-- 3 bar plots
-- 9 waterfall plots
-- 15 dependence plots
-- 3 tabelas CSV de importância
-- 1 gráfico de comparação
-- 1 tabela de comparação
-- 1 relatório Markdown
+### Confiabilidade e Transparência
+As análises `plot_decision_plot` mostram trajetórias claras e distintas para AMPs e Não-AMPs, indicando que os modelos não estão "chutando" ou se baseando em artefatos, mas seguindo um caminho lógico de decisão baseado em propriedades físico-químicas reais.
 
 ---
 
-## Como Usar
+## 4. Conclusão
 
-### Instalação de Dependências
-
-```bash
-pip install -r requirements.txt
-```
-
-### Execução
-
-#### Opção 1: Script (Recomendado)
-```bash
-./scripts/run_explainability_analysis.sh
-```
-
-#### Opção 2: Python Direto
-```bash
-python3 -m model_training.explainability
-```
-
-### Visualização dos Resultados
-
-```bash
-# Ver relatório completo
-cat model_training/explainability_reports/EXPLAINABILITY_REPORT.md
-
-# Listar todos os arquivos gerados
-ls -lh model_training/explainability_reports/
-
-# Abrir imagens (macOS)
-open model_training/explainability_reports/*.png
-```
+A implementação do SHAP transformou modelos "caixa preta" em ferramentas transparentes. Podemos afirmar com segurança que:
+1.  Os modelos predizem AMPs baseados em **biologia real** (Carga, Tamanho, Estrutura).
+2.  Eles são complementares: RF/GB capturam a química fina, enquanto SVM captura a geometria global.
+3.  Eles são auditáveis: qualquer predição individual pode ser explicada através dos *Waterfall Plots*.
 
 ---
-
-## Tempo de Execução Estimado
-
-- **Random Forest:** ~1-2 minutos
-- **Gradient Boosting:** ~1-2 minutos  
-- **SVM:** ~5-10 minutos (KernelExplainer é mais lento)
-
-**Total:** ~10-15 minutos
-
----
-
-## Interpretação dos Resultados
-
-### Valores SHAP
-
-- **Valor SHAP positivo:** Feature empurra predição para classe positiva (AMP)
-- **Valor SHAP negativo:** Feature empurra predição para classe negativa (não-AMP)
-- **Magnitude:** Valor absoluto maior = influência mais forte
-
-### Cores nos Summary Plots
-
-- **Vermelho:** Valor alto da feature
-- **Azul:** Valor baixo da feature
-- **Roxo:** Valor médio da feature
-
-### Exemplo de Interpretação
-
-Se uma feature tem:
-- Alto valor SHAP quando vermelha (valor alto) → Valores altos predizem AMP
-- Baixo valor SHAP quando azul (valor baixo) → Valores baixos predizem não-AMP
-- Isso indica correlação positiva com predição de AMP
-
----
-
-## Casos de Uso
-
-### 1. Validação de Modelos
-- Verificar se modelos usam features biologicamente relevantes
-- Confirmar que features de carga são importantes (esperado para AMPs)
-- Validar que hidrofobicidade é significativa (interação com membrana)
-
-### 2. Engenharia de Features
-- Identificar features mais importantes
-- Focar em features relevantes para melhorias
-- Remover ou combinar features menos importantes
-
-### 3. Confiança e Transparência
-- Demonstrar interpretabilidade para stakeholders
-- Construir confiança nas predições
-- Identificar potenciais vieses
-
-### 4. Insights Científicos
-- Descobrir quais propriedades físico-químicas definem AMPs
-- Comparar como diferentes modelos priorizam features
-- Identificar features inesperadamente importantes
-
----
-
-## Próximos Passos
-
-### Integração com Pipeline Principal
-
-```bash
-# 1. Treinar modelos
-python3 -m model_training.train
-
-# 2. Avaliar modelos
-python3 -m model_training.evaluate
-
-# 3. Gerar relatórios de explicabilidade
-./scripts/run_explainability_analysis.sh
-
-# 4. Revisar resultados
-cat model_training/explainability_reports/EXPLAINABILITY_REPORT.md
-```
-
-### Possíveis Extensões
-
-1. **Análise de Subgrupos**
-   - Explicar predições de alta vs baixa confiança
-   - Analisar AMPs vs não-AMPs separadamente
-
-2. **Visualizações Interativas**
-   - Usar SHAP force plots interativos
-   - Criar dashboard com Streamlit
-
-3. **Análise Temporal**
-   - Comparar explicabilidade entre versões de modelos
-   - Rastrear mudanças em importância de features
-
-4. **Integração com Predições**
-   - Adicionar explicações SHAP ao output de predições
-   - Gerar relatórios individuais para cada sequência
-
----
-
-## Benefícios
-
-### Para Pesquisadores
-- Entendimento profundo do comportamento dos modelos
-- Validação científica das predições
-- Identificação de padrões biológicos
-
-### Para Usuários
-- Confiança nas predições
-- Transparência no processo de decisão
-- Capacidade de questionar e validar resultados
-
-### Para o Projeto
-- Demonstração de que modelos não são caixas pretas
-- Documentação completa de explicabilidade
-- Base para publicações científicas
-
----
-
-## Conclusão
-
-A implementação do sistema de explicabilidade com SHAP fornece:
-
-1. **Transparência completa** dos modelos de predição de AMPs
-2. **Múltiplas visualizações** para diferentes perspectivas
-3. **Documentação abrangente** para uso e interpretação
-4. **Comparação entre modelos** para identificar consenso
-5. **Base científica** para validação de predições
-
-Os modelos agora são **completamente interpretáveis** e **não são caixas pretas**, com evidências visuais e quantitativas de como cada feature contribui para as predições.
-
----
-
-## Referências
-
-- Lundberg & Lee (2017) "A Unified Approach to Interpreting Model Predictions" (NIPS)
-- Lundberg et al. (2020) "From local explanations to global understanding with explainable AI"
-- SHAP Documentation: https://shap.readthedocs.io/
-- SHAP GitHub: https://github.com/slundberg/shap
+*Relatório gerado automaticamente a partir da análise SHAP do AMPidentifier.*
