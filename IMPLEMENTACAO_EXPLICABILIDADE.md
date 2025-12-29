@@ -101,7 +101,7 @@ O SVM com kernel RBF oferece uma perspectiva **completamente diferente**, focand
 ![SVM Summary](model_training/explainability_reports/svm_summary_plot.png)
 
 **Surpresa Científica:**
-*   **Length É Rei:** Ao contrário das árvores, o SVM colocou `Length` e `MW` no topo.
+*   **Length - Muita Superioridade:** Ao contrário das árvores, o SVM colocou `Length` e `MW` no topo.
 *   **Interpretação:** O SVM encontrou um hiperplano onde separar "pequeno vs grande" é mais eficaz matematicamente do que separar "positivo vs negativo" como primeiro passo.
 *   **Complementaridade:** Isso faz do SVM um excelente parceiro para o RF/GB, pois ele detectará AMPs que podem falhar no critério estrito de carga, mas que têm a estrutura correta.
 
