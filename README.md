@@ -484,54 +484,6 @@ Comparative benchmarking experiments against other AMP prediction tools are curr
 
 ---
 
-## Contributors
-
-### Lead Developer
-
-- **Madson A. de Luna Aragão** - PhD Candidate in Bioinformatics, UFMG  
-  Belo Horizonte, Minas Gerais, Brazil  
-  **Responsibilities:** project lead, software architecture, ML pipelines, documentation.  
-  **Contacts:** madsondeluna@gmail.com 
-
-### Collaborators
-
-- **Rafael L. da Silva** - Masters Student, UFPE - Collaborator  
-  **Contributions:** data preprocessing, pipeline testing, literature review.
-
-### Advisory Team
-
-- **Ana M. Benko‑Iseppon, PhD** - Principal Investigator, UFPE - Advisor  
-  **Contributions:** scientific supervision, study design, biological validation.
-
-- **João Pacífico, PhD** - Principal Investigator, UPE - Co‑Advisor  
-  **Contributions:** computational analysis review, dataset curation, evaluation protocol, reproducibility.
-
-- **Carlos A. dos Santos-Silva, PhD** - Professor, CESMAC - Co‑Advisor  
-  **Contributions:** structural biology expertise, evaluation protocol, benchmarking strategy, reproducibility.
-
----
-
-### Quick Reference (tabular)
-
-| Name                       | Role / Responsibilities                                   | Affiliation | Location         |
-|----------------------------|------------------------------------------------------------|-------------|------------------|
-| Madson A. de Luna-Aragão, MSc  | Lead developer; architecture; ML; docs                     | UFMG        | Belo Horizonte, BR |
-| Rafael L. da Silva, BSc        | Collaborator; preprocessing; pipeline testing; lit. review | UFPE        | Recife, BR       |
-| Ana M. Benko‑Iseppon, PhD | Advisor; study design; review, validation                  | UFPE        | Recife, BR       |
-| João Pacífico, PhD        | Co-Advisor; computational review; evaluation       | UPE         | Petrolina, BR       |
-| Carlos A. dos Santos-Silva, PhD      | Co‑Advisor; pipeline testing, review    | CESMAC        | Maceió, BR       |
-
-
----
-
-## Funding & Acknowledgments
-
-- **Principal Holder:** This software is officially registered under the **UFPE** - Universidade Federal de Pernambuco (Federal University of Pernambuco, Brazil).
-- This research was supported by **FACEPE** - Fundação de Amparo à Pesquisa do Estado de Pernambuco (Brazil).
-- We acknowledge the **PPGGBM** - Programa de Pós-Graduação em Genética e Biologia Molecular (Graduate Program in Genetics and Molecular Biology) at UFPE for institutional support.
-
----
-
 ## Model Explainability & Interpretability (SHAP Analysis)
 
 To ensure transparency and biological validity, we employed **SHAP (SHapley Additive exPlanations)** to dissect the decision-making process of our models. This analysis reveals that our models are not "black boxes" but rather learn to prioritize physicochemical features consistent with known antimicrobial peptide (AMP) biology.
@@ -600,13 +552,55 @@ Visualizing the cumulative decision path for individual samples.
 
 This triangulation confirms that our ensemble captures both the **chemical rules** (RF/GB) and the **structural/geometric constraints** (SVM) of antimicrobial peptides.
 
-## Contributing
+---
 
-We welcome contributions from the community! Whether you want to report bugs, suggest new features, improve documentation, or contribute code, your input is valuable.
+## Contributors
 
-### Reporting Issues
+### Lead Developer
 
-Found a bug or have a suggestion? Please open an issue on GitHub!
+- **Madson A. de Luna Aragão** - PhD Candidate in Bioinformatics, UFMG  
+  Belo Horizonte, Minas Gerais, Brazil  
+  **Responsibilities:** project lead, software architecture, ML pipelines, documentation.  
+  **Contacts:** madsondeluna@gmail.com 
+
+### Collaborators
+
+- **Rafael L. da Silva** - Masters Student, UFPE - Collaborator  
+  **Contributions:** data preprocessing, pipeline testing, literature review.
+
+### Advisory Team
+
+- **Ana M. Benko‑Iseppon, PhD** - Principal Investigator, UFPE - Advisor  
+  **Contributions:** scientific supervision, study design, biological validation.
+
+- **João Pacífico, PhD** - Principal Investigator, UPE - Co‑Advisor  
+  **Contributions:** computational analysis review, dataset curation, evaluation protocol, reproducibility.
+
+- **Carlos A. dos Santos-Silva, PhD** - Professor, CESMAC - Co‑Advisor  
+  **Contributions:** structural biology expertise, evaluation protocol, benchmarking strategy, reproducibility.
+
+---
+
+### Quick Reference (tabular)
+
+| Name                       | Role / Responsibilities                                   | Affiliation | Location         |
+|----------------------------|------------------------------------------------------------|-------------|------------------|
+| Madson A. de Luna-Aragão, MSc  | Lead developer; architecture; ML; docs                     | UFMG        | Belo Horizonte, BR |
+| Rafael L. da Silva, BSc        | Collaborator; preprocessing; pipeline testing; lit. review | UFPE        | Recife, BR       |
+| Ana M. Benko‑Iseppon, PhD | Advisor; study design; review, validation                  | UFPE        | Recife, BR       |
+| João Pacífico, PhD        | Co-Advisor; computational review; evaluation       | UPE         | Petrolina, BR       |
+| Carlos A. dos Santos-Silva, PhD      | Co‑Advisor; pipeline testing, review    | CESMAC        | Maceió, BR       |
+
+
+---
+
+## Funding & Acknowledgments
+
+- **Principal Holder:** This software is officially registered under the **UFPE** - Universidade Federal de Pernambuco (Federal University of Pernambuco, Brazil).
+- This research was supported by **FACEPE** - Fundação de Amparo à Pesquisa do Estado de Pernambuco (Brazil).
+- We acknowledge the **PPGGBM** - Programa de Pós-Graduação em Genética e Biologia Molecular (Graduate Program in Genetics and Molecular Biology) at UFPE for institutional support.
+
+---
 
 #### Reporting a Bug
 
@@ -698,9 +692,6 @@ If you have ideas for other features, please open an issue with the tag `enhance
 - Provide clear and detailed information
 - Focus on the problem, not the person
 - Help create a welcoming environment for all contributors
-
----
-
 
 ---
 
