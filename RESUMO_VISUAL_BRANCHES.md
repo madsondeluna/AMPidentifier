@@ -6,10 +6,10 @@
                     ┌─── origin/main (b4d0192) ───┐
                     │   [6 commits à frente de main]
                     │
-                    ├─── main local (d6a6e5d) ─────┤
+                    ├─── main local (2ab0bd2) ─────┤
                     │   [0 commits à frente de beta]
                     │
-                    └─── beta (d6a6e5d) ───────────┘
+                    └─── beta (2ab0bd2) ───────────┘
                         [v1.0.0 - Versão Estável]
 ```
 
@@ -20,7 +20,7 @@
 | Característica | Beta (v1.0.0) | Main Local | Origin/Main |
 |----------------|---------------|------------|-------------|
 | **Commits desde Beta** | 0 | +0 | +6 |
-| **Arquivos Modificados** | - | 0 | 13 |
+| **Arquivos Modificados** | - | 0 | 14 |
 | **Arquivos Não Commitados** | - | 67 | - |
 | **Status** | Estável | Desatualizado | Mais Recente |
 
@@ -28,26 +28,26 @@
 
 ## Status Atual do Repositório
 
-**Última atualização:** 2025-12-29 01:38:57
+**Última atualização:** 2025-12-29 01:40:47
 
 ### Últimos 5 Commits em Cada Branch
 
 **Beta:**
 ```
+  2ab0bd2 docs: add merge summary and update branch comparison
   d6a6e5d docs: add comprehensive documentation for branch comparison and macOS metadata solution
   361083a feat: add maintenance scripts for branch comparison and macOS metadata cleanup
   11b60c0 chore: update .gitignore to exclude macOS metadata files (._*, .DS_Store, .Spotlight-V100, .Trashes)
   6904cdb Remove redundant mention of StandardScaler normalization in the About section and Pre-Trained Internal Models section of README for clarity.
-  8c766ff Update README: Rename "Benchmarking (Using the Ensemble Mode) - Real Data" to "Ensemble Mode Performance" for clarity
 ```
 
 **Main Local:**
 ```
+  2ab0bd2 docs: add merge summary and update branch comparison
   d6a6e5d docs: add comprehensive documentation for branch comparison and macOS metadata solution
   361083a feat: add maintenance scripts for branch comparison and macOS metadata cleanup
   11b60c0 chore: update .gitignore to exclude macOS metadata files (._*, .DS_Store, .Spotlight-V100, .Trashes)
   6904cdb Remove redundant mention of StandardScaler normalization in the About section and Pre-Trained Internal Models section of README for clarity.
-  8c766ff Update README: Rename "Benchmarking (Using the Ensemble Mode) - Real Data" to "Ensemble Mode Performance" for clarity
 ```
 
 **Origin/Main:**
