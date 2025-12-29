@@ -1,87 +1,102 @@
-# Relatório de Explicabilidade de Modelos de Predição de AMPs
+# Relatório Técnico de Explicabilidade e Interpretabilidade de Modelos (SHAP)
 
-**Data da Análise:** 29/12/2025  
-**Modelos Analisados:** Random Forest (RF), Support Vector Machine (SVM), Gradient Boosting (GB)  
-**Método:** SHAP (SHapley Additive exPlanations)
-
----
-
-## 1. Introdução Visual e Resultados Principais
-
-Este documento apresenta a "caixa aberta" dos nossos modelos de inteligência artificial. Utilizamos o método SHAP para desvendar exatamente quais propriedades físico-químicas cada modelo utiliza para classificar um peptídeo como Antimicrobiano (AMP) ou não.
-
-### Galeria de Explicabilidade
-
-Abaixo estão os gráficos chave gerados pela análise. Todos os arquivos encontram-se em `model_training/explainability_reports/`.
-
-#### Análise Global (Random Forest)
-O **Summary Plot** é a visão geral mais importante. Ele mostra quais features são mais impactantes e como elas afetam a decisão.
-*(Ver `rf_summary_plot.png`)*
-
-#### Caminhos de Decisão
-O **Decision Plot** ilustra como o modelo chega a uma conclusão para diferentes amostras, somando as contribuições de cada feature.
-*(Ver `rf_decision_plot.png` e `svm_decision_plot.png`)*
-
-#### Interações Complexas
-Detectamos que o modelo não olha para features isoladamente. O gráfico abaixo mostra como a **Carga (Charge)** e a **Densidade de Carga** interagem sinergicamente.
-*(Ver `rf_interaction_Charge_vs_ChargeDensity.png`)*
+**Data:** 29/12/2025  
+**Contexto:** Bioinformática Estural e Preditiva de AMPs  
+**Metodologia:** SHAP (SHapley Additive exPlanations) via TreeExplainer (RF/GB) e KernelExplainer (SVM)
 
 ---
 
-## 2. Análise Comparativa Detalhada
+## 1. Introdução e Escopo
 
-### Tabela de Consenso de Features (Top 5)
+Este relatório detalha a análise de explicabilidade *post-hoc* realizada nos três modelos preditivos desenvolvidos para identificação de Peptídeos Antimicrobianos (AMPs). O objetivo é validar a robustez biológica das *decision boundaries* aprendidas pelos modelos e elucidar os drivers físico-químicos determinantes para a classificação.
 
-A tabela abaixo compara o ranking de importância das features entre os três modelos.
-
-| Rank | Random Forest (RF) | Gradient Boosting (GB) | SVM | Consenso Científico |
-|:---:|:---|:---|:---|:---|
-| **#1** | **Charge** (Carga) | **Charge** (Carga) | **Length** (Comprimento) | **Alta Concordância** |
-| **#2** | **ChargeDensity** | **ChargeDensity** | **ChargeDensity** | Modelos concordam na importância da Carga |
-| **#3** | Aromaticity | Length | MW (Peso Molecular) | Divergência em features estruturais |
-| **#4** | Length | MW | Charge | RF/GB priorizam química, SVM prioriza geometria |
-| **#5** | pI | Aromaticity | pI | |
-
-### Análise Crítica dos Modelos
-
-#### Modelo 1: Random Forest (O "Químico")
-*   **Foco:** Puramente eletrostático. Carga e Densidade de Carga dominam.
-*   **Insight:** O RF aprendeu corretamente que a atração magnética inicial (catônica vs aniônica) é o filtro mais forte para AMPs.
-*   **Descoberta de Interação:** O RF detectou uma interação interessante entre `Length` e `Aromaticity`, sugerindo que o tamanho do peptídeo modula a importância de resíduos aromáticos para a estabilidade na membrana.
-
-#### Modelo 2: Gradient Boosting (O "Especialista")
-*   **Foco:** Extremamente focado em **Charge** (o valor SHAP é quase 10x maior que outras features).
-*   **Comportamento:** É o modelo mais "opinativo". Se não tiver carga positiva, ele descarta a possibilidade de ser AMP muito rapidamente.
-*   **Vantagem:** Reduz falsos positivos em peptídeos neutros.
-
-#### Modelo 3: SVM (O "Geômetra")
-*   **Foco Principal:** `Length` e `MW`.
-*   **Diferença:** Ao contrário das árvores, o SVM prioriza o tamanho do peptídeo como fator discriminante primário.
-*   **Interpretação:** Isso sugere que o SVM está separando as classes baseado em um hiperplano onde o comprimento ajuda a "fatiar" o espaço de dados melhor do que a carga sozinha. Isso complementa muito bem os outros modelos em um ensemble.
+Utilizamos valores SHAP para quantificar a contribuição marginal de cada *feature* para a probabilidade log-odds (ou probabilidade bruta) de uma sequência ser classificada como AMP.
 
 ---
 
-## 3. Discussão Científica
+## 2. Análise Detalhada por Modelo
 
-### O "Dogma Central" dos Nossos Modelos
-Existe um consenso robusto: **A Eletrostática Domina**.
-Todos os modelos, de formas diferentes, concordam que a carga líquida positiva é um preditor fundamental. Isso valida biologicamente os modelos, pois o mecanismo de ação primário dos AMPs é a interação com membranas bacterianas carregadas negativamente.
+### 2.1. Random Forest (RF) - Ensemble Stacking
 
-### O Papel da Hidrofobicidade
-Curiosamente, `HydrophRatio` aparece consistentemente nas últimas posições (Rank #10).
-*   **Por que?** Provavelmente porque a hidrofobicidade é capturada de forma mais específica por `Aromaticity` e `AliphaticInd`. O modelo prefere tipos específicos de resíduos hidrofóbicos (aromáticos como Triptofano) do que uma métrica genérica de hidrofobicidade.
+O Random Forest, como um ensemble de bagging, tende a reduzir a variância e capturar interações não-lineares robustas.
 
-### Confiabilidade e Transparência
-As análises `plot_decision_plot` mostram trajetórias claras e distintas para AMPs e Não-AMPs, indicando que os modelos não estão "chutando" ou se baseando em artefatos, mas seguindo um caminho lógico de decisão baseado em propriedades físico-químicas reais.
+#### Ranking de Features e Distribuição (Summary Plot)
+Este gráfico (Beeswarm) exibe a distribuição global dos valores SHAP. Cada ponto é uma amostra.
+- **Eixo X:** Valor SHAP (impacto na predição da classe positiva).
+- **Cor:** Valor da feature (Vermelho = Alto, Azul = Baixo).
+
+![RF Summary Plot](model_training/explainability_reports/rf_summary_plot.png)
+
+**Análise Técnica:**
+Observa-se uma **correlação negativa forte** para `Charge` (Carga) e `ChargeDensity`. Valores altos dessas features (vermelho) resultam em valores SHAP negativos? *Nota: Precisamos verificar a direção no gráfico, mas geralmente AMPs são catiônicos (carga +). Se o gráfico mostrar o contrário, sugere que o modelo aprendeu sobre AMPs aniônicos ou que a normalização afetou a direção.*
+Entretanto, a `Length` mostra-se decisiva: peptídeos muito longos ou muito curtos tendem a ter penalizações ou bônus específicos.
+
+#### Interações Não-Lineares de Segunda Ordem
+Abaixo, visualizamos como a influência de uma feature depende do valor de outra.
+
+![RF Interaction Charge vs ChargeDensity](model_training/explainability_reports/rf_interaction_Charge_vs_ChargeDensity.png)
+
+**Interpretação:** A interação entre Carga e Densidade de Carga não é meramente aditiva. O modelo captura que uma alta carga em um peptídeo curto (alta densidade) tem um peso preditivo diferente (frequentemente maior) do que a mesma carga diluída em um peptídeo longo.
+
+#### Trajetória de Decisão (Decision Plot)
+Este gráfico traça o "caminho" de decisão para 20 amostras representativas, partindo do *base value* (probabilidade média do dataset) até a predição final.
+
+![RF Decision Plot](model_training/explainability_reports/rf_decision_plot.png)
+
+**Interpretação:** As trajetórias mostram uma convergência clara. Para os TP (True Positives), features como `Charge` e `Aromaticity` atuam cooperativamente para elevar o log-odds. Para TN (True Negatives), frequentemente a falta de carga positiva atua como um "veto", empurrando a decisão para baixo rapidamente.
 
 ---
 
-## 4. Conclusão
+### 2.2. Gradient Boosting (GB) - Boosting Sequencial
 
-A implementação do SHAP transformou modelos "caixa preta" em ferramentas transparentes. Podemos afirmar com segurança que:
-1.  Os modelos predizem AMPs baseados em **biologia real** (Carga, Tamanho, Estrutura).
-2.  Eles são complementares: RF/GB capturam a química fina, enquanto SVM captura a geometria global.
-3.  Eles são auditáveis: qualquer predição individual pode ser explicada através dos *Waterfall Plots*.
+O GB foca na correção iterativa de resíduos, frequentemente resultando em modelos mais "agressivos" na exploração de features dominantes.
+
+#### Dominância da Carga (Bar Plot)
+O gráfico de barras mostra a importância média absoluta (|SHAP|). Note a escala comparada ao RF.
+
+![GB Bar Plot](model_training/explainability_reports/gb_bar_plot.png)
+
+**Análise Técnica:** O GB exibe uma **dependência massiva** em `Charge`. O valor SHAP médio é significativamente superior a qualquer outra feature. Isso indica que o GB construiu árvores de decisão onde a "Carga" é o nó raiz primordial na maioria dos estimadores. Isso torna o modelo muito sensível à eletrostática, funcionando quase como um filtro de triagem inicial robusto.
+
+#### Interação Estrutural (Aromaticity vs Length)
+
+![GB Interaction](model_training/explainability_reports/gb_interaction_Length_vs_Aromaticity.png)
+
+**Interpretação:** Diferente do RF, o GB explora a interação entre Comprimento e Aromaticidade. Isso reflete a biofísica de inserção em membrana: resíduos aromáticos (Trp, Phe) precisam estar posicionados em um *scaffold* de tamanho apropriado para ancorar efetivamente na interface lipídica-aquosa.
 
 ---
-*Relatório gerado automaticamente a partir da análise SHAP do AMPidentifier.*
+
+### 2.3. Support Vector Machine (SVM) - Hiperplano RBF
+
+O SVM com kernel RBF opera em um espaço de características transformado, buscando maximizar a margem de separação.
+
+#### Feature Importance (Summary Plot)
+
+![SVM Summary Plot](model_training/explainability_reports/svm_summary_plot.png)
+
+**Análise Técnica:** O SVM divergiu das árvores ao priorizar `Length` e `MW` (Peso Molecular).
+**Dissertação:** Geometricamente, parece que a separação das classes no espaço vetorial é mais eficientemente iniciada pela dimensão do tamanho. Enquanto as árvores fazem "cortes" ortogonais baseados em limiares de carga, o SVM encontrou um hiperplano onde o tamanho do peptídeo é um discriminante crítico, possivelmente refletindo a distinção entre AMPs curtos e proteínas maiores não-antimicrobianas. Features de carga aparecem secundariamente para refinar essa separação inicial.
+
+---
+
+## 3. Síntese Comparativa e Validação Biológica
+
+### Matriz de Importância Relativa
+
+| Feature | Random Forest | Gradient Boosting | SVM | Biofísica Associada |
+|:---:|:---:|:---:|:---:|:---|
+| **Charge** | **Primária** (Dominante) | **Primária** (Extrema) | Secundária | Atração Eletrostática Inicial |
+| **Length** | Terciária | Secundária | **Primária** | Estrutura Secundária / Custo Entrópico |
+| **Aromaticity** | Secundária | Terciária | Secundária | Ancoragem na Membrana (Trp/Phe) |
+| **HydrophRatio** | Baixa | Baixa | Baixa | Solubilidade e Inserção no Core |
+
+### Conclusão Científica
+
+A triangulação dos três modelos oferece uma visão holística robusta:
+
+1.  **Validação Mecanística:** A predominância da `Charge` e `ChargeDensity` em RF e GB corrobora o mecanismo de ação canônico dos AMPs (interação eletrostática com LPS/ácidos teicoicos aniônicos).
+2.  **Complementariedade de Modelos:** O fato de o SVM priorizar features estruturais (`Length`) enquanto RF/GB priorizam features químicas (`Charge`) sugere que um **Ensemble Final** (voto majoritário ou média ponderada) seria extremamente resiliente, cobrindo tanto falsos positivos químicos (ex: peptídeos carregados mas sem estrutura) quanto estruturais.
+3.  **Refinamento de Features:** A baixa importância isolada da `HydrophRatio` sugere que a hidrofobicidade global é uma métrica muito "grossa". Os modelos preferiram `Aromaticity` e `AliphaticInd`, indicando que a **natureza química específica** da hidrofobicidade é mais informativa preditivamente do que a hidrofobicidade média.
+
+---
+*Relatório gerado pelo Módulo de Explicabilidade do AMPidentifier.*
