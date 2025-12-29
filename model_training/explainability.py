@@ -114,9 +114,12 @@ def plot_summary_plot(shap_values, X_data, model_name, feature_names):
     
     plt.figure(figsize=(12, 8))
     
-    # For binary classification, use the positive class SHAP values
+    # Handle different SHAP value formats
     if isinstance(shap_values, list):
         shap_values_plot = shap_values[1]
+    elif len(shap_values.shape) == 3:
+        # TreeExplainer format: (n_samples, n_features, n_classes)
+        shap_values_plot = shap_values[:, :, 1]
     else:
         shap_values_plot = shap_values
     
@@ -147,9 +150,12 @@ def plot_bar_plot(shap_values, X_data, model_name, feature_names):
     
     plt.figure(figsize=(12, 8))
     
-    # For binary classification, use the positive class SHAP values
+    # Handle different SHAP value formats
     if isinstance(shap_values, list):
         shap_values_plot = shap_values[1]
+    elif len(shap_values.shape) == 3:
+        # TreeExplainer format: (n_samples, n_features, n_classes)
+        shap_values_plot = shap_values[:, :, 1]
     else:
         shap_values_plot = shap_values
     
@@ -179,10 +185,20 @@ def plot_waterfall_examples(shap_values, X_data, model_name, feature_names, n_ex
     """
     print(f"Generating waterfall plots for {model_name.upper()}...")
     
-    # For binary classification, use the positive class SHAP values
+    # Handle different SHAP value formats
+    # TreeExplainer returns shape (n_samples, n_features, n_classes) for binary classification
+    # KernelExplainer returns list of arrays for each class
+    
     if isinstance(shap_values, list):
+        # KernelExplainer format: list of arrays, one per class
+        # Use positive class (index 1)
         shap_values_plot = shap_values[1]
+    elif len(shap_values.shape) == 3:
+        # TreeExplainer format: (n_samples, n_features, n_classes)
+        # Extract positive class (index 1) for all samples
+        shap_values_plot = shap_values[:, :, 1]
     else:
+        # Already in correct format
         shap_values_plot = shap_values
     
     # Select examples: first, middle, and last
@@ -192,11 +208,20 @@ def plot_waterfall_examples(shap_values, X_data, model_name, feature_names, n_ex
     for idx, sample_idx in enumerate(indices):
         plt.figure(figsize=(12, 8))
         
+        # Get SHAP values for this sample (should be 1D array of length n_features)
+        sample_shap_values = shap_values_plot[sample_idx]
+        
+        # Get feature values for this sample
+        if isinstance(X_data, pd.DataFrame):
+            sample_features = X_data.iloc[sample_idx].values
+        else:
+            sample_features = X_data[sample_idx]
+        
         # Create explanation object for waterfall plot
         explanation = shap.Explanation(
-            values=shap_values_plot[sample_idx],
-            base_values=shap_values_plot[sample_idx].sum() if hasattr(shap_values_plot[sample_idx], 'sum') else 0,
-            data=X_data.iloc[sample_idx].values if isinstance(X_data, pd.DataFrame) else X_data[sample_idx],
+            values=sample_shap_values,
+            base_values=0,  # Will be set by SHAP
+            data=sample_features,
             feature_names=feature_names
         )
         
@@ -220,9 +245,12 @@ def plot_dependence_plots(shap_values, X_data, model_name, feature_names, top_n=
     """
     print(f"Generating dependence plots for {model_name.upper()}...")
     
-    # For binary classification, use the positive class SHAP values
+    # Handle different SHAP value formats
     if isinstance(shap_values, list):
         shap_values_plot = shap_values[1]
+    elif len(shap_values.shape) == 3:
+        # TreeExplainer format: (n_samples, n_features, n_classes)
+        shap_values_plot = shap_values[:, :, 1]
     else:
         shap_values_plot = shap_values
     
@@ -262,9 +290,12 @@ def generate_feature_importance_table(shap_values, feature_names, model_name):
     """
     print(f"Generating feature importance table for {model_name.upper()}...")
     
-    # For binary classification, use the positive class SHAP values
+    # Handle different SHAP value formats
     if isinstance(shap_values, list):
         shap_values_plot = shap_values[1]
+    elif len(shap_values.shape) == 3:
+        # TreeExplainer format: (n_samples, n_features, n_classes)
+        shap_values_plot = shap_values[:, :, 1]
     else:
         shap_values_plot = shap_values
     
