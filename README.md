@@ -532,14 +532,7 @@ Comparative benchmarking experiments against other AMP prediction tools are curr
 
 ---
 
-## Intellectual Property
 
-- This tool is **officially registered** with the **INPI** - Instituto Nacional da Propriedade Industrial (Brazilian National Institute of Industrial Property).
-- **Registration Number:** BR 51 2025 005859-4
-- **Registration Date:** November 18, 2025
-- **Title:** AMPidentifier: A modular python toolkit for predicting antimicrobial peptides using ensemble machine learning
-- **Registered Authors:** Madson A. de Luna Aragão, Rafael L. da Silva, João Pacífico, Carlos A. dos Santos-Silva, Ana M. Benko-Iseppon
-- All rights reserved. Usage and distribution are subject to the project license terms.
 
 ---
 
@@ -712,6 +705,20 @@ If you have ideas for other features, please open an issue with the tag `enhance
 - Provide clear and detailed information
 - Focus on the problem, not the person
 - Help create a welcoming environment for all contributors
+
+---
+
+
+---
+
+## Intellectual Property
+
+- This tool is **officially registered** with the **INPI** - Instituto Nacional da Propriedade Industrial (Brazilian National Institute of Industrial Property).
+- **Registration Number:** BR 51 2025 005859-4
+- **Registration Date:** November 18, 2025
+- **Title:** AMPidentifier: A modular python toolkit for predicting antimicrobial peptides using ensemble machine learning
+- **Registered Authors:** Madson A. de Luna Aragão, Rafael L. da Silva, João Pacífico, Carlos A. dos Santos-Silva, Ana M. Benko-Iseppon
+- All rights reserved. Usage and distribution are subject to the project license terms.
 
 ---
 
