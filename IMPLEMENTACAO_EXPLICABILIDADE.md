@@ -122,5 +122,3 @@ O SVM com kernel RBF oferece uma perspectiva **completamente diferente**, focand
 1.  **Consenso:** `ChargeDensity` é vital para todos.
 2.  **Divergência:** `Length` é vital para SVM, secundário para RF/GB.
 3.  **Conclusão Biológica:** Para criar um preditor de AMP perfeito, você precisa de ambos: a **química** (capturada pelo GB/RF) e a **forma** (capturada pelo SVM).
-
---
