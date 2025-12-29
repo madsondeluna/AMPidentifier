@@ -548,7 +548,7 @@ Visualizing the cumulative decision path for individual samples.
 |:---:|:---:|:---:|:---:|:---|
 | **Charge** | **Primary** | **Dominant** | Secondary | Essential for initial attraction |
 | **Length** | Secondary | Secondary | **Primary** | Determines mode of action (pore vs carpet) |
-| **ChargeDensity** | High | High | High | Concentrated charge is more potent |
+| **Charge Density** | High | High | High | Concentrated charge is more potent |
 
 This triangulation confirms that our ensemble captures both the **chemical rules** (RF/GB) and the **structural/geometric constraints** (SVM) of antimicrobial peptides.
 
