@@ -6,10 +6,10 @@
                     ┌─── origin/main (b4d0192) ───┐
                     │   [6 commits à frente de main]
                     │
-                    ├─── main local (6904cdb) ─────┤
-                    │   [3 commits à frente de beta]
+                    ├─── main local (d6a6e5d) ─────┤
+                    │   [0 commits à frente de beta]
                     │
-                    └─── beta (0d68c57) ───────────┘
+                    └─── beta (d6a6e5d) ───────────┘
                         [v1.0.0 - Versão Estável]
 ```
 
@@ -19,35 +19,35 @@
 
 | Característica | Beta (v1.0.0) | Main Local | Origin/Main |
 |----------------|---------------|------------|-------------|
-| **Commits desde Beta** | 0 | +3 | +9 |
-| **Arquivos Modificados** | - | 3 | 5 |
-| **Arquivos Não Commitados** | - | 71 | - |
+| **Commits desde Beta** | 0 | +0 | +6 |
+| **Arquivos Modificados** | - | 0 | 13 |
+| **Arquivos Não Commitados** | - | 67 | - |
 | **Status** | Estável | Desatualizado | Mais Recente |
 
 ---
 
 ## Status Atual do Repositório
 
-**Última atualização:** 2025-12-29 01:35:21
+**Última atualização:** 2025-12-29 01:38:57
 
 ### Últimos 5 Commits em Cada Branch
 
 **Beta:**
 ```
-  0d68c57 Add contributing guidelines, issue reporting, and feature request sections to README
-  7ee24e9 Revise Table of Contents in README for improved navigation and clarity
-  666def4 Add workflow diagram in SVG format and update PNG file
-  50d292c Refactor code structure for improved readability and maintainability
-  ae0af84 Update comparison table in README to include available models and clarify modularity
+  d6a6e5d docs: add comprehensive documentation for branch comparison and macOS metadata solution
+  361083a feat: add maintenance scripts for branch comparison and macOS metadata cleanup
+  11b60c0 chore: update .gitignore to exclude macOS metadata files (._*, .DS_Store, .Spotlight-V100, .Trashes)
+  6904cdb Remove redundant mention of StandardScaler normalization in the About section and Pre-Trained Internal Models section of README for clarity.
+  8c766ff Update README: Rename "Benchmarking (Using the Ensemble Mode) - Real Data" to "Ensemble Mode Performance" for clarity
 ```
 
 **Main Local:**
 ```
+  d6a6e5d docs: add comprehensive documentation for branch comparison and macOS metadata solution
+  361083a feat: add maintenance scripts for branch comparison and macOS metadata cleanup
+  11b60c0 chore: update .gitignore to exclude macOS metadata files (._*, .DS_Store, .Spotlight-V100, .Trashes)
   6904cdb Remove redundant mention of StandardScaler normalization in the About section and Pre-Trained Internal Models section of README for clarity.
   8c766ff Update README: Rename "Benchmarking (Using the Ensemble Mode) - Real Data" to "Ensemble Mode Performance" for clarity
-  c0f9e01 Refactor code structure for improved readability and maintainability
-  0d68c57 Add contributing guidelines, issue reporting, and feature request sections to README
-  7ee24e9 Revise Table of Contents in README for improved navigation and clarity
 ```
 
 **Origin/Main:**
@@ -70,7 +70,7 @@ Para sincronizar:
 git pull origin main
 ```
 
-**ATENÇÃO:** Você tem 71 arquivo(s) modificado(s) não commitado(s).
+**ATENÇÃO:** Você tem 67 arquivo(s) modificado(s) não commitado(s).
 
 Para salvar suas mudanças:
 ```bash
