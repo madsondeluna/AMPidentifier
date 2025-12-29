@@ -10,5 +10,10 @@ biopython
 # AMP-specific feature calculation
 modlAMP
 
+# Explainability and visualization
+shap>=0.42.0
+matplotlib>=3.5.0
+seaborn>=0.12.0
+
 # Library for testing
 pytest

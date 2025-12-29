@@ -116,6 +116,44 @@ Script rápido para limpar arquivos de metadados do macOS em qualquer diretório
 
 ---
 
+## run_explainability_analysis.sh
+
+Executa análise completa de explicabilidade usando SHAP para todos os três modelos de predição de AMPs.
+
+**Uso:**
+```bash
+./scripts/run_explainability_analysis.sh
+```
+
+**O que faz:**
+- Verifica se os modelos foram treinados
+- Instala dependências necessárias (SHAP, matplotlib, seaborn)
+- Executa análise SHAP para RF, SVM e GB
+- Gera visualizações abrangentes (summary plots, bar plots, waterfall plots, dependence plots)
+- Cria tabelas de importância de features
+- Gera relatório Markdown completo
+- Cria gráfico de comparação entre modelos
+
+**Quando usar:**
+- Após treinar os modelos
+- Para gerar relatórios de explicabilidade
+- Para entender quais features são mais importantes
+- Para demonstrar que os modelos não são caixas pretas
+
+**Saída:**
+- Diretório: `model_training/explainability_reports/`
+- 3 summary plots (um por modelo)
+- 3 bar plots (um por modelo)
+- 9 waterfall plots (3 por modelo)
+- 15 dependence plots (5 por modelo)
+- 3 tabelas CSV de importância
+- 1 gráfico de comparação entre modelos
+- 1 relatório Markdown completo
+
+**Tempo estimado:** 10-15 minutos
+
+---
+
 ## Prevenindo Arquivos de Metadados do macOS
 
 ### Problema
