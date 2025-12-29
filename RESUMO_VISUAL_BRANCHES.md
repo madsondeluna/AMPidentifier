@@ -9,7 +9,7 @@
                     ├─── main local (2ab0bd2) ─────┤
                     │   [0 commits à frente de beta]
                     │
-                    └─── beta (92f887d) ───────────┘
+                    └─── beta (5dc561f) ───────────┘
                         [v1.0.0 - Versão Estável]
 ```
 
@@ -20,25 +20,25 @@
 | Característica | Beta (v1.0.0) | Main Local | Origin/Main |
 |----------------|---------------|------------|-------------|
 | **Commits desde Beta** | 0 | +0 | +6 |
-| **Arquivos Modificados** | - | 44 | 14 |
-| **Arquivos Não Commitados** | - | 0 | - |
+| **Arquivos Modificados** | - | 53 | 14 |
+| **Arquivos Não Commitados** | - | 1 | - |
 | **Status** | Estável | Desatualizado | Mais Recente |
 
 ---
 
 ## Status Atual do Repositório
 
-**Última atualização:** 2025-12-29 02:54:56
+**Última atualização:** 2025-12-29 15:29:50
 
 ### Últimos 5 Commits em Cada Branch
 
 **Beta:**
 ```
+  5dc561f docs: upgrade explainability report to technical scientific paper format
+  39fcec4 docs: update explainability implementation doc to full scientific report
+  e98786b feat: enhance explainability with interaction/decision plots and add scientific critique
+  3e11da0 docs: update status to completed and summarize explainability results
   92f887d docs: add SHAP explainability reports and visualizations for RF, SVM, GB
-  3b02544 fix: handle 3D SHAP values array from TreeExplainer in binary classification
-  4f144ec feat: add comprehensive SHAP-based model explainability system
-  cdb46cb docs: add `STATUS_ATUAL.md` detailing current repository status, configurations, and workflow.
-  312992f docs: update branch comparison after final sync
 ```
 
 **Main Local:**
@@ -68,5 +68,13 @@
 Para sincronizar:
 ```bash
 git pull origin main
+```
+
+**ATENÇÃO:** Você tem 1 arquivo(s) modificado(s) não commitado(s).
+
+Para salvar suas mudanças:
+```bash
+git add .
+git commit -m "Descrição das mudanças"
 ```
 

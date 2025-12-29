@@ -164,7 +164,12 @@ git diff beta origin/main --stat
 ## Notas Importantes
 
 1. **Branch Beta:** Versão estável de desenvolvimento, sem portal web
-2. **Commits:** Sempre commitar no beta
+2. **[CONCLUÍDO] Implementação de Explicabilidade (SHAP)**
+  - Sistema completo implementado em `model_training/explainability.py`.
+  - Análise executada para RF, SVM e GB.
+  - Relatório científico gerado: `IMPLEMENTACAO_EXPLICABILIDADE.md`.
+  - **Gráficos e Tabelas:** Disponíveis em `model_training/explainability_reports/`.
+  - **Destaque:** Descoberta de interações importantes (Carga vs Densidade) e validação da importância biológica da carga cationica.
 3. **Metadados:** Scripts configurados para prevenir arquivos `._*`
 4. **Documentação:** Atualizada automaticamente pelos scripts
 
