@@ -48,7 +48,7 @@ def run_prediction_pipeline(input_file: str, output_dir: str, internal_model_typ
 
     # --- Ensemble Voting Logic ---
     if use_ensemble:
-        print(f"Mode: Ensemble (RF + SVM + GB)")
+        print(f"Mode: Ensemble (RF + SVM + GB + XGB)")
         internal_model_paths = glob.glob(os.path.join(MODEL_DIR, "amp_model_*.pkl"))
         
         total_models = len(internal_model_paths)

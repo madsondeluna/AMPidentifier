@@ -6,6 +6,7 @@ import pandas as pd
 import joblib
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
+from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from amp_identifier.feature_extraction import calculate_physicochemical_features
@@ -84,7 +85,12 @@ def main():
     models = {
         'rf': RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced'),
         'svm': SVC(probability=True, random_state=42, class_weight='balanced'),
-        'gb': GradientBoostingClassifier(n_estimators=100, random_state=42)
+        'gb': GradientBoostingClassifier(n_estimators=100, random_state=42),
+        'xgb': XGBClassifier(
+            n_estimators=100, random_state=42,
+            scale_pos_weight=1,  # dataset is balanced (1:1)
+            eval_metric='logloss', verbosity=0
+        )
     }
 
     # --- NEW: Loop to train and save each model ---

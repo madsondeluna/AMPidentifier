@@ -52,7 +52,7 @@ def main():
         "-m", "--model",
         type=str,
         default='rf',
-        choices=['rf', 'svm', 'gb'],
+        choices=['rf', 'svm', 'gb', 'xgb'],
         help="Type of internal model to use for prediction. (default: rf)."
     )
     parser.add_argument(

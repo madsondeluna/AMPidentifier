@@ -1,0 +1,70 @@
+########### Hyperparameter Tuning Report ###########
+
+CV strategy : StratifiedKFold(n_splits=5, shuffle=True)
+Scoring     : roc_auc
+n_iter      : 50
+random_state: 42
+
+======================================================
+ MODEL: RF
+======================================================
+ Best CV roc_auc  : 0.9532
+ Test Accuracy   : 0.8898
+ Test Precision  : 0.8940
+ Test Recall     : 0.8845
+ Test Specificity: 0.8951
+ Test F1         : 0.8892
+ Test MCC        : 0.7797
+ Test AUC-ROC    : 0.9510
+ TP=1172  TN=1186  FP=139  FN=153
+
+ Best hyperparameters:
+   max_depth: 40
+   max_features: 0.5
+   min_samples_leaf: 1
+   min_samples_split: 2
+   n_estimators: 574
+
+======================================================
+ MODEL: GB
+======================================================
+ Best CV roc_auc  : 0.9538
+ Test Accuracy   : 0.8891
+ Test Precision  : 0.8926
+ Test Recall     : 0.8845
+ Test Specificity: 0.8936
+ Test F1         : 0.8886
+ Test MCC        : 0.7781
+ Test AUC-ROC    : 0.9534
+ TP=1172  TN=1184  FP=141  FN=153
+
+ Best hyperparameters:
+   learning_rate: 0.09234940072815244
+   max_depth: 6
+   min_samples_leaf: 4
+   min_samples_split: 3
+   n_estimators: 297
+   subsample: 0.6994122212222765
+
+======================================================
+ MODEL: XGB
+======================================================
+ Best CV roc_auc  : 0.9527
+ Test Accuracy   : 0.8883
+ Test Precision  : 0.8924
+ Test Recall     : 0.8830
+ Test Specificity: 0.8936
+ Test F1         : 0.8877
+ Test MCC        : 0.7766
+ Test AUC-ROC    : 0.9540
+ TP=1170  TN=1184  FP=141  FN=155
+
+ Best hyperparameters:
+   colsample_bytree: 0.7583481287132834
+   learning_rate: 0.05936408320633438
+   max_depth: 6
+   min_child_weight: 6
+   n_estimators: 448
+   reg_alpha: 0.012531420756075008
+   reg_lambda: 0.31294064907273156
+   subsample: 0.6779863393256308

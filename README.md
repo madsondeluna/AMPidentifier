@@ -36,16 +36,16 @@
   - [Pre-Trained Internal Models](#pre-trained-internal-models)
     - [Performance Summary](#performance-summary)
   - [Ensemble Mode Performance](#ensemble-mode-performance)
-    - [Table Explanation](#table-explanation)
-    - [The four central quadrants represent the classification results:](#the-four-central-quadrants-represent-the-classification-results)
-      - [Understanding Type I and Type II Errors](#understanding-type-i-and-type-ii-errors)
   - [Outputs](#outputs)
   - [Training Your Own Models](#training-your-own-models)
   - [Project Structure](#project-structure)
     - [Key Components](#key-components)
-  - [Comparative Benchmarking](#comparative-benchmarking)
-    - [Benchmark Dataset Description](#benchmark-dataset-description)
-    - [Comparison with State-of-the-Art Tools](#comparison-with-state-of-the-art-tools)
+  - [Hyperparameter Optimization](#hyperparameter-optimization)
+    - [Optimization Objective](#optimization-objective)
+    - [Cross-Validation Protocol](#cross-validation-protocol)
+    - [Search Spaces](#search-spaces)
+    - [Tuning Results and Figures](#tuning-results-and-figures)
+    - [Final Performance Metrics](#final-performance-metrics)
   - [Contributors](#contributors)
     - [Lead Developer](#lead-developer)
     - [Collaborators](#collaborators)
@@ -67,7 +67,7 @@
 
 The **AMPidentifier** is a Python tool for predicting and analyzing Antimicrobial Peptides (AMPs) from amino-acid sequences. It leverages a set of pre-trained Machine Learning models and offers flexible prediction modes, including an ensemble voting system, to provide robust results.
 
-**Unlike web servers or closed-source tools**, AMPidentifier operates as a **fully open and modular framework**. It includes pre-trained models (Random Forest, SVM, Gradient Boosting) that work both **individually** and in **ensemble mode**. Users can also **integrate external models** (`.pkl` files) to expand their analyses and compare different approaches side-by-side.
+**Unlike web servers or closed-source tools**, AMPidentifier operates as a **fully open and modular framework**. It includes pre-trained models (Random Forest, SVM, Gradient Boosting, and XGBoost) that work both **individually** and in **ensemble mode**. Users can also **integrate external models** (`.pkl` files) to expand their analyses and compare different approaches side-by-side.
 
 Beyond classification, AMPidentifier computes and exports dozens of physicochemical descriptors for each sequence (via `modlamp`) and bundles them into a detailed report.
 
@@ -75,7 +75,9 @@ Beyond classification, AMPidentifier computes and exports dozens of physicochemi
 
 ## Key Updates
 
-### Feature Improved 
+### Feature Improved
+- **XGBoost added**: Regularized gradient boosting (L1/L2 penalties) included as a fourth internal model
+- **Hyperparameter optimization**: All models tuned via RandomizedSearchCV with StratifiedKFold(5) cross-validation, scored by AUC-ROC
 - **Improved Accuracy**: Random Forest model achieves 88.45% accuracy (was lower without normalization)
 - **Better SVM Performance**: SVM benefits significantly from normalized features
 - **Consistent Predictions**: Scaler ensures reproducible results across runs
@@ -110,16 +112,17 @@ The AMPidentifier pipeline follows a modular workflow that processes peptide seq
 
    **Branch B: Model Selection**
    - Users choose one of three prediction strategies:
-     - **Single Model**: Select one algorithm (RF, SVM, or GB)
-     - **Ensemble Mode**: Combines all three models through majority voting (recommended)
+     - **Single Model**: Select one algorithm (RF, SVM, GB, or XGB)
+     - **Ensemble Mode**: Combines all four models through majority voting (recommended)
      - **External Models**: Load custom `.pkl` models for comparison
 
 4. **Model Inference**
    - Applies selected model(s) to normalized features
-   - Three internal models available:
+   - Four internal models available:
      - **RF**: Random Forest (best single-model performance)
      - **SVM**: Support Vector Machine
      - **GB**: Gradient Boosting
+     - **XGB**: XGBoost (regularized gradient boosting with L1/L2 penalties)
    - Optional: External models can be included for benchmarking
 
 5. **Output Generation**
@@ -155,8 +158,8 @@ The AMPidentifier pipeline follows a modular workflow that processes peptide seq
 
 ## Key Features
 
-- **Multiple Internal Models:** Three pre-trained ML models (Random Forest, Gradient Boosting, SVM).
-- **Ensemble Voting:** Majority vote across internal models to improve robustness.
+- **Multiple Internal Models:** Four pre-trained ML models (Random Forest, Gradient Boosting, SVM, XGBoost).
+- **Ensemble Voting:** Majority vote across all four internal models to improve robustness.
 - **Model Selection:** Choose a specific internal model on demand.
 - **External Model Comparison:** Load external `.pkl` models for side-by-side comparison.
 - **Feature Generation:** Compute and export an extensive set of physicochemical descriptors.
@@ -216,8 +219,8 @@ The entry point is `main.py`.
 |------------------------|-----------------------------------------------------------------------------|:--------:|:-------:|
 | `-i, --input`          | Path to the input FASTA file                                                |   Yes    |   -     |
 | `-o, --output_dir`     | Path to the output directory                                                |   Yes    |   -     |
-| `-m, --model`          | Internal model to use: `rf`, `svm`, `gb`                                    |    No    |  `rf`   |
-| `--ensemble`           | Enable majority-vote ensemble across all internal models                    |    No    |  Flag   |
+| `-m, --model`          | Internal model to use: `rf`, `svm`, `gb`, `xgb`                            |    No    |  `rf`   |
+| `--ensemble`           | Enable majority-vote ensemble across all four internal models               |    No    |  Flag   |
 | `-e, --external_models`| One or more paths to external `.pkl` models for comparison (comma-separated)|    No    |   -     |
 
 ### Examples
@@ -241,106 +244,46 @@ python3 main.py --input my_sequences.fasta --output_dir ./compare_svm --model sv
 
 ## Pre-Trained Internal Models
 
-Three models are distributed and evaluated on the same dataset for fair comparison.
+All four models were optimized via `RandomizedSearchCV` with `StratifiedKFold(5)` cross-validation (scoring: AUC-ROC, n\_iter=50) and evaluated on a held-out test set (20% split, n=530 per class). See [Hyperparameter Optimization](#hyperparameter-optimization) for full methodology.
 
 ### Performance Summary
 
-Best values per metric are in **bold**.
+Best values per metric are in **bold**. The Ensemble column applies majority voting across all four tuned models.
 
-| Metric         | Random Forest (RF) | Support Vector Machine (SVM) | Gradient Boosting (GB) |
-|----------------|--------------------:|------------------------------:|-----------------------:|
-| Accuracy       | **0.8845**         | 0.8740                        | 0.8585                 |
-| Precision      | **0.8910**         | 0.8880                        | 0.8665                 |
-| Recall         | **0.8762**         | 0.8558                        | 0.8475                 |
-| Specificity    | **0.8928**         | 0.8921                        | 0.8694                 |
-| F1-Score       | **0.8836**         | 0.8716                        | 0.8569                 |
-| MCC            | **0.7692**         | 0.7484                        | 0.7172                 |
-| AUC-ROC        | **0.9503**         | 0.9356                        | 0.9289                 |
+| Metric | RF | SVM | GB | XGB | **Ensemble** |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Accuracy | 0.8898 | 0.8698 | 0.8891 | 0.8883 | **0.8951** |
+| Precision | 0.8940 | 0.8571 | 0.8926 | 0.8924 | **0.9093** |
+| Sensitivity (Recall) | 0.8845 | **0.8875** | 0.8845 | 0.8830 | 0.8777 |
+| Specificity | 0.8951 | 0.8521 | 0.8936 | 0.8936 | **0.9125** |
+| F1-Score | 0.8892 | 0.8721 | 0.8886 | 0.8877 | **0.8932** |
+| MCC | 0.7797 | 0.7401 | 0.7781 | 0.7766 | **0.7907** |
+| AUC-ROC | 0.9510 | 0.9360 | 0.9534 | **0.9540** | 0.9583 |
+| Best CV AUC-ROC | 0.9532 | 0.9436 | 0.9538 | 0.9527 | - |
 
-**Best Practice (Recommended by the authors):** Use **Ensemble Mode** (`--ensemble`)
-- Combines all three models through majority voting
-- Leverages the strengths of each algorithm
-- Provides more robust and reliable predictions
-- Supported by literature as the best approach for AMP classification
-- All models have excellent metrics (>85% accuracy, >0.92 AUC-ROC)
+**Recommended:** Use **Ensemble Mode** (`--ensemble`). The ensemble achieves the best accuracy, precision, specificity, F1, and MCC across all configurations.
 
-**For Single Model Usage:** Random Forest (RF)
-- Best overall performance across all metrics
-- Highest accuracy (88.45%) and AUC-ROC (0.9503)
-- Excellent balance between sensitivity and specificity
+**Single-model default:** Random Forest (`-m rf`) offers the best individual precision-recall balance.
 
 ---
 
 ## Ensemble Mode Performance
 
-|                                | **Predicted: 0** (Negative) | **Predicted: 1** (Positive) | **Actual Total** |
-| :----------------------------- | :-------------------------: | :-------------------------: | :--------------: |
-| **Actual: 0** (Negative Dataset) | **TN = 1179** (88.98%)     | **FP = 146** (11.02%)       |       1325       |
-| **Actual: 1** (Positive Dataset) | **FN = 186** (14.04%)      | **TP = 1139** (85.96%)      |       1325       |
-| **Predicted Total**             |            1365             |            1285             |    **2650**      |
+The confusion matrix below summarizes the ensemble vote (majority rule, all four tuned models) on the held-out test set (n = 2,650 sequences; 1,325 per class).
 
-**Ensemble Performance Metrics:**
-- **Accuracy:** 87.47%
-- **Sensitivity (Recall):** 85.96%
-- **Specificity:** 88.98%
+|  | **Predicted: 0 (Non-AMP)** | **Predicted: 1 (AMP)** | **Total** |
+|:---|:---:|:---:|:---:|
+| **Actual: 0 (Non-AMP)** | TN = 1,209 (91.25%) | FP = 116 (8.75%) | 1,325 |
+| **Actual: 1 (AMP)** | FN = 162 (12.23%) | TP = 1,163 (87.77%) | 1,325 |
+| **Predicted total** | 1,371 | 1,279 | **2,650** |
 
-### Table Explanation
+**Ensemble metrics (tuned models):**
 
-This table is a confusion matrix, a fundamental tool for evaluating the performance of a classification model. It compares the actual values from your data with the predictions made by the model.
+| Accuracy | Precision | Sensitivity | Specificity | F1-Score | MCC | AUC-ROC |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 89.51% | 90.93% | 87.77% | 91.25% | 89.32% | 0.7907 | 0.9583 |
 
-- **Rows (Actual):** Represent the true class of each sample.  
-  - *Actual: 0*: Samples that are truly negative (from your "negative dataset").  
-  - *Actual: 1*: Samples that are truly positive (from your "positive dataset").  
-
-- **Columns (Predicted):** Represent the class that the model assigned to each sample.  
-  - *Predicted: 0*: Samples that the model classified as negative.  
-  - *Predicted: 1*: Samples that the model classified as positive.  
-
----
-
-### The four central quadrants represent the classification results:
-
-- **TN (True Negative):**  
-  - Value: 1179  
-  - Meaning: The ensemble correctly predicted 1179 samples as negative, and they were indeed negative.  
-  - The rate of 88.98% (1179/1325) represents the model's **specificity**.  
-
-- **FP (False Positive):**  
-  - Value: 146  
-  - Meaning: The ensemble incorrectly predicted 146 samples as positive when they were actually negative.  
-  - This is also known as a **Type I Error**.  
-
-- **FN (False Negative):**  
-  - Value: 186  
-  - Meaning: The ensemble incorrectly predicted 186 samples as negative when they were actually positive.  
-  - This is also known as a **Type II Error**.  
-
-- **TP (True Positive):**  
-  - Value: 1139  
-  - Meaning: The ensemble correctly predicted 1139 samples as positive, and they were indeed positive.  
-  - The rate of 85.96% (1139/1325) represents the model's **sensitivity (or recall)**.  
-
-#### Understanding Type I and Type II Errors
-
-In statistical hypothesis testing and machine learning classification:
-
-- **Type I Error (False Positive - FP):**  
-  - **Definition:** Rejecting a true null hypothesis; predicting positive when the actual class is negative.
-  - **In AMP context:** Classifying a non-AMP peptide as an AMP.
-  - **Consequence:** Wasted resources (time, money, lab work) investigating peptides that don't have antimicrobial activity.
-  - **Control:** Reducing Type I errors increases **specificity** but may increase Type II errors.
-
-- **Type II Error (False Negative - FN):**  
-  - **Definition:** Failing to reject a false null hypothesis; predicting negative when the actual class is positive.
-  - **In AMP context:** Classifying a true AMP peptide as non-AMP.
-  - **Consequence:** Missing potentially valuable antimicrobial peptides that could be therapeutic candidates.
-  - **Control:** Reducing Type II errors increases **sensitivity** but may increase Type I errors.
-
-**Trade-off in AMPidentifier:**  
-The ensemble model is calibrated to minimize False Positives (Type I errors) while maintaining good sensitivity. This is preferable for AMP screening because:
-- High confidence in positive predictions (low FP rate of 11.02%)
-- Efficient use of laboratory resources
-- Some true AMPs may be missed (FN rate of 14.04%), but can be recovered in subsequent screening rounds
+The ensemble reduces false positives relative to individual models (FP = 116 vs. up to 196 for SVM alone), making it the preferred configuration for AMP candidate prioritization where laboratory follow-up is resource-constrained.
 
 ---
 
@@ -405,6 +348,7 @@ AMPidentifier/
 │       ├── amp_model_rf.pkl          # (Generated) Random Forest model
 │       ├── amp_model_svm.pkl         # (Generated) SVM model
 │       ├── amp_model_gb.pkl          # (Generated) Gradient Boosting model
+│       ├── amp_model_xgb.pkl         # (Generated) XGBoost model
 │       ├── evaluation_report.txt     # (Generated) Detailed text report
 │       └── evaluation_report.csv     # (Generated) Comparative CSV report
 │
@@ -423,136 +367,215 @@ AMPidentifier/
 ### Key Components
 
 - **Modular Design**: Each component is independent and can be used separately or as part of the full pipeline.
-- **Pre-trained Models**: Three models (RF, SVM, GB) ready to use individually or in ensemble mode.
+- **Pre-trained Models**: Four models (RF, SVM, GB, XGB) ready to use individually or in ensemble mode.
 - **External Model Support**: Users can load their own `.pkl` models for comparison and extended analysis.
 
 ---
 
-## Comparative Benchmarking 
+## Hyperparameter Optimization
 
-AMPidentifier was designed to provide a robust, open-source alternative to existing AMP prediction tools. To ensure transparency and reproducibility, we benchmark AMPidentifier against other widely-used AMP classifiers, including both web-based servers and command-line tools.
+All internal models were subjected to rigorous hyperparameter search using `RandomizedSearchCV` with `StratifiedKFold` cross-validation. The complete procedure is implemented in `model_training/tune.py`.
 
-This comparison uses a standardized test dataset from the independent benchmark study by **Zulfiqar et al. (2024)**: "Machine Learning-Assisted Prediction and Generation of Antimicrobial Peptides" ([Small Sci. 2024, 2400579](https://onlinelibrary.wiley.com/doi/10.1002/smsc.202400579)). All tools are evaluated on the same dataset to ensure fair and unbiased comparison across multiple performance metrics. 
+### Optimization Objective
 
-**Important:** AMPidentifier will be evaluated using its **ensemble mode** (default recommended configuration), which combines predictions from all three internal models (Random Forest, SVM, Gradient Boosting) through majority voting. This represents the tool's best practice configuration as recommended by the authors and supported by literature as the optimal approach for AMP classification.
+The optimization criterion was the Area Under the Receiver Operating Characteristic Curve (AUC-ROC), which measures discrimination capacity across all decision thresholds:
 
-The goal is to position AMPidentifier within the current landscape of AMP prediction tools and highlight its strengths in ensemble learning and modular design.
+$$\text{AUC-ROC} = \int_0^1 \text{TPR}(t)\,d\,\text{FPR}(t)$$
 
-### Benchmark Dataset Description
+where $\text{TPR}(t) = \frac{\text{TP}}{\text{TP}+\text{FN}}$ (sensitivity) and $\text{FPR}(t) = \frac{\text{FP}}{\text{FP}+\text{TN}}$ (1 - specificity) at threshold $t$.
 
-The benchmark dataset used for comparative evaluation is organized by antimicrobial activity type and contains balanced positive (AMP) and negative (non-AMP) sequences:
+AUC-ROC was preferred over accuracy because it is threshold-independent and more informative for binary classification.
 
-| Activity Type    | Positive Sequences | Negative Sequences | Total Sequences |
-|------------------|-------------------:|-------------------:|----------------:|
-| Antibacterial    | 984                | 984                | 1,968           |
-| Antifungal       | 1,384              | 1,384              | 2,768           |
-| Antiviral        | 739                | 739                | 1,478           |
-| **Total**        | **3,107**          | **3,107**          | **6,214**       |
+### Cross-Validation Protocol
 
-All sequences are stored in `benchmarking/base/` directory as FASTA files (`bacterial_pos.fasta`, `bacterial_neg.fasta`, `fungal_pos.fasta`, `fungal_neg.fasta`, `viral_pos.fasta`, `viral_neg.fasta`).
+Hyperparameter search was performed exclusively on the training partition ($N_\text{train} = 2{,}120$, 80% of the dataset); the test set ($N_\text{test} = 530$ per class) was held out entirely. For each of the $n_\text{iter} = 50$ randomly sampled configurations $\theta$, the cross-validation score was:
 
-**Dataset Source:** Independent test set from Zulfiqar et al. (2024), [DOI: 10.1002/smsc.202400579](https://onlinelibrary.wiley.com/doi/10.1002/smsc.202400579)
+$$\hat{s}(\theta) = \frac{1}{K} \sum_{k=1}^{K} \text{AUC-ROC}\!\left(f_\theta^{(k)},\, \mathcal{D}_k^\text{val}\right), \quad K = 5$$
 
-### Comparison with State-of-the-Art Tools
+`StratifiedKFold` preserves the class ratio in every fold:
 
-| Tool                | Acc (%) | Antibacterial | Antifungal | Antiviral | Type       | Open Source | Modular | Models Available | Ensemble | External Models |
-|---------------------|--------:|:-------------:|:----------:|:---------:|------------|:-----------:|:-------:|:----------------:|:--------:|:---------------:|
-| **AMPidentifier**   | -       | -             | -          | -         | CLI/Local  | Yes         | Yes     | RF, SVM, GB      | Yes      | Yes             |
-| AMPScanner v2       | -       | -             | -          | -         | Web        | -           | No      | -                | -        | No              |
-| iAMP-2L             | -       | -             | -          | -         | Web        | -           | No      | -                | -        | No              |
-| CAMPR3              | -       | -             | -          | -         | Web        | -           | Yes     | SVM, RF, ANN, DA | -        | No              |
-| AMPlify             | -       | -             | -          | -         | CLI/Web    | -           | -       | -                | -        | -               |
-| AMPDiscover         | -       | -             | -          | -         | CLI        | -           | -       | -                | -        | -               |
+$$n_k^+ = n_k^- = \left\lfloor \frac{N_\text{train}}{2K} \right\rfloor \approx 212 \text{ samples per class per fold}$$
 
-**Column Descriptions:**
-- **Acc (%):** Overall accuracy percentage on the benchmark dataset, calculated as (TP + TN) / (TP + TN + FP + FN) × 100, where TP = True Positives, TN = True Negatives, FP = False Positives, FN = False Negatives
-- **Antibacterial:** Accuracy on antibacterial peptide subset, calculated as correctly predicted antibacterial sequences / total antibacterial sequences × 100
-- **Antifungal:** Accuracy on antifungal peptide subset, calculated as correctly predicted antifungal sequences / total antifungal sequences × 100
-- **Antiviral:** Accuracy on antiviral peptide subset, calculated as correctly predicted antiviral sequences / total antiviral sequences × 100
-- **Type:** Deployment format (Web-based server, CLI tool, or Local application)
-- **Open Source:** Publicly available source code (Yes/No)
-- **Modular:** Can individual models be used separately? (Yes/No)
-- **Models Available:** Machine learning algorithms available in the tool (RF = Random Forest, SVM = Support Vector Machine, GB = Gradient Boosting, ANN = Artificial Neural Network, DA = Discriminant Analysis)
-- **Ensemble:** Supports ensemble/voting prediction across multiple models? (Yes/No)
-- **External Models:** Allows integration of user-provided custom models (.pkl)? (Yes/No)
+The optimal configuration is selected as:
 
-**Benchmarking Status:**
+$$\theta^* = \operatorname*{arg\,max}_{\theta \in \Theta_\text{random}} \hat{s}(\theta)$$
 
-Comparative benchmarking experiments against other AMP prediction tools are currently **in progress**. Performance metrics (accuracy values) will be updated as experiments are completed using the standardized independent test set described above. All tools will be evaluated under identical conditions to ensure fair and unbiased comparison.
+The final model is retrained on the full training set with $\theta^*$ (`refit=True`).
 
-**Note:** Complete validation results for AMPidentifier's internal models (Random Forest, SVM, Gradient Boosting) are already available in the [Pre-Trained Internal Models](#pre-trained-internal-models) section, including detailed performance metrics (Accuracy, Precision, Recall, Specificity, F1-Score, MCC, AUC-ROC) and confusion matrix analysis in the [Benchmarking (Using the Ensemble Mode)](#benchmarking-using-the-ensemble-mode---real-data) section.
+### Search Spaces
 
----
+#### Random Forest (RF)
 
-## Model Explainability & Interpretability (SHAP Analysis)
+RF aggregates $T$ decision trees by majority vote, each grown on a bootstrap sample considering $m \leq p$ random features per split:
 
-To ensure transparency and biological validity, we employed **SHAP (SHapley Additive exPlanations)** to dissect the decision-making process of our models. This analysis reveals that our models are not "black boxes" but rather learn to prioritize physicochemical features consistent with known antimicrobial peptide (AMP) biology.
+$$\hat{y}_\text{RF}(x) = \operatorname{mode}\!\left\{h_t(x)\right\}_{t=1}^{T}$$
 
-### 1. Random Forest (RF) - The "Electrostatic Balanced" Model
-**Behavior:** Robustly balances charge-based features with structural properties.
+| Parameter | Distribution | Range |
+|-----------|-------------|-------|
+| `n_estimators` ($T$) | $\mathcal{U}_\mathbb{Z}$ | $[100,\ 600]$ |
+| `max_depth` | Discrete | $\{\text{None},\ 10,\ 20,\ 30,\ 40\}$ |
+| `min_samples_split` | $\mathcal{U}_\mathbb{Z}$ | $[2,\ 15]$ |
+| `min_samples_leaf` | $\mathcal{U}_\mathbb{Z}$ | $[1,\ 8]$ |
+| `max_features` ($m$) | Discrete | $\{\sqrt{p},\ \log_2 p,\ 0.3p,\ 0.5p\}$ |
 
-#### Global Feature Importance (Summary Plot)
-Red points indicate high feature values, blue points indicate low values. The horizontal position shows the impact on model output (positive SHAP = AMP prediction).
+#### Support Vector Machine (SVM)
 
-![RF Summary](model_training/explainability_reports/rf_summary_plot.png)
+The SVM finds the maximum-margin separating hyperplane with slack variables $\xi_i$:
 
-**Technical Interpretation:**
-*   **Charge & ChargeDensity (Top Predictors):** High positive charge is the strongest driver for AMP classification, aligning with the electrostatic attraction mechanism required for membrane interaction.
-*   **Biological Nuance:** The model correctly identifies that while hydrophobicity matters, the *electrostatic trigger* is the primary filter.
+$$\min_{w,b,\xi}\; \frac{1}{2}\|w\|^2 + C\sum_{i=1}^{n}\xi_i \quad \text{s.t.}\quad y_i\!\left(w^\top\phi(x_i)+b\right) \geq 1 - \xi_i,\quad \xi_i \geq 0$$
 
-#### Non-Linear Interactions (Interaction Plots)
-The model captures complex synergies between features.
+For the RBF kernel: $K(x_i, x_j) = \exp\!\left(-\gamma\|x_i - x_j\|^2\right)$.
 
-![RF Interaction](model_training/explainability_reports/rf_interaction_Length_vs_Aromaticity.png)
-> **Length vs. Aromaticity:** The importance of aromatic residues (membrane anchors like Trp/Phe) is modulated by peptide length. Specific length windows maximize the stabilization effect of aromatic rings.
+$C$ was bounded to $[10^{-2},\ 10^2]$; values above $10^2$ with `kernel=linear` caused convergence times exceeding 17 min/fold with negligible gain. `max_iter=5000` was set as a hard limit per fold.
 
-#### Decision Trajectory (Decision Plot)
-Visualizing the cumulative decision path for individual samples.
+| Parameter | Distribution | Range |
+|-----------|-------------|-------|
+| $C$ | $\log\mathcal{U}$ | $[10^{-2},\ 10^{2}]$ |
+| `kernel` | Discrete | $\{\text{rbf},\ \text{linear},\ \text{poly}\}$ |
+| $\gamma$ | Discrete | $\{\text{scale},\ \text{auto},\ 10^{-4},\ 10^{-3},\ 10^{-2},\ 10^{-1},\ 1\}$ |
 
-![RF Decision](model_training/explainability_reports/rf_decision_plot.png)
+#### Gradient Boosting (GB)
 
----
+GB constructs an additive model by fitting successive trees to the negative gradient of the loss $\mathcal{L}$:
 
-### 2. Gradient Boosting (GB) - The "Aggressive Electrostatic" Model
-**Behavior:** Extremely opinionated, focusing heavily on error correction via charge detection.
+$$F_T(x) = F_0(x) + \sum_{t=1}^{T} \nu \cdot h_t(x)$$
 
-#### Dominance of Charge
-![GB Summary](model_training/explainability_reports/gb_summary_plot.png)
+where $\nu$ (learning rate) controls shrinkage and each $h_t$ is the least-squares fit to the residuals $g_i = -\partial\mathcal{L}/\partial F_{t-1}(x_i)$.
 
-**Technical Interpretation:**
-*   **Massive Weight on Charge:** The model acts almost as a specialized "Cation Detector". If the net charge is insufficient, the probability of being an AMP drops precipitously.
-*   **Precision:** This aggressive filtering likely reduces false positives among neutral peptides but might miss anionic AMPs.
+| Parameter | Distribution | Range |
+|-----------|-------------|-------|
+| `n_estimators` ($T$) | $\mathcal{U}_\mathbb{Z}$ | $[100,\ 500]$ |
+| `learning_rate` ($\nu$) | $\log\mathcal{U}$ | $[10^{-3},\ 5\times10^{-1}]$ |
+| `max_depth` | $\mathcal{U}_\mathbb{Z}$ | $[2,\ 8]$ |
+| `subsample` | $\mathcal{U}$ | $[0.5,\ 1.0]$ |
+| `min_samples_split` | $\mathcal{U}_\mathbb{Z}$ | $[2,\ 15]$ |
+| `min_samples_leaf` | $\mathcal{U}_\mathbb{Z}$ | $[1,\ 8]$ |
 
-#### Structural Dependencies
-![GB Interaction](model_training/explainability_reports/gb_interaction_Length_vs_Aromaticity.png)
-> GB also validates the Length-Aromaticity synergy, confirming it as a robust biological signal rather than a model artifact.
+#### XGBoost (XGB)
 
----
+XGBoost extends gradient boosting with explicit L1 ($\alpha$) and L2 ($\lambda$) regularization on leaf weights $w_j$:
 
-### 3. Support Vector Machine (SVM) - The "Geometric/Structural" Model
-**Behavior:** Operates on a distinct decision hyperplane, prioritizing geometry over pure chemistry.
+$$\mathcal{L}_\text{XGB} = \mathcal{L} + \sum_{t=1}^{T}\!\left[\lambda\sum_j w_j^2 + \alpha\sum_j |w_j|\right]$$
 
-#### Divergent Feature Priority
-![SVM Summary](model_training/explainability_reports/svm_summary_plot.png)
+Row (`subsample`) and column (`colsample_bytree`) subsampling further reduce variance.
 
-**Technical Interpretation:**
-*   **Length is King:** Unlike tree-based models, SVM identifies `Length` and `Molecular Weight` as the primary discriminators.
-*   **Geometric Separation:** The RBF kernel finds that "slicing" the data space by peptide size provides the most efficient initial separation hyperplane.
-*   **Ensemble Value:** This divergence is critical. The SVM covers the "blind spots" of the tree models (e.g., detecting AMPs that lack extreme charge but fit the structural profile), making the final ensemble significantly more robust.
+| Parameter | Distribution | Range |
+|-----------|-------------|-------|
+| `n_estimators` ($T$) | $\mathcal{U}_\mathbb{Z}$ | $[100,\ 500]$ |
+| `learning_rate` ($\nu$) | $\log\mathcal{U}$ | $[10^{-3},\ 5\times10^{-1}]$ |
+| `max_depth` | $\mathcal{U}_\mathbb{Z}$ | $[2,\ 8]$ |
+| `subsample` | $\mathcal{U}$ | $[0.5,\ 1.0]$ |
+| `colsample_bytree` | $\mathcal{U}$ | $[0.5,\ 1.0]$ |
+| `reg_alpha` ($\alpha$, L1) | $\log\mathcal{U}$ | $[10^{-4},\ 10]$ |
+| `reg_lambda` ($\lambda$, L2) | $\log\mathcal{U}$ | $[10^{-1},\ 10]$ |
+| `min_child_weight` | $\mathcal{U}_\mathbb{Z}$ | $[1,\ 10]$ |
 
----
+### Tuning Results and Figures
 
-### Cross-Model Consensus
+#### ROC Curves
 
-| Feature | Random Forest | Gradient Boosting | SVM | Biological Consensus |
-|:---:|:---:|:---:|:---:|:---|
-| **Charge** | **Primary** | **Dominant** | Secondary | Essential for initial attraction |
-| **Length** | Secondary | Secondary | **Primary** | Determines mode of action (pore vs carpet) |
-| **Charge Density** | High | High | High | Concentrated charge is more potent |
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig01_roc_curves.png" alt="ROC curves for all tuned classifiers" width="380"/>
+</p>
 
-This triangulation confirms that our ensemble captures both the **chemical rules** (RF/GB) and the **structural/geometric constraints** (SVM) of antimicrobial peptides.
+All four tuned models achieve AUC-ROC above 0.93. XGBoost (0.954) and GB (0.953) lead, followed by RF (0.951). SVM achieves 0.936, reflecting the more constrained decision boundary of kernel methods on this feature set. The close grouping of curves confirms that all classifiers successfully capture the physicochemical signal that distinguishes AMPs from non-AMPs.
 
----
+#### Confusion Matrices
+
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig02_confusion_matrices.png" alt="Confusion matrices on held-out test set" width="700"/>
+</p>
+
+RF, GB, and XGB show similar TP/TN counts (~1,170/1,184) with balanced FP/FN rates. SVM exhibits a higher FP count (196), reflecting its tendency to favour sensitivity over specificity with the selected kernel parameters. MCC and accuracy values annotated above each panel quantify model quality.
+
+#### Probability Calibration
+
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig03_calibration.png" alt="Probability calibration curves" width="380"/>
+</p>
+
+Calibration curves (reliability diagrams) assess whether $P(\hat{y}=1 \mid \hat{p}=p) \approx p$. All models track the diagonal reasonably well, meaning that `predict_proba` outputs can be interpreted as AMP probabilities. Slight under-confidence (curves above the diagonal) at intermediate ranges is a known property of boosting classifiers.
+
+#### Feature Importance
+
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig04_feature_importance.png" alt="Physicochemical feature importance per classifier" width="700"/>
+</p>
+
+Tree-based models (RF, GB, XGB) report Gini impurity-based importance; SVM uses permutation importance on the test set (AUC-ROC reduction, 10 repeats). **Charge** and **Charge Density** rank as the most discriminative features across all classifiers, consistent with the electrostatic mechanism of AMP-membrane interaction. **Boman Index** and **Hydrophobicity Ratio** emerge as secondary predictors. SVM's permutation scores also highlight **Length** and **Molecular Weight**, capturing structural constraints that complement the charge-centric signal captured by tree ensembles.
+
+#### CV Score Distribution
+
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig05_cv_score_distribution.png" alt="CV AUC-ROC distribution across 50 candidates" width="380"/>
+</p>
+
+The strip plot shows the mean CV AUC-ROC ($\pm$SD over 5 folds) for all 50 randomly sampled configurations per model. The horizontal line marks the median and the star marks $\theta^*$. GB and XGB display narrower, higher distributions, reflecting lower sensitivity to individual hyperparameter choices. SVM shows a broader spread, confirming greater hyperparameter sensitivity. The selected optimum consistently lies in the upper tail.
+
+#### Top 10 Candidates
+
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig06_top10_candidates.png" alt="Top 10 hyperparameter combinations by CV AUC-ROC" width="700"/>
+</p>
+
+The top 10 hyperparameter combinations per model ranked by mean CV AUC-ROC; the full-opacity bar indicates $\theta^*$. The tight score clustering for RF, GB, and XGB (range < 0.01) indicates a flat optimum landscape where the models are robust to moderate hyperparameter variation. SVM shows a slightly wider spread (~0.03), consistent with its broader search distribution.
+
+#### Hyperparameter Search Spaces
+
+The four panels below show, for each model, how key hyperparameters relate to CV AUC-ROC across all 50 evaluated configurations. The star marks $\theta^*$.
+
+**Random Forest:**
+
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig07_hyperparam_rf.png" alt="RF hyperparameter search" width="700"/>
+</p>
+
+`n_estimators` above ~250 shows saturating returns. `max_depth=None` (fully grown trees) achieves competitive scores when combined with conservative `min_samples_leaf` values, confirming that ensemble averaging provides sufficient implicit regularization.
+
+**Gradient Boosting:**
+
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig08_hyperparam_gb.png" alt="GB hyperparameter search" width="700"/>
+</p>
+
+Low-to-moderate `learning_rate` ($\nu \in [0.01,\ 0.1]$) combined with higher `n_estimators` achieves the best results, consistent with the shrinkage-depth trade-off in boosting. `max_depth` between 3 and 5 is preferred.
+
+**Support Vector Machine:**
+
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig09_hyperparam_svm.png" alt="SVM hyperparameter search" width="700"/>
+</p>
+
+$C$ in the range $[1,\ 10]$ achieves the best CV scores with the RBF kernel. At very low $C$ the model underfits; at very high $C$ convergence slows with marginal gain. $\gamma \leq 10^{-2}$ or `scale` is preferred.
+
+**XGBoost:**
+
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig10_hyperparam_xgb.png" alt="XGB hyperparameter search" width="700"/>
+</p>
+
+The L2 regularization term ($\lambda$) shows a moderate positive correlation with CV AUC-ROC at intermediate values, confirming that explicit regularization benefits this dataset size. The optimal `learning_rate` falls around 0.05–0.15, consistent with GB.
+
+### Final Performance Metrics
+
+After selecting $\theta^*$ for each model and evaluating on the held-out test set, the ensemble combines all four tuned models by majority vote (AUC-ROC uses mean predicted probabilities).
+
+<p align="center">
+  <img src="model_training/tuned_model/figures/fig11_metrics_comparison.png" alt="Classification performance across tuned models and ensemble" width="700"/>
+</p>
+
+| Metric | RF | SVM | GB | XGB | **Ensemble** |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Accuracy | 0.8898 | 0.8698 | 0.8891 | 0.8883 | **0.8951** |
+| Precision | 0.8940 | 0.8571 | 0.8926 | 0.8924 | **0.9093** |
+| Sensitivity (Recall) | 0.8845 | **0.8875** | 0.8845 | 0.8830 | 0.8777 |
+| Specificity | 0.8951 | 0.8521 | 0.8936 | 0.8936 | **0.9125** |
+| F1-Score | 0.8892 | 0.8721 | 0.8886 | 0.8877 | **0.8932** |
+| MCC | 0.7797 | 0.7401 | 0.7781 | 0.7766 | **0.7907** |
+| AUC-ROC | 0.9510 | 0.9360 | 0.9534 | **0.9540** | 0.9583 |
+| Best CV AUC-ROC | 0.9532 | 0.9436 | 0.9538 | 0.9527 | - |
+
+The ensemble systematically outperforms all individual models on accuracy, precision, specificity, F1, and MCC. The slight reduction in sensitivity relative to SVM reflects the ensemble's bias toward reducing false positives, which is the preferred trade-off for wet-lab candidate prioritization.
 
 ## Contributors
 
@@ -601,6 +624,10 @@ This triangulation confirms that our ensemble captures both the **chemical rules
 - We acknowledge the **PPGGBM** - Programa de Pós-Graduação em Genética e Biologia Molecular (Graduate Program in Genetics and Molecular Biology) at UFPE for institutional support.
 
 ---
+
+## Contributing
+
+### Reporting Issues
 
 #### Reporting a Bug
 
