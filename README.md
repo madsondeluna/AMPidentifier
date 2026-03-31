@@ -408,7 +408,7 @@ The final model is retrained on the full training set with $\theta^*$ (`refit=Tr
 
 RF aggregates $T$ decision trees by majority vote, each grown on a bootstrap sample considering $m \leq p$ random features per split:
 
-$$\hat{y}_\text{RF}(x) = \text{mode}\left\{h_t(x)\right\}_{t=1}^{T}$$
+$$\hat{y}_\text{RF}(x) = \text{mode}\left\lbrace h_t(x) \right\rbrace_{t=1}^{T}$$
 
 | Parameter | Distribution | Range |
 |-----------|-------------|-------|
