@@ -398,7 +398,7 @@ $$n_k^+ = n_k^- = \left\lfloor \frac{N_\text{train}}{2K} \right\rfloor \approx 2
 
 The optimal configuration is selected as:
 
-$$\theta^* = \operatorname*{arg\,max}_{\theta \in \Theta_\text{random}} \hat{s}(\theta)$$
+$$\theta^* = \arg\max_{\theta \in \Theta_\text{random}} \hat{s}(\theta)$$
 
 The final model is retrained on the full training set with $\theta^*$ (`refit=True`).
 
@@ -408,7 +408,7 @@ The final model is retrained on the full training set with $\theta^*$ (`refit=Tr
 
 RF aggregates $T$ decision trees by majority vote, each grown on a bootstrap sample considering $m \leq p$ random features per split:
 
-$$\hat{y}_\text{RF}(x) = \operatorname{mode}\!\left\{h_t(x)\right\}_{t=1}^{T}$$
+$$\hat{y}_\text{RF}(x) = \text{mode}\left\{h_t(x)\right\}_{t=1}^{T}$$
 
 | Parameter | Distribution | Range |
 |-----------|-------------|-------|
