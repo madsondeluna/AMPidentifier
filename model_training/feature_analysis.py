@@ -214,7 +214,7 @@ def main():
     print("  Plotting heatmap (before)...")
     _plot_heatmap(
         corr_before,
-        f"Absolute Pearson correlation — before filtering  (n = {n_after_struct} features)",
+        f"Pairwise Absolute Pearson Correlation of Physicochemical Features Before Filtering (n = {n_after_struct})",
         "fig_correlation_heatmap_before.png",
     )
 
@@ -227,7 +227,7 @@ def main():
     print("  Plotting heatmap (after)...")
     _plot_heatmap(
         corr_after,
-        f"Absolute Pearson correlation — after filtering  (n = {n_final} features)",
+        f"Pairwise Absolute Pearson Correlation of Physicochemical Features After Filtering (n = {n_final})",
         "fig_correlation_heatmap_after.png",
     )
 
