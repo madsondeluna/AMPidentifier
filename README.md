@@ -23,15 +23,38 @@ This branch addresses the ceiling through three parallel changes: feature expans
 
 ## Dataset
 
-Sequences were loaded from two FASTA files:
+### Sources
+
+Positive sequences (AMPs) were collected from three public databases and merged with the sequences already present in the repository:
+
+| Source | Description | URL |
+|---|---|---|
+| APD3 2024 | Antimicrobial Peptide Database, natural AMP release 2024a | aps.unmc.edu |
+| CAMPR3 | Collection of Antimicrobial Peptides, release 3 | www.camp3.bicnirrh.res.in |
+| DRAMP 3.0 | Data Repository of Antimicrobial Peptides, general AMP set | dramp.cpu-bioinfor.org |
+
+Negative sequences (non-AMPs) were downloaded from UniProt via the REST API (`rest.uniprot.org/uniprotkb/stream`) with the following query: reviewed sequences (`reviewed:true`), length between 10 and 200 residues, excluding keyword KW-0929 (Antimicrobial) and KW-0044 (Antibiotic). This query returned 176,001 candidate non-AMP sequences from Swiss-Prot.
+
+### Pre-processing and deduplication
+
+All downloaded sequences were filtered to remove:
+
+- Sequences shorter than 10 residues or longer than 200 residues.
+- Sequences containing non-standard amino acids (any character outside ACDEFGHIKLMNPQRSTVWY).
+
+After filtering, positive and negative sets were each deduplicated independently using CD-HIT (v4.8.1) at 90% pairwise sequence identity (`-c 0.90 -n 5`). The 90% threshold is the standard for AMP datasets (Wang et al. 2009) and removes near-identical sequences without discarding distinct homologues. The two sets were then subsampled to equal size to maintain a balanced dataset.
+
+All download and processing steps are implemented in `model_training/collect_sequences.py`. Downloaded files are cached in `model_training/data/raw_downloads/` and not re-fetched on subsequent runs.
+
+### Final composition
 
 | Class | File | Sequences |
 |---|---|---|
-| AMP (positive) | `model_training/data/positive_sequences.fasta` | 6,623 |
-| Non-AMP (negative) | `model_training/data/negative_sequences.fasta` | 6,623 |
-| Total | | 13,246 |
+| AMP (positive) | `model_training/data/positive_sequences.fasta` | 6,933 |
+| Non-AMP (negative) | `model_training/data/negative_sequences.fasta` | 6,933 |
+| Total | | 13,866 |
 
-The dataset is balanced after internal filtering by `modlamp` (sequences with non-standard amino acids are excluded). Sequence lengths range from 1 to 60 residues in AMPs and 10 to 194 residues in non-AMPs, with medians of approximately 30 and 35 residues, respectively (Figure 1, Figure 10). The 80/20 train-test split used `random_state=42` with stratification on the binary label, producing 10,596 training sequences and 2,650 test sequences.
+The 80/20 train-test split used `random_state=42` with stratification on the binary label. Sequence length distributions are shown in Figure 3.
 
 ## Phase 1: Feature engineering
 
@@ -187,37 +210,11 @@ AMPs have a narrower and shorter length distribution (median approximately 30 re
 
 AMPs are enriched in K (lysine), R (arginine), C (cysteine), and L (leucine) relative to non-AMPs. K and R provide the positive charge that mediates membrane binding. C is characteristic of disulfide-stabilized defensins. L contributes hydrophobic faces to amphipathic helices. Non-AMPs show higher proportions of E (glutamate), D (aspartate), and S (serine), consistent with the anionic or neutral surface charge of most intracellular proteins.
 
-**Figure 5.** Distribution of six physicochemical properties: AMP versus non-AMP.
+**Figure 5.** Distribution of all eight global physicochemical descriptors: AMP versus non-AMP.
 
 ![Physicochemical distributions](model_training/eda/fig03_physicochemical_dist.png)
 
-Charge and pI show the clearest separation between classes. AMPs concentrate at high positive charge (median approximately +4) and high pI (median approximately 10.5), whereas non-AMPs distribute near neutrality. MW distributions overlap substantially. The Boman index, which quantifies protein-protein interaction potential, is lower for AMPs, consistent with their membrane-targeting function rather than protein-binding function.
-
-**Figure 6.** Net charge versus isoelectric point, colored by class.
-
-![Charge vs pI](model_training/eda/fig04_charge_pi_scatter.png)
-
-The two classes are partially separable in the charge-pI plane. The substantial within-class scatter confirms that charge alone is insufficient for classification, which aligns with the finding that CTD Transition and Distribution features (positional information) appear in the top 20 RF importance rankings.
-
-**Figure 7.** PCA of the 135 selected features (RobustScaler, full dataset).
-
-![PCA](model_training/eda/fig05_pca.png)
-
-PC1 and PC2 achieve partial class separation with visible overlap. The limited variance explained by the first two components is consistent with the high-dimensional nature of the feature set and confirms that nonlinear classifiers are necessary.
-
-**Figure 8.** t-SNE of the 135 selected features (n = 3,000 sequences, perplexity = 40, PCA pre-reduction to 50 components).
-
-![t-SNE](model_training/eda/fig06_tsne.png)
-
-t-SNE reveals a clearer cluster structure than PCA. AMP and non-AMP sequences form partially separated regions with a diffuse boundary. Sequences at the boundary likely include AMPs with atypical composition and non-AMPs with incidental AMP-like physicochemical properties (e.g., cationic signal peptides).
-
-**Figure 9.** Boxplot of the top 12 features by RF importance: AMP versus non-AMP.
-
-![Feature boxplot](model_training/eda/fig07_top_features_boxplot.png)
-
-**Figure 10.** Class balance and sequence length statistics.
-
-![Class balance](model_training/eda/fig08_class_balance.png)
+Charge and pI show the clearest separation between classes. AMPs concentrate at high positive charge (median approximately +4) and high pI (median approximately 10.5), whereas non-AMPs distribute near neutrality. MW distributions overlap substantially. The Boman index, which quantifies protein-protein interaction potential, is lower for AMPs, consistent with their membrane-targeting function rather than protein-binding function. The instability index does not separate the classes, confirming that thermodynamic stability is not a defining property of AMPs.
 
 ## Phase 3: Classical ML models
 
