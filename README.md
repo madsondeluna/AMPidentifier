@@ -4,16 +4,16 @@ Branch: `feature/expanded-features-deeplearning`
 
 ## Contents
 
-1. [Motivation](#1-motivation)
-2. [Dataset](#2-dataset)
-3. [Phase 1: Feature engineering](#3-phase-1-feature-engineering)
-4. [Phase 2: Feature selection](#4-phase-2-feature-selection)
-5. [Phase 2.5: Exploratory data analysis](#5-phase-25-exploratory-data-analysis)
-6. [Phase 3: Classical ML models](#6-phase-3-classical-ml-models)
-7. [Phase 4: Deep learning](#7-phase-4-deep-learning)
-8. [References](#8-references)
+- [Motivation](#motivation)
+- [Dataset](#dataset)
+- [Phase 1: Feature engineering](#phase-1-feature-engineering)
+- [Phase 2: Feature selection](#phase-2-feature-selection)
+- [Phase 2.5: Exploratory data analysis](#phase-25-exploratory-data-analysis)
+- [Phase 3: Classical ML models](#phase-3-classical-ml-models)
+- [Phase 4: Deep learning](#phase-4-deep-learning)
+- [References](#references)
 
-## 1. Motivation
+## Motivation
 
 The previous pipeline (branch `beta`) trained four classifiers, namely Random Forest (RF), Support Vector Machine (SVM), Gradient Boosting (GB), and XGBoost, on ten global physicochemical descriptors computed by `modlamp.GlobalDescriptor.calculate_all()`. After hyperparameter tuning with RandomizedSearchCV (50 iterations, StratifiedKFold with 5 folds, scoring: AUC-ROC), all four models converged to AUC-ROC 0.951-0.954 and Matthews Correlation Coefficient (MCC) 0.777-0.780. The plateau across architecturally distinct models indicated that the bottleneck was the feature representation rather than model capacity.
 
@@ -21,7 +21,7 @@ The features in `beta` are all global scalar values: molecular weight (MW), net 
 
 This branch addresses the ceiling through three parallel changes: feature expansion, feature selection, and the addition of new model architectures (MLP, stacking ensemble, and a PyTorch sequence-based model).
 
-## 2. Dataset
+## Dataset
 
 Sequences were loaded from two FASTA files:
 
@@ -33,13 +33,13 @@ Sequences were loaded from two FASTA files:
 
 The dataset is balanced after internal filtering by `modlamp` (sequences with non-standard amino acids are excluded). Sequence lengths range from 1 to 60 residues in AMPs and 10 to 194 residues in non-AMPs, with medians of approximately 30 and 35 residues, respectively (Figure 1, Figure 10). The 80/20 train-test split used `random_state=42` with stratification on the binary label, producing 10,596 training sequences and 2,650 test sequences.
 
-## 3. Phase 1: Feature engineering
+## Phase 1: Feature engineering
 
-### 3.1 Global descriptors
+### Global descriptors
 
 The ten descriptors from `modlamp.GlobalDescriptor.calculate_all(amide=True)` are retained from the `beta` pipeline: Length, MW, Charge, ChargeDensity, pI, InstabilityInd, Aromaticity, AliphaticInd, BomanInd, and HydrophRatio.
 
-### 3.2 Amino acid composition (AAC)
+### Amino acid composition (AAC)
 
 Twenty features were added, one per standard amino acid, each defined as the fraction of residues of that type in the sequence:
 
@@ -47,7 +47,7 @@ $$\text{AAC}_i = \frac{n_i}{L}$$
 
 where $n_i$ is the count of amino acid $i$ and $L$ is the sequence length. AAC encodes residue content without positional information.
 
-### 3.3 Dipeptide composition (DPC)
+### Dipeptide composition (DPC)
 
 Four hundred features were computed, one per ordered pair of amino acids $(i, j)$:
 
@@ -55,7 +55,7 @@ $$\text{DPC}_{ij} = \frac{n_{ij}}{L - 1}$$
 
 where $n_{ij}$ is the count of consecutive pairs $i$-$j$ in the sequence. DPC incorporates short-range sequential context. As shown in Section 4.1, DPC features have near-zero variance in this dataset and are removed during feature selection.
 
-### 3.4 CTD descriptors
+### CTD descriptors
 
 One hundred and forty-seven features were computed using the Composition (C), Transition (T), and Distribution (D) framework of Dubchak et al. (1995), extended to seven physicochemical properties by Chou and Shen (2007): hydrophobicity, normalized van der Waals volume, polarity, polarizability, charge, secondary structure propensity, and solvent accessibility. Each property partitions the twenty standard amino acids into three groups (Table 1).
 
@@ -89,17 +89,17 @@ Per property: 3 C + 3 T + 15 D = 21 values. Across 7 properties: 147 features.
 
 The full feature vector after Phase 1 has 577 dimensions (10 GlobalDesc + 20 AAC + 400 DPC + 147 CTD). Feature extraction for 13,246 sequences runs in approximately 9.5 seconds on a single CPU.
 
-## 4. Phase 2: Feature selection
+## Phase 2: Feature selection
 
 Feature selection was implemented in `model_training/feature_analysis.py` and proceeded in three sequential steps. The output is `model_training/data/selected_features.txt`.
 
-### 4.1 Step 1: Variance threshold
+### Step 1: Variance threshold
 
 Features with variance $\leq 0.001$ were removed. The threshold was set at 0.001 rather than the conventional 0.01 because AAC features, which are proportions in short peptides, have intrinsically low variance: the highest AAC variance in the dataset was 0.0068 (`AAC_K`). A threshold of 0.01 eliminates all 20 AAC features.
 
 Result: 577 reduced to 175. The 402 removed features were almost entirely DPC. Most of the 400 dipeptides are absent from the majority of sequences (mean length 34 residues), so their frequency distributions concentrate at zero with negligible spread.
 
-### 4.2 Step 2: Structural filter
+### Step 2: Structural filter
 
 All 21 CTD Composition features (CTD\_\*\_C1, CTD\_\*\_C2, CTD\_\*\_C3) were removed before pairwise correlation analysis. Two independent reasons justify this removal.
 
@@ -118,7 +118,7 @@ CTD Transition (T) and Distribution (D) features are retained: T encodes the fre
 
 Result: 175 reduced to 154.
 
-### 4.3 Step 3: Pairwise Pearson correlation filter
+### Step 3: Pairwise Pearson correlation filter
 
 One feature from each pair with $|r| > 0.90$ was removed. The threshold was set at 0.90 rather than the conventional 0.95 because nine pairs survived at 0.95 with $|r|$ between 0.91 and 0.94. The most correlated surviving pair at the 0.95 level was `CTD_polarity_C1` and `CTD_hydrophobicity_C3` ($r = 0.939$), explained by the near-complete overlap of their constituent amino acids: LIFWCMVY (polarity group 1) and CVLIMFW (hydrophobicity group 3) share 7 of 8 residues. Within each surviving pair, the feature with higher mean absolute correlation to all remaining features was dropped.
 
@@ -132,7 +132,7 @@ Result: 154 reduced to 135. No pair with $|r| > 0.90$ remains in the final set.
 
 ![Correlation heatmap after filtering](model_training/feature_analysis/fig_correlation_heatmap_after.png)
 
-### 4.4 Final feature set
+### Final feature set
 
 **Table 2.** Composition of the 135 selected features.
 
@@ -171,7 +171,7 @@ Result: 154 reduced to 135. No pair with $|r| > 0.90$ remains in the final set.
 
 The predominance of charge-related features (`Charge`, `pI`, `CTD_charge_T12`, `CTD_charge_T23`, `CTD_charge_D12`) is consistent with the biochemical model of AMP activity: membrane disruption depends on electrostatic attraction to negatively charged bacterial membranes, which requires a net positive charge (Shai 2002). The high importance of `AAC_M` reflects the role of methionine in amphipathic helix formation, a structural motif common in helical AMPs. `CTD_solvent_access` features encode the distribution of buried and exposed residues, relevant to amphipathic organization that allows membrane insertion.
 
-## 5. Phase 2.5: Exploratory data analysis
+## Phase 2.5: Exploratory data analysis
 
 All figures were generated by `model_training/eda.py`.
 
@@ -219,9 +219,9 @@ t-SNE reveals a clearer cluster structure than PCA. AMP and non-AMP sequences fo
 
 ![Class balance](model_training/eda/fig08_class_balance.png)
 
-## 6. Phase 3: Classical ML models
+## Phase 3: Classical ML models
 
-### 6.1 Scaling strategy
+### Scaling strategy
 
 Two scalers were chosen based on the distributional properties of the 135 features.
 
@@ -231,11 +231,11 @@ Two scalers were chosen based on the distributional properties of the 135 featur
 
 Both scalers are fit on the training set only and applied without leakage to the test set.
 
-### 6.2 Threshold optimization for MCC
+### Threshold optimization for MCC
 
 The decision threshold was not fixed at 0.50. After training, each model's probability output was swept from 0.10 to 0.90 in steps of 0.0125 on the test set, and the threshold maximizing MCC was selected. MCC is sensitive to both false positives and false negatives and is more informative than F1 or accuracy for evaluating binary classifiers on balanced datasets.
 
-### 6.3 Architectures
+### Architectures
 
 **RF:** 200 trees, `class_weight='balanced'`, RobustScaler.
 
@@ -249,7 +249,7 @@ The decision threshold was not fixed at 0.50. After training, each model's proba
 
 **Stacking:** RF + XGB + SVM as base estimators with 5-fold cross-validated out-of-fold predictions; LogisticRegression as meta-learner, RobustScaler.
 
-### 6.4 Results
+### Results
 
 **Table 4.** Baseline performance on the test set (2,650 sequences, 135 selected features, optimized threshold).
 
@@ -276,11 +276,11 @@ The Stacking ensemble achieves the highest recall (0.9366), meaning it recovers 
 
 The MLP's lower threshold (0.33) reflects a bias toward predicting AMP at lower probability, which suggests the model is less calibrated than tree-based classifiers at default initialization. Hyperparameter tuning with `model_training/tune.py` will address this.
 
-### 6.5 Artifacts
+### Artifacts
 
 All models, scalers, and per-model thresholds are saved to `model_training/saved_model/`. The selected feature list is in `model_training/data/selected_features.txt`.
 
-## 7. Phase 4: Deep learning
+## Phase 4: Deep learning
 
 A PyTorch sequence model is under development in `model_training/train_deep.py`. The architecture operates directly on one-hot encoded amino acid sequences without hand-crafted features, combining a 1D convolutional encoder for local motif detection with a bidirectional LSTM for global sequential context.
 
@@ -295,7 +295,7 @@ Implementation plan:
 
 Results will be added to Table 4 upon completion.
 
-## 8. References
+## References
 
 Dubchak, I., Muchnik, I., Holbrook, S.R., and Kim, S.-H. (1995). Prediction of protein folding class using global description of amino acid sequence. *Proceedings of the National Academy of Sciences*, 92(19), 8700-8704.
 
