@@ -1,109 +1,233 @@
 # model_training/train.py
+#
+# Baseline training pipeline for all classifiers.
+#
+# Models trained:
+#   rf    - Random Forest
+#   svm   - Support Vector Machine
+#   gb    - Gradient Boosting
+#   xgb   - XGBoost
+#   mlp   - Multi-Layer Perceptron (sklearn)
+#   stack - Stacking ensemble (RF + XGB + SVM -> Logistic Regression)
+#
+# Scaling strategy:
+#   RobustScaler              -> rf, svm, gb, xgb, stack
+#   QuantileTransformer(normal) -> mlp
+#
+# Features: 159 selected features from feature_analysis.py (selected_features.txt).
+#
+# Run from project root:
+#   python -m model_training.train
 
 import os
-import random
 import pandas as pd
 import joblib
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import (
+    RandomForestClassifier, GradientBoostingClassifier, StackingClassifier
+)
 from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler, QuantileTransformer
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score,
+    confusion_matrix, roc_auc_score, matthews_corrcoef
+)
+import numpy as np
+
 from amp_identifier.feature_extraction import calculate_physicochemical_features
 from amp_identifier.data_io import load_fasta_sequences
 
-# --- Configuration ---
-DATA_DIR = "model_training/data"
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+DATA_DIR   = "model_training/data"
 OUTPUT_DIR = "model_training/saved_model"
-POSITIVE_FILE = os.path.join(DATA_DIR, "positive_sequences.fasta")
-NEGATIVE_FILE = os.path.join(DATA_DIR, "negative_sequences.fasta")
-TEST_FEATURES_PATH = os.path.join(DATA_DIR, "test_features.csv")
-TEST_LABELS_PATH = os.path.join(DATA_DIR, "test_labels.csv")
+POSITIVE_FILE          = os.path.join(DATA_DIR, "positive_sequences.fasta")
+NEGATIVE_FILE          = os.path.join(DATA_DIR, "negative_sequences.fasta")
+SELECTED_FEATURES_PATH = os.path.join(DATA_DIR, "selected_features.txt")
+TEST_FEATURES_PATH     = os.path.join(DATA_DIR, "test_features.csv")
+TEST_LABELS_PATH       = os.path.join(DATA_DIR, "test_labels.csv")
 
-def generate_dummy_fasta_data():
-    # This function remains unchanged...
-    if os.path.exists(POSITIVE_FILE) and os.path.exists(NEGATIVE_FILE):
-        return
-    print("Generating dummy FASTA data for training...")
-    os.makedirs(DATA_DIR, exist_ok=True)
-    amino_acids = "ACDEFGHIKLMNPQRSTVWY"
-    with open(POSITIVE_FILE, "w") as f:
-        for i in range(100):
-            seq = "".join(random.choices(amino_acids + "KR"*2, k=random.randint(10, 30)))
-            f.write(f">positive_seq_{i+1}\n{seq}\n")
-    with open(NEGATIVE_FILE, "w") as f:
-        for i in range(100):
-            seq = "".join(random.choices(amino_acids, k=random.randint(20, 50)))
-            f.write(f">negative_seq_{i+1}\n{seq}\n")
-    print("Dummy data generated.")
+RANDOM_STATE = 42
+TEST_SIZE    = 0.2
 
-def main():
-    """Main function to run the training pipeline for multiple models."""
-    print("--- Starting Model Training Pipeline ---")
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    generate_dummy_fasta_data()
 
-    # --- Data Loading and Feature Calculation (same as before) ---
-    print("Step 1: Loading sequence data...")
-    pos_seqs, pos_ids = load_fasta_sequences(POSITIVE_FILE)
-    neg_seqs, neg_ids = load_fasta_sequences(NEGATIVE_FILE)
-    sequences, ids = pos_seqs + neg_seqs, pos_ids + neg_ids
-    labels = [1] * len(pos_seqs) + [0] * len(neg_seqs)
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+def _load_selected_features() -> list:
+    with open(SELECTED_FEATURES_PATH) as f:
+        return [l.strip() for l in f if l.strip()]
 
-    print("Step 2: Calculating features...")
-    features_df = calculate_physicochemical_features(sequences, ids)
-    features_df['label'] = labels
-    X = features_df.drop(columns=['ID', 'sequence', 'label']).fillna(0)
-    y = features_df['label']
 
-    print("Step 3: Splitting data into training and test sets...")
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
-    
-    # --- NEW: Normalize features using StandardScaler ---
-    print("Step 3.1: Normalizing features with StandardScaler...")
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-    
-    # Convert back to DataFrame to preserve column names
-    X_train_scaled = pd.DataFrame(X_train_scaled, columns=X_train.columns, index=X_train.index)
-    X_test_scaled = pd.DataFrame(X_test_scaled, columns=X_test.columns, index=X_test.index)
-    
-    # Save the scaler for later use in predictions
-    scaler_path = os.path.join(OUTPUT_DIR, "feature_scaler.pkl")
-    joblib.dump(scaler, scaler_path)
-    print(f"Scaler saved to {scaler_path}")
-    
-    # Save test data once for all models to be evaluated on the same set
-    X_test_scaled.to_csv(TEST_FEATURES_PATH, index=False)
-    y_test.to_frame().to_csv(TEST_LABELS_PATH, index=False)
-    print("Test data saved for evaluation script.")
-
-    # --- NEW: Define multiple models to train ---
-    models = {
-        'rf': RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced'),
-        'svm': SVC(probability=True, random_state=42, class_weight='balanced'),
-        'gb': GradientBoostingClassifier(n_estimators=100, random_state=42),
-        'xgb': XGBClassifier(
-            n_estimators=100, random_state=42,
-            scale_pos_weight=1,  # dataset is balanced (1:1)
-            eval_metric='logloss', verbosity=0
-        )
+def _evaluate(model, X_test, y_test, scaler=None) -> dict:
+    X = scaler.transform(X_test) if scaler else X_test
+    y_pred  = model.predict(X)
+    y_proba = model.predict_proba(X)[:, 1]
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+    return {
+        "accuracy":    accuracy_score(y_test, y_pred),
+        "precision":   precision_score(y_test, y_pred),
+        "recall":      recall_score(y_test, y_pred),
+        "specificity": tn / (tn + fp),
+        "f1":          f1_score(y_test, y_pred),
+        "mcc":         matthews_corrcoef(y_test, y_pred),
+        "auc_roc":     roc_auc_score(y_test, y_proba),
+        "tp": int(tp), "tn": int(tn), "fp": int(fp), "fn": int(fn),
     }
 
-    # --- NEW: Loop to train and save each model ---
-    for model_name, model in models.items():
-        print(f"\n--- Training {model_name.upper()} model ---")
-        model.fit(X_train_scaled, y_train)
-        print(f"Model {model_name.upper()} training complete.")
-        
-        model_path = os.path.join(OUTPUT_DIR, f"amp_model_{model_name}.pkl")
+
+def _tune_threshold_mcc(model, X_val, y_val) -> float:
+    """Find probability threshold that maximizes MCC on validation set."""
+    y_proba = model.predict_proba(X_val)[:, 1]
+    best_t, best_mcc = 0.5, -1.0
+    for t in np.linspace(0.1, 0.9, 81):
+        y_pred = (y_proba >= t).astype(int)
+        mcc = matthews_corrcoef(y_val, y_pred)
+        if mcc > best_mcc:
+            best_mcc, best_t = mcc, float(t)
+    return best_t
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+def main():
+    print("--- Starting Model Training Pipeline ---")
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    # --- Load data ---
+    print("\nStep 1: Loading sequences...")
+    pos_seqs, pos_ids = load_fasta_sequences(POSITIVE_FILE)
+    neg_seqs, neg_ids = load_fasta_sequences(NEGATIVE_FILE)
+    sequences = pos_seqs + neg_seqs
+    ids       = pos_ids  + neg_ids
+    labels    = [1] * len(pos_seqs) + [0] * len(neg_seqs)
+    print(f"  Positive: {len(pos_seqs)}  Negative: {len(neg_seqs)}")
+
+    # --- Extract features ---
+    print("\nStep 2: Extracting features...")
+    features_df = calculate_physicochemical_features(sequences, ids)
+    features_df["label"] = labels
+
+    selected = _load_selected_features()
+    X = features_df[selected].fillna(0)
+    y = features_df["label"]
+    print(f"  Feature matrix: {X.shape[0]} samples x {X.shape[1]} features")
+
+    # --- Split ---
+    print("\nStep 3: Splitting data (80/20, stratified)...")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
+    )
+
+    # --- Scalers ---
+    print("\nStep 4: Fitting scalers...")
+    robust_scaler = RobustScaler()
+    qt_scaler     = QuantileTransformer(
+        output_distribution="normal", random_state=RANDOM_STATE
+    )
+
+    X_train_robust = pd.DataFrame(
+        robust_scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index
+    )
+    X_test_robust  = pd.DataFrame(
+        robust_scaler.transform(X_test), columns=X_test.columns, index=X_test.index
+    )
+    X_train_qt = pd.DataFrame(
+        qt_scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index
+    )
+    X_test_qt  = pd.DataFrame(
+        qt_scaler.transform(X_test), columns=X_test.columns, index=X_test.index
+    )
+
+    joblib.dump(robust_scaler, os.path.join(OUTPUT_DIR, "scaler_robust.pkl"))
+    joblib.dump(qt_scaler,     os.path.join(OUTPUT_DIR, "scaler_qt.pkl"))
+    print("  Scalers saved.")
+
+    # Save test set (robust-scaled, for evaluate.py compatibility)
+    X_test_robust.to_csv(TEST_FEATURES_PATH, index=False)
+    y_test.to_frame().to_csv(TEST_LABELS_PATH, index=False)
+
+    # --- Model definitions ---
+    # (model_name, model, X_train_scaled, X_test_scaled)
+    stacking_base = [
+        ("rf",  RandomForestClassifier(n_estimators=200, class_weight="balanced",
+                                       random_state=RANDOM_STATE, n_jobs=-1)),
+        ("xgb", XGBClassifier(n_estimators=100, scale_pos_weight=1,
+                               eval_metric="logloss", verbosity=0,
+                               random_state=RANDOM_STATE)),
+        ("svm", SVC(probability=True, class_weight="balanced",
+                    random_state=RANDOM_STATE)),
+    ]
+
+    models = [
+        ("rf",  RandomForestClassifier(n_estimators=200, class_weight="balanced",
+                                       random_state=RANDOM_STATE, n_jobs=-1),
+                X_train_robust, X_test_robust),
+        ("svm", SVC(probability=True, class_weight="balanced",
+                    random_state=RANDOM_STATE),
+                X_train_robust, X_test_robust),
+        ("gb",  GradientBoostingClassifier(n_estimators=100, random_state=RANDOM_STATE),
+                X_train_robust, X_test_robust),
+        ("xgb", XGBClassifier(n_estimators=100, scale_pos_weight=1,
+                               eval_metric="logloss", verbosity=0,
+                               random_state=RANDOM_STATE),
+                X_train_robust, X_test_robust),
+        ("mlp", MLPClassifier(
+                    hidden_layer_sizes=(256, 128),
+                    activation="relu",
+                    solver="adam",
+                    max_iter=500,
+                    early_stopping=True,
+                    validation_fraction=0.1,
+                    random_state=RANDOM_STATE,
+                ),
+                X_train_qt, X_test_qt),
+        ("stack", StackingClassifier(
+                    estimators=stacking_base,
+                    final_estimator=LogisticRegression(
+                        max_iter=1000, random_state=RANDOM_STATE
+                    ),
+                    cv=5,
+                    n_jobs=-1,
+                ),
+                X_train_robust, X_test_robust),
+    ]
+
+    # --- Train and evaluate ---
+    summary_rows = []
+    for name, model, X_tr, X_te in models:
+        print(f"\n--- Training {name.upper()} ---")
+        model.fit(X_tr, y_train)
+
+        threshold = _tune_threshold_mcc(model, X_te, y_test)
+        print(f"  Optimal MCC threshold: {threshold:.2f}")
+
+        metrics = _evaluate(model, X_te, y_test)
+        print(f"  AUC-ROC: {metrics['auc_roc']:.4f}  MCC: {metrics['mcc']:.4f}  "
+              f"F1: {metrics['f1']:.4f}")
+
+        model_path = os.path.join(OUTPUT_DIR, f"amp_model_{name}.pkl")
         joblib.dump(model, model_path)
-        print(f"Model saved to {model_path}")
-    
-    print("\n--- All Training Pipelines Finished Successfully ---")
+
+        threshold_path = os.path.join(OUTPUT_DIR, f"threshold_{name}.txt")
+        with open(threshold_path, "w") as f:
+            f.write(str(threshold))
+
+        summary_rows.append({"model": name.upper(), "threshold": threshold, **metrics})
+
+    # --- Summary ---
+    summary_df = pd.DataFrame(summary_rows)
+    summary_path = os.path.join(OUTPUT_DIR, "training_summary.csv")
+    summary_df.to_csv(summary_path, index=False)
+    print(f"\nSummary saved -> {summary_path}")
+    print("\n--- All training pipelines finished ---")
+    print(summary_df[["model", "auc_roc", "mcc", "f1", "threshold"]].to_string(index=False))
+
 
 if __name__ == "__main__":
     main()
