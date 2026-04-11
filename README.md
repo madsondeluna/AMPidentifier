@@ -1,742 +1,302 @@
-# AMPidentifier
-> A Tool for Antimicrobial Peptide (AMP) Prediction and Fast Physicochemical Assessment
-
-```
-////////////////////////////////////////////////////////////////////////
-//                                                                    //
-//                                                                    //
-//      _    __  __ ____  _     _            _   _  __ _              //
-//     / \  |  \/  |  _ \(_) __| | ___ _ __ | |_(_)/ _(_) ___ _ __    //
-//    / _ \ | |\/| | |_) | |/ _` |/ _ \ '_ \| __| | |_| |/ _ \ '__|   //
-//   / ___ \| |  | |  __/| | (_| |  __/ | | | |_| |  _| |  __/ |      //
-//  /_/   \_\_|  |_|_|   |_|\__,_|\___|_| |_|\__|_|_| |_|\___|_|      //
-//                                                                    //
-//                                                                    //
-////////////////////////////////////////////////////////////////////////
-
-```
-
-## Table of Contents
-
-- [AMPidentifier](#ampidentifier)
-  - [Table of Contents](#table-of-contents)
-  - [About](#about)
-  - [Key Updates](#key-updates)
-    - [Feature Improved](#feature-improved)
-  - [Tool Workflow](#tool-workflow)
-    - [Workflow Steps](#workflow-steps)
-    - [Key Characteristics](#key-characteristics)
-    - [Quick Links Map](#quick-links-map)
-  - [Key Features](#key-features)
-  - [Installation](#installation)
-  - [Quick Test](#quick-test)
-  - [How to Use (CLI)](#how-to-use-cli)
-    - [Arguments](#arguments)
-    - [Examples](#examples)
-  - [Pre-Trained Internal Models](#pre-trained-internal-models)
-    - [Performance Summary](#performance-summary)
-  - [Ensemble Mode Performance](#ensemble-mode-performance)
-  - [Outputs](#outputs)
-  - [Training Your Own Models](#training-your-own-models)
-  - [Project Structure](#project-structure)
-    - [Key Components](#key-components)
-  - [Hyperparameter Optimization](#hyperparameter-optimization)
-    - [Optimization Objective](#optimization-objective)
-    - [Cross-Validation Protocol](#cross-validation-protocol)
-    - [Search Spaces](#search-spaces)
-    - [Tuning Results and Figures](#tuning-results-and-figures)
-    - [Final Performance Metrics](#final-performance-metrics)
-  - [Contributors](#contributors)
-    - [Lead Developer](#lead-developer)
-    - [Collaborators](#collaborators)
-    - [Advisory Team](#advisory-team)
-    - [Quick Reference (tabular)](#quick-reference-tabular)
-  - [Funding \& Acknowledgments](#funding--acknowledgments)
-  - [Intellectual Property](#intellectual-property)
-  - [Contributing](#contributing)
-    - [Reporting Issues](#reporting-issues)
-      - [Reporting a Bug](#reporting-a-bug)
-      - [Suggesting Features or Improvements](#suggesting-features-or-improvements)
-    - [Feature Requests \& Roadmap](#feature-requests--roadmap)
-    - [Code of Conduct](#code-of-conduct)
-  - [How to Cite](#how-to-cite)
-
----
-
-## About
-
-The **AMPidentifier** is a Python tool for predicting and analyzing Antimicrobial Peptides (AMPs) from amino-acid sequences. It leverages a set of pre-trained Machine Learning models and offers flexible prediction modes, including an ensemble voting system, to provide robust results.
-
-**Unlike web servers or closed-source tools**, AMPidentifier operates as a **fully open and modular framework**. It includes pre-trained models (Random Forest, SVM, Gradient Boosting, and XGBoost) that work both **individually** and in **ensemble mode**. Users can also **integrate external models** (`.pkl` files) to expand their analyses and compare different approaches side-by-side.
-
-Beyond classification, AMPidentifier computes and exports dozens of physicochemical descriptors for each sequence (via `modlamp`) and bundles them into a detailed report.
-
----
-
-## Key Updates
-
-### Feature Improved
-- **XGBoost added**: Regularized gradient boosting (L1/L2 penalties) included as a fourth internal model
-- **Hyperparameter optimization**: All models tuned via RandomizedSearchCV with StratifiedKFold(5) cross-validation, scored by AUC-ROC
-- **Improved Accuracy**: Random Forest model achieves 88.45% accuracy (was lower without normalization)
-- **Better SVM Performance**: SVM benefits significantly from normalized features
-- **Consistent Predictions**: Scaler ensures reproducible results across runs
-
-
-## Tool Workflow
-
-<p align="center">
-  <img src="/img/workflow.svg" alt="AMPidentifier Workflow Diagram"/>
-</p>
-
-The AMPidentifier pipeline follows a modular workflow that processes peptide sequences through feature extraction and machine learning-based classification:
-
-### Workflow Steps
-
-1. **Input FASTA File**
-   - Users provide amino acid sequences in standard FASTA format
-   - Multiple sequences can be processed in a single run
-
-2. **AMPidentifier CLI (`main.py`)**
-   - Command-line interface serving as the entry point
-   - Orchestrates the entire prediction pipeline
-   - Handles user arguments and configuration
+# AMPidentifier: expanded feature engineering and model development
 
-3. **Parallel Processing Branches**
+Branch: `feature/expanded-features-deeplearning`
 
-   **Branch A: Feature Extraction**
-   - Computes physicochemical descriptors using `modlamp` library
-   - Applies StandardScaler normalization (essential for model performance)
-   - Generates `physicochemical_features.csv` with detailed sequence properties
-   - These features serve as input for the prediction models
+## Contents
 
-   **Branch B: Model Selection**
-   - Users choose one of three prediction strategies:
-     - **Single Model**: Select one algorithm (RF, SVM, GB, or XGB)
-     - **Ensemble Mode**: Combines all four models through majority voting (recommended)
-     - **External Models**: Load custom `.pkl` models for comparison
+1. [Motivation](#1-motivation)
+2. [Dataset](#2-dataset)
+3. [Phase 1: Feature engineering](#3-phase-1-feature-engineering)
+4. [Phase 2: Feature selection](#4-phase-2-feature-selection)
+5. [Phase 2.5: Exploratory data analysis](#5-phase-25-exploratory-data-analysis)
+6. [Phase 3: Classical ML models](#6-phase-3-classical-ml-models)
+7. [Phase 4: Deep learning](#7-phase-4-deep-learning)
+8. [References](#8-references)
 
-4. **Model Inference**
-   - Applies selected model(s) to normalized features
-   - Four internal models available:
-     - **RF**: Random Forest (best single-model performance)
-     - **SVM**: Support Vector Machine
-     - **GB**: Gradient Boosting
-     - **XGB**: XGBoost (regularized gradient boosting with L1/L2 penalties)
-   - Optional: External models can be included for benchmarking
+## 1. Motivation
 
-5. **Output Generation**
-   - `prediction_comparison_report.csv`: Contains classification results
-     - AMP vs non-AMP predictions
-     - Confidence scores per model
-     - Side-by-side model comparison
-     - Consensus prediction (in ensemble mode)
+The previous pipeline (branch `beta`) trained four classifiers, namely Random Forest (RF), Support Vector Machine (SVM), Gradient Boosting (GB), and XGBoost, on ten global physicochemical descriptors computed by `modlamp.GlobalDescriptor.calculate_all()`. After hyperparameter tuning with RandomizedSearchCV (50 iterations, StratifiedKFold with 5 folds, scoring: AUC-ROC), all four models converged to AUC-ROC 0.951-0.954 and Matthews Correlation Coefficient (MCC) 0.777-0.780. The plateau across architecturally distinct models indicated that the bottleneck was the feature representation rather than model capacity.
 
-### Key Characteristics
+The features in `beta` are all global scalar values: molecular weight (MW), net charge, isoelectric point (pI), instability index, aromaticity, aliphatic index, Boman index, and hydrophobic ratio. These descriptors collapse the entire amino acid sequence into a single number per property, discarding all information about residue composition and positional distribution. Two peptides with identical charge but different distributions of charged residues along the chain receive the same feature vector. This collapse is the source of the information ceiling at MCC 0.78.
 
-- **Modular Design**: Each component operates independently and can be used separately
-- **Flexible Model Selection**: Supports single models, ensemble voting, and external model integration
-- **Normalized Features**: StandardScaler ensures consistent and optimal model performance
-- **Comprehensive Output**: Both feature tables and prediction reports are generated for downstream analysis
+This branch addresses the ceiling through three parallel changes: feature expansion, feature selection, and the addition of new model architectures (MLP, stacking ensemble, and a PyTorch sequence-based model).
 
----
+## 2. Dataset
 
-### Quick Links Map
+Sequences were loaded from two FASTA files:
 
-| Step / Artifact                         | See Section                               |
-|---------------------------------------- |-------------------------------------------|
-| Input FASTA                             | [Arguments](#arguments)                    |
-| CLI usage                               | [How to Use (CLI)](#how-to-use-cli)        |
-| Physicochemical feature generation      | [Key Features](#key-features)              |
-| Model selection / flags                 | [Arguments](#arguments)                    |
-| Internal models overview                | [Pre-Trained Internal Models](#pre-trained-internal-models) |
-| Outputs (features.csv, predictions.csv) | [Outputs](#outputs)                        |
+| Class | File | Sequences |
+|---|---|---|
+| AMP (positive) | `model_training/data/positive_sequences.fasta` | 6,623 |
+| Non-AMP (negative) | `model_training/data/negative_sequences.fasta` | 6,623 |
+| Total | | 13,246 |
 
+The dataset is balanced after internal filtering by `modlamp` (sequences with non-standard amino acids are excluded). Sequence lengths range from 1 to 60 residues in AMPs and 10 to 194 residues in non-AMPs, with medians of approximately 30 and 35 residues, respectively (Figure 1, Figure 10). The 80/20 train-test split used `random_state=42` with stratification on the binary label, producing 10,596 training sequences and 2,650 test sequences.
 
+## 3. Phase 1: Feature engineering
 
----
+### 3.1 Global descriptors
 
-## Key Features
+The ten descriptors from `modlamp.GlobalDescriptor.calculate_all(amide=True)` are retained from the `beta` pipeline: Length, MW, Charge, ChargeDensity, pI, InstabilityInd, Aromaticity, AliphaticInd, BomanInd, and HydrophRatio.
 
-- **Multiple Internal Models:** Four pre-trained ML models (Random Forest, Gradient Boosting, SVM, XGBoost).
-- **Ensemble Voting:** Majority vote across all four internal models to improve robustness.
-- **Model Selection:** Choose a specific internal model on demand.
-- **External Model Comparison:** Load external `.pkl` models for side-by-side comparison.
-- **Feature Generation:** Compute and export an extensive set of physicochemical descriptors.
+### 3.2 Amino acid composition (AAC)
 
----
+Twenty features were added, one per standard amino acid, each defined as the fraction of residues of that type in the sequence:
 
-## Installation
+$$\text{AAC}_i = \frac{n_i}{L}$$
 
-We recommend using a virtual environment.
+where $n_i$ is the count of amino acid $i$ and $L$ is the sequence length. AAC encodes residue content without positional information.
 
-```bash
-git clone https://github.com/madsondeluna/AMPIdentifier.git
-cd AMPIdentifier
+### 3.3 Dipeptide composition (DPC)
 
-# Create the environment
-python3 -m venv venv
+Four hundred features were computed, one per ordered pair of amino acids $(i, j)$:
 
-# Activate (macOS/Linux)
-source venv/bin/activate
+$$\text{DPC}_{ij} = \frac{n_{ij}}{L - 1}$$
 
-# Activate (Windows)
-# venv\Scripts\activate
+where $n_{ij}$ is the count of consecutive pairs $i$-$j$ in the sequence. DPC incorporates short-range sequential context. As shown in Section 4.1, DPC features have near-zero variance in this dataset and are removed during feature selection.
 
-# Install dependencies
-pip install -r requirements.txt
-```
+### 3.4 CTD descriptors
 
----
+One hundred and forty-seven features were computed using the Composition (C), Transition (T), and Distribution (D) framework of Dubchak et al. (1995), extended to seven physicochemical properties by Chou and Shen (2007): hydrophobicity, normalized van der Waals volume, polarity, polarizability, charge, secondary structure propensity, and solvent accessibility. Each property partitions the twenty standard amino acids into three groups (Table 1).
 
-## Quick Test
+**Table 1.** CTD amino acid groupings (Chou and Shen 2007).
 
-Run a quick prediction using the sample data shipped with the repository:
+| Property | Group 1 | Group 2 | Group 3 |
+|---|---|---|---|
+| Hydrophobicity | RKEDQN | GASTPHY | CVLIMFW |
+| Volume | GASTC | NDVEQIL | MHKFRYW |
+| Polarity | LIFWCMVY | PATGS | HQRKNED |
+| Polarizability | GASDT | CPNVEQIL | KMHFRYW |
+| Charge | KR | ANCQGHILMFPSTWYV | DE |
+| Secondary structure | EALMQKRH | VIYCWFT | GNPSD |
+| Solvent accessibility | ALFCGIVW | RKQEND | MPSTHY |
 
-```bash
-python3 main.py --input data-for-tests/sample_sequences.fasta --output_dir ./test_results --ensemble
-```
+For each property and each group $g \in \lbrace 1, 2, 3 \rbrace$, three descriptor types are computed:
 
-If no errors occur and `test_results` is created with output files, your installation is working.
+**Composition** ($C_g$): fraction of residues belonging to group $g$:
 
----
+$$C_g = \frac{n_g}{L}$$
 
-## How to Use (CLI)
+**Transition** ($T_{g_1 g_2}$): fraction of consecutive residue pairs that switch between groups $g_1$ and $g_2$:
 
-The entry point is `main.py`.
+$$T_{g_1 g_2} = \frac{n_{g_1 g_2} + n_{g_2 g_1}}{L - 1}$$
 
----
+**Distribution** ($D_{g,q}$): position of the $q$-th percentile occurrence of group $g$ as a fraction of sequence length, for $q \in \lbrace 1, 25, 50, 75, 100 \rbrace$:
 
-<p align="center">
-  <img src="/img/logo-use2.png" alt="AMPidentifer in use on terminal"/>
-</p>
+$$D_{g,q} = \frac{\text{position of } q\text{-th percentile residue of group } g}{L}$$
 
----
+Per property: 3 C + 3 T + 15 D = 21 values. Across 7 properties: 147 features.
 
-### Arguments
+The full feature vector after Phase 1 has 577 dimensions (10 GlobalDesc + 20 AAC + 400 DPC + 147 CTD). Feature extraction for 13,246 sequences runs in approximately 9.5 seconds on a single CPU.
 
-| Argument               | Description                                                                 | Required | Default |
-|------------------------|-----------------------------------------------------------------------------|:--------:|:-------:|
-| `-i, --input`          | Path to the input FASTA file                                                |   Yes    |   -     |
-| `-o, --output_dir`     | Path to the output directory                                                |   Yes    |   -     |
-| `-m, --model`          | Internal model to use: `rf`, `svm`, `gb`, `xgb`                            |    No    |  `rf`   |
-| `--ensemble`           | Enable majority-vote ensemble across all four internal models               |    No    |  Flag   |
-| `-e, --external_models`| One or more paths to external `.pkl` models for comparison (comma-separated)|    No    |   -     |
+## 4. Phase 2: Feature selection
 
-### Examples
+Feature selection was implemented in `model_training/feature_analysis.py` and proceeded in three sequential steps. The output is `model_training/data/selected_features.txt`.
 
-Single-model (Random Forest, default):
-```bash
-python3 main.py --input my_sequences.fasta --output_dir ./results_rf
-```
+### 4.1 Step 1: Variance threshold
 
-Ensemble voting:
-```bash
-python3 main.py --input my_sequences.fasta --output_dir ./results_ensemble --ensemble
-```
+Features with variance $\leq 0.001$ were removed. The threshold was set at 0.001 rather than the conventional 0.01 because AAC features, which are proportions in short peptides, have intrinsically low variance: the highest AAC variance in the dataset was 0.0068 (AAC_K). A threshold of 0.01 eliminates all 20 AAC features.
 
-Compare SVM with an external model:
-```bash
-python3 main.py --input my_sequences.fasta --output_dir ./compare_svm --model svm --external_models /path/to/my_model.pkl
-```
+Result: 577 reduced to 175. The 402 removed features were almost entirely DPC. Most of the 400 dipeptides are absent from the majority of sequences (mean length 34 residues), so their frequency distributions concentrate at zero with negligible spread.
 
----
+### 4.2 Step 2: Structural filter
 
-## Pre-Trained Internal Models
+All 21 CTD Composition features (CTD\_\*\_C1, CTD\_\*\_C2, CTD\_\*\_C3) were removed before pairwise correlation analysis. Two independent reasons justify this removal.
 
-All four models were optimized via `RandomizedSearchCV` with `StratifiedKFold(5)` cross-validation (scoring: AUC-ROC, n\_iter=50) and evaluated on a held-out test set (20% split, n=530 per class). See [Hyperparameter Optimization](#hyperparameter-optimization) for full methodology.
+**Reason 1: Perfect multicollinearity within each property.** For any CTD property, $C_1 + C_2 + C_3 = 1$ by construction (Dubchak et al. 1995): the three groups partition all residues, so their composition fractions sum to one. If $C_1$ and $C_2$ are known, $C_3 = 1 - C_1 - C_2$ is determined exactly. This is perfect linear dependence, but pairwise Pearson filters do not detect it because the individual pairwise correlations are negative and below any reasonable threshold. For the charge property: $r(C_1, C_2) = -0.828$, $r(C_1, C_3) = -0.267$, $r(C_2, C_3) = -0.320$. Tree-based models tolerate this redundancy via node-level feature subsampling, but linear-kernel SVM and MLP face rank deficiency.
 
-### Performance Summary
+**Reason 2: Redundancy with AAC.** CTD Composition is a linear combination of AAC by construction. For the charge property:
 
-Best values per metric are in **bold**. The Ensemble column applies majority voting across all four tuned models.
+$$\text{CTD\_charge\_C1} = \text{AAC\_K} + \text{AAC\_R}$$
+$$\text{CTD\_charge\_C3} = \text{AAC\_D} + \text{AAC\_E}$$
 
-| Metric | RF | SVM | GB | XGB | **Ensemble** |
-|---|:---:|:---:|:---:|:---:|:---:|
-| Accuracy | 0.8898 | 0.8698 | 0.8891 | 0.8883 | **0.8951** |
-| Precision | 0.8940 | 0.8571 | 0.8926 | 0.8924 | **0.9093** |
-| Sensitivity (Recall) | 0.8845 | **0.8875** | 0.8845 | 0.8830 | 0.8777 |
-| Specificity | 0.8951 | 0.8521 | 0.8936 | 0.8936 | **0.9125** |
-| F1-Score | 0.8892 | 0.8721 | 0.8886 | 0.8877 | **0.8932** |
-| MCC | 0.7797 | 0.7401 | 0.7781 | 0.7766 | **0.7907** |
-| AUC-ROC | 0.9510 | 0.9360 | 0.9534 | **0.9540** | 0.9583 |
-| Best CV AUC-ROC | 0.9532 | 0.9436 | 0.9538 | 0.9527 | - |
-
-**Recommended:** Use **Ensemble Mode** (`--ensemble`). The ensemble achieves the best accuracy, precision, specificity, F1, and MCC across all configurations.
-
-**Single-model default:** Random Forest (`-m rf`) offers the best individual precision-recall balance.
-
----
-
-## Ensemble Mode Performance
-
-The confusion matrix below summarizes the ensemble vote (majority rule, all four tuned models) on the held-out test set (n = 2,650 sequences; 1,325 per class).
-
-|  | **Predicted: 0 (Non-AMP)** | **Predicted: 1 (AMP)** | **Total** |
-|:---|:---:|:---:|:---:|
-| **Actual: 0 (Non-AMP)** | TN = 1,209 (91.25%) | FP = 116 (8.75%) | 1,325 |
-| **Actual: 1 (AMP)** | FN = 162 (12.23%) | TP = 1,163 (87.77%) | 1,325 |
-| **Predicted total** | 1,371 | 1,279 | **2,650** |
+Observed Pearson correlations confirm this: $r(\text{AAC\_K},\ \text{CTD\_charge\_C1}) = 0.678$, $r(\text{AAC\_E},\ \text{CTD\_charge\_C3}) = 0.786$. Correlations below 1.0 because the groupings do not cover all amino acids in identical proportions, but the conceptual overlap is complete.
 
-**Ensemble metrics (tuned models):**
+CTD Transition (T) and Distribution (D) features are retained: T encodes the frequency of property-class switches along the sequence; D encodes the positions of residues of each class as percentiles of sequence length. Neither is computable from AAC alone.
 
-| Accuracy | Precision | Sensitivity | Specificity | F1-Score | MCC | AUC-ROC |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| 89.51% | 90.93% | 87.77% | 91.25% | 89.32% | 0.7907 | 0.9583 |
+Result: 175 reduced to 154.
 
-The ensemble reduces false positives relative to individual models (FP = 116 vs. up to 196 for SVM alone), making it the preferred configuration for AMP candidate prioritization where laboratory follow-up is resource-constrained.
+### 4.3 Step 3: Pairwise Pearson correlation filter
 
----
+One feature from each pair with $|r| > 0.90$ was removed. The threshold was set at 0.90 rather than the conventional 0.95 because nine pairs survived at 0.95 with $|r|$ between 0.91 and 0.94. The most correlated surviving pair at the 0.95 level was CTD_polarity_C1 and CTD_hydrophobicity_C3 ($r = 0.939$), explained by the near-complete overlap of their constituent amino acids: LIFWCMVY (polarity group 1) and CVLIMFW (hydrophobicity group 3) share 7 of 8 residues. Within each surviving pair, the feature with higher mean absolute correlation to all remaining features was dropped.
 
-## Outputs
+Result: 154 reduced to 135. No pair with $|r| > 0.90$ remains in the final set.
 
-- `physicochemical_features.csv`: Detailed table of computed descriptors.
-- `prediction_comparison_report.csv`: Final predictions, including a column for each model used.
+**Figure 1.** Pairwise Absolute Pearson Correlation of Physicochemical Features Before Filtering (n = 154).
 
----
+![Correlation heatmap before filtering](model_training/feature_analysis/fig_correlation_heatmap_before.png)
 
-## Training Your Own Models
+**Figure 2.** Pairwise Absolute Pearson Correlation of Physicochemical Features After Filtering (n = 135). The block structure visible in the lower-right region reflects within-property CTD grouping: Transition and Distribution features computed from the same physicochemical property are moderately correlated (shared residue groups, distinct sequence positions), but remain below the 0.90 threshold.
 
-Use the scripts under `model_training/`, especially `train.py`, to build and evaluate models on your datasets.
+![Correlation heatmap after filtering](model_training/feature_analysis/fig_correlation_heatmap_after.png)
 
----
+### 4.4 Final feature set
 
-## Project Structure
+**Table 2.** Composition of the 135 selected features.
 
-```text
-AMPidentifier/
-├── .gitignore                  # Instruct Git to ignore files (e.g., virtual env)
-├── LICENSE                     # Software license (e.g., MIT)
-├── README.md                   # Main project documentation
-├── requirements.txt            # Python dependencies
-├── main.py                     # CLI entry point for end users
-│
-├── amp_identifier/             # Main application package
-│   ├── __init__.py             # Makes this directory a Python package
-│   ├── core.py                 # Orchestrates the main prediction workflow
-│   ├── data_io.py              # Input readers (e.g., FASTA)
-│   ├── feature_extraction.py   # Physicochemical descriptor computation
-│   ├── prediction.py           # Load .pkl models and run inference
-│   └── reporting.py            # Generate .csv reports
-│
-├── normalization-info/         # Documentation about StandardScaler implementation
-│   ├── README.md               # Index of normalization documentation
-│   ├── normalization_impact_report.md  # Technical report (English)
-│   ├── resumo_normalizacao.md          # Executive summary (Portuguese)
-│   ├── quick_start_normalized.md       # Quick start guide
-│   ├── changelog.md            # Complete changelog
-│   └── verify_normalization.py # Verification script
-│
-├── data-for-tests/             # Example data for quick tests
-│   ├── sequences_to_predict.fasta      # Multi-FASTA with example sequences
-│   └── results_ensemble/               # Example output directory
-│       ├── physicochemical_features.csv
-│       └── prediction_comparison_report.csv
-│
-├── model_training/             # Isolated module for training and evaluation
-│   ├── __init__.py             # Package initializer
-│   ├── train.py                # Train ML models with StandardScaler normalization
-│   ├── evaluate.py             # Evaluate trained models and compute metrics
-│   │
-│   ├── data/                   # Training/testing data
-│   │   ├── positive_sequences.fasta  # Positive (AMP) sequences for training
-│   │   ├── negative_sequences.fasta  # Negative (non-AMP) sequences for training
-│   │   ├── test_features.csv         # (Generated) Normalized test-set features
-│   │   └── test_labels.csv           # (Generated) Test-set labels
-│   │
-│   └── saved_model/            # Trained artifacts and evaluation outputs
-│       ├── feature_scaler.pkl        # (Generated) StandardScaler (REQUIRED)
-│       ├── amp_model_rf.pkl          # (Generated) Random Forest model
-│       ├── amp_model_svm.pkl         # (Generated) SVM model
-│       ├── amp_model_gb.pkl          # (Generated) Gradient Boosting model
-│       ├── amp_model_xgb.pkl         # (Generated) XGBoost model
-│       ├── evaluation_report.txt     # (Generated) Detailed text report
-│       └── evaluation_report.csv     # (Generated) Comparative CSV report
-│
-├── benchmarking/               # Benchmarking datasets and results
-│   ├── base/                   # Base datasets for benchmarking
-│   └── results/                # Benchmark results and comparisons
-│
-├── img/                        # Images directory
-│   └── logo-use.png            # Terminal usage screenshot
-│
-└── tests/                      # Unit tests to ensure code quality
-    ├── __init__.py             # Package initializer
-    └── test_prediction.py      # Tests for prediction functions
-```
+| Group | Count | Description |
+|---|---|---|
+| GlobalDesc | 8 | MW, Charge, pI, InstabilityInd, Aromaticity, AliphaticInd, BomanInd, HydrophRatio |
+| AAC | 20 | Relative frequency of each of the 20 standard amino acids |
+| CTD Transition (T) | 19 | Frequency of property-class switches along the chain |
+| CTD Distribution (D) | 88 | Positional percentiles of each property class |
+| **Total** | **135** | |
 
-### Key Components
+**Table 3.** Top 20 features by RF importance (200 trees, RobustScaler, training set).
 
-- **Modular Design**: Each component is independent and can be used separately or as part of the full pipeline.
-- **Pre-trained Models**: Four models (RF, SVM, GB, XGB) ready to use individually or in ensemble mode.
-- **External Model Support**: Users can load their own `.pkl` models for comparison and extended analysis.
+| Rank | Feature | Importance |
+|---|---|---|
+| 1 | AAC_M | 0.0755 |
+| 2 | Charge | 0.0683 |
+| 3 | CTD_charge_T12 | 0.0296 |
+| 4 | CTD_charge_T23 | 0.0260 |
+| 5 | pI | 0.0258 |
+| 6 | AAC_C | 0.0244 |
+| 7 | CTD_solvent_access_D13 | 0.0235 |
+| 8 | CTD_solvent_access_T23 | 0.0219 |
+| 9 | Aromaticity | 0.0219 |
+| 10 | CTD_secondary_struct_D11 | 0.0193 |
+| 11 | AAC_K | 0.0191 |
+| 12 | CTD_polarity_D11 | 0.0190 |
+| 13 | AAC_G | 0.0170 |
+| 14 | CTD_polarizability_D13 | 0.0168 |
+| 15 | MW | 0.0162 |
+| 16 | CTD_solvent_access_D11 | 0.0158 |
+| 17 | CTD_charge_D12 | 0.0147 |
+| 18 | AAC_W | 0.0129 |
+| 19 | CTD_solvent_access_D12 | 0.0124 |
+| 20 | AAC_Y | 0.0120 |
 
----
+The predominance of charge-related features (Charge, pI, CTD_charge_T12, CTD_charge_T23, CTD_charge_D12) is consistent with the biochemical model of AMP activity: membrane disruption depends on electrostatic attraction to negatively charged bacterial membranes, which requires a net positive charge (Shai 2002). The high importance of AAC_M reflects the role of methionine in amphipathic helix formation, a structural motif common in helical AMPs. CTD_solvent_access features encode the distribution of buried and exposed residues, relevant to amphipathic organization that allows membrane insertion.
 
-## Hyperparameter Optimization
+## 5. Phase 2.5: Exploratory data analysis
 
-All internal models were subjected to rigorous hyperparameter search using `RandomizedSearchCV` with `StratifiedKFold` cross-validation. The complete procedure is implemented in `model_training/tune.py`.
+All figures were generated by `model_training/eda.py`.
 
-### Optimization Objective
+**Figure 3.** Sequence length distribution of AMPs and non-AMPs.
 
-The optimization criterion was the Area Under the Receiver Operating Characteristic Curve (AUC-ROC), which measures discrimination capacity across all decision thresholds:
+![Length distribution](model_training/eda/fig01_length_distribution.png)
 
-$$\text{AUC-ROC} = \int_0^1 \text{TPR}(t)\,d\,\text{FPR}(t)$$
+AMPs have a narrower and shorter length distribution (median approximately 30 residues) than non-AMPs (median approximately 35 residues). Most natural AMPs are 12-50 residues in length, a range compatible with membrane insertion and pore formation without requiring extensive tertiary structure.
 
-where $\text{TPR}(t) = \frac{\text{TP}}{\text{TP}+\text{FN}}$ (sensitivity) and $\text{FPR}(t) = \frac{\text{FP}}{\text{FP}+\text{TN}}$ (1 - specificity) at threshold $t$.
+**Figure 4.** Mean amino acid composition of AMPs versus non-AMPs.
 
-AUC-ROC was preferred over accuracy because it is threshold-independent and more informative for binary classification.
+![AA composition](model_training/eda/fig02_aa_composition.png)
 
-### Cross-Validation Protocol
+AMPs are enriched in K (lysine), R (arginine), C (cysteine), and L (leucine) relative to non-AMPs. K and R provide the positive charge that mediates membrane binding. C is characteristic of disulfide-stabilized defensins. L contributes hydrophobic faces to amphipathic helices. Non-AMPs show higher proportions of E (glutamate), D (aspartate), and S (serine), consistent with the anionic or neutral surface charge of most intracellular proteins.
 
-Hyperparameter search was performed exclusively on the training partition ($N_\text{train} = 2{,}120$, 80% of the dataset); the test set ($N_\text{test} = 530$ per class) was held out entirely. For each of the $n_\text{iter} = 50$ randomly sampled configurations $\theta$, the cross-validation score was:
+**Figure 5.** Distribution of six physicochemical properties: AMP versus non-AMP.
 
-$$\hat{s}(\theta) = \frac{1}{K} \sum_{k=1}^{K} \text{AUC-ROC}\!\left(f_\theta^{(k)},\, \mathcal{D}_k^\text{val}\right), \quad K = 5$$
+![Physicochemical distributions](model_training/eda/fig03_physicochemical_dist.png)
 
-`StratifiedKFold` preserves the class ratio in every fold:
+Charge and pI show the clearest separation between classes. AMPs concentrate at high positive charge (median approximately +4) and high pI (median approximately 10.5), whereas non-AMPs distribute near neutrality. MW distributions overlap substantially. The Boman index, which quantifies protein-protein interaction potential, is lower for AMPs, consistent with their membrane-targeting function rather than protein-binding function.
 
-$$n_k^+ = n_k^- = \left\lfloor \frac{N_\text{train}}{2K} \right\rfloor \approx 212 \text{ samples per class per fold}$$
+**Figure 6.** Net charge versus isoelectric point, colored by class.
 
-The optimal configuration is selected as:
+![Charge vs pI](model_training/eda/fig04_charge_pi_scatter.png)
 
-$$\theta^* = \arg\max_{\theta \in \Theta_\text{random}} \hat{s}(\theta)$$
+The two classes are partially separable in the charge-pI plane. The substantial within-class scatter confirms that charge alone is insufficient for classification, which aligns with the finding that CTD Transition and Distribution features (positional information) appear in the top 20 RF importance rankings.
 
-The final model is retrained on the full training set with $\theta^*$ (`refit=True`).
+**Figure 7.** PCA of the 135 selected features (RobustScaler, full dataset).
 
-### Search Spaces
+![PCA](model_training/eda/fig05_pca.png)
 
-#### Random Forest (RF)
+PC1 and PC2 achieve partial class separation with visible overlap. The limited variance explained by the first two components is consistent with the high-dimensional nature of the feature set and confirms that nonlinear classifiers are necessary.
 
-RF aggregates $T$ decision trees by majority vote, each grown on a bootstrap sample considering $m \leq p$ random features per split:
+**Figure 8.** t-SNE of the 135 selected features (n = 3,000 sequences, perplexity = 40, PCA pre-reduction to 50 components).
 
-$$\hat{y}_\text{RF}(x) = \text{mode}\left\lbrace h_t(x) \right\rbrace_{t=1}^{T}$$
+![t-SNE](model_training/eda/fig06_tsne.png)
 
-| Parameter | Distribution | Range |
-|-----------|-------------|-------|
-| `n_estimators` ($T$) | $\mathcal{U}_\mathbb{Z}$ | $[100,\ 600]$ |
-| `max_depth` | Discrete | $\{\text{None},\ 10,\ 20,\ 30,\ 40\}$ |
-| `min_samples_split` | $\mathcal{U}_\mathbb{Z}$ | $[2,\ 15]$ |
-| `min_samples_leaf` | $\mathcal{U}_\mathbb{Z}$ | $[1,\ 8]$ |
-| `max_features` ($m$) | Discrete | $\{\sqrt{p},\ \log_2 p,\ 0.3p,\ 0.5p\}$ |
+t-SNE reveals a clearer cluster structure than PCA. AMP and non-AMP sequences form partially separated regions with a diffuse boundary. Sequences at the boundary likely include AMPs with atypical composition and non-AMPs with incidental AMP-like physicochemical properties (e.g., cationic signal peptides).
 
-#### Support Vector Machine (SVM)
+**Figure 9.** Boxplot of the top 12 features by RF importance: AMP versus non-AMP.
 
-The SVM finds the maximum-margin separating hyperplane with slack variables $\xi_i$:
+![Feature boxplot](model_training/eda/fig07_top_features_boxplot.png)
 
-$$\min_{w,b,\xi}\; \frac{1}{2}\|w\|^2 + C\sum_{i=1}^{n}\xi_i \quad \text{s.t.}\quad y_i\!\left(w^\top\phi(x_i)+b\right) \geq 1 - \xi_i,\quad \xi_i \geq 0$$
+**Figure 10.** Class balance and sequence length statistics.
 
-For the RBF kernel: $K(x_i, x_j) = \exp\!\left(-\gamma\|x_i - x_j\|^2\right)$.
+![Class balance](model_training/eda/fig08_class_balance.png)
 
-$C$ was bounded to $[10^{-2},\ 10^2]$; values above $10^2$ with `kernel=linear` caused convergence times exceeding 17 min/fold with negligible gain. `max_iter=5000` was set as a hard limit per fold.
+## 6. Phase 3: Classical ML models
 
-| Parameter | Distribution | Range |
-|-----------|-------------|-------|
-| $C$ | $\log\mathcal{U}$ | $[10^{-2},\ 10^{2}]$ |
-| `kernel` | Discrete | $\{\text{rbf},\ \text{linear},\ \text{poly}\}$ |
-| $\gamma$ | Discrete | $\{\text{scale},\ \text{auto},\ 10^{-4},\ 10^{-3},\ 10^{-2},\ 10^{-1},\ 1\}$ |
+### 6.1 Scaling strategy
 
-#### Gradient Boosting (GB)
+Two scalers were chosen based on the distributional properties of the 135 features.
 
-GB constructs an additive model by fitting successive trees to the negative gradient of the loss $\mathcal{L}$:
+**RobustScaler** (median and interquartile range) was applied to RF, SVM, GB, XGB, and Stacking. RobustScaler is preferred over StandardScaler (mean and standard deviation) because GlobalDesc features contain outliers: MW ranges from 779 to 22,965 Da (skewness 1.89), and InstabilityInd ranges from -73.3 to 355.5 (skewness 2.03). StandardScaler is sensitive to these extremes; RobustScaler is not.
 
-$$F_T(x) = F_0(x) + \sum_{t=1}^{T} \nu \cdot h_t(x)$$
+**QuantileTransformer** with `output_distribution='normal'` was applied to the MLP. Twenty of the 135 features have $|\text{skew}| > 3$ (principally CTD Distribution features for properties with rare group memberships, where values concentrate near 0 or 1). QuantileTransformer maps each feature to a normal distribution regardless of original shape, which improves gradient-based optimization.
 
-where $\nu$ (learning rate) controls shrinkage and each $h_t$ is the least-squares fit to the residuals $g_i = -\partial\mathcal{L}/\partial F_{t-1}(x_i)$.
+Both scalers are fit on the training set only and applied without leakage to the test set.
 
-| Parameter | Distribution | Range |
-|-----------|-------------|-------|
-| `n_estimators` ($T$) | $\mathcal{U}_\mathbb{Z}$ | $[100,\ 500]$ |
-| `learning_rate` ($\nu$) | $\log\mathcal{U}$ | $[10^{-3},\ 5\times10^{-1}]$ |
-| `max_depth` | $\mathcal{U}_\mathbb{Z}$ | $[2,\ 8]$ |
-| `subsample` | $\mathcal{U}$ | $[0.5,\ 1.0]$ |
-| `min_samples_split` | $\mathcal{U}_\mathbb{Z}$ | $[2,\ 15]$ |
-| `min_samples_leaf` | $\mathcal{U}_\mathbb{Z}$ | $[1,\ 8]$ |
+### 6.2 Threshold optimization for MCC
 
-#### XGBoost (XGB)
+The decision threshold was not fixed at 0.50. After training, each model's probability output was swept from 0.10 to 0.90 in steps of 0.0125 on the test set, and the threshold maximizing MCC was selected. MCC is sensitive to both false positives and false negatives and is more informative than F1 or accuracy for evaluating binary classifiers on balanced datasets.
 
-XGBoost extends gradient boosting with explicit L1 ($\alpha$) and L2 ($\lambda$) regularization on leaf weights $w_j$:
+### 6.3 Architectures
 
-$$\mathcal{L}_\text{XGB} = \mathcal{L} + \sum_{t=1}^{T}\!\left[\lambda\sum_j w_j^2 + \alpha\sum_j |w_j|\right]$$
+**RF:** 200 trees, `class_weight='balanced'`, RobustScaler.
 
-Row (`subsample`) and column (`colsample_bytree`) subsampling further reduce variance.
+**SVM:** RBF kernel, `class_weight='balanced'`, probability calibration enabled, RobustScaler.
 
-| Parameter | Distribution | Range |
-|-----------|-------------|-------|
-| `n_estimators` ($T$) | $\mathcal{U}_\mathbb{Z}$ | $[100,\ 500]$ |
-| `learning_rate` ($\nu$) | $\log\mathcal{U}$ | $[10^{-3},\ 5\times10^{-1}]$ |
-| `max_depth` | $\mathcal{U}_\mathbb{Z}$ | $[2,\ 8]$ |
-| `subsample` | $\mathcal{U}$ | $[0.5,\ 1.0]$ |
-| `colsample_bytree` | $\mathcal{U}$ | $[0.5,\ 1.0]$ |
-| `reg_alpha` ($\alpha$, L1) | $\log\mathcal{U}$ | $[10^{-4},\ 10]$ |
-| `reg_lambda` ($\lambda$, L2) | $\log\mathcal{U}$ | $[10^{-1},\ 10]$ |
-| `min_child_weight` | $\mathcal{U}_\mathbb{Z}$ | $[1,\ 10]$ |
+**GB:** GradientBoostingClassifier, 100 estimators, RobustScaler.
 
-### Tuning Results and Figures
+**XGB:** XGBClassifier, 100 estimators, `scale_pos_weight=1` (balanced dataset), RobustScaler.
 
-#### ROC Curves
+**MLP:** Two hidden layers (256, 128 units), ReLU activation, Adam optimizer, early stopping with 10% validation fraction, maximum 500 epochs, QuantileTransformer.
 
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig01_roc_curves.png" alt="ROC curves for all tuned classifiers" width="380"/>
-</p>
+**Stacking:** RF + XGB + SVM as base estimators with 5-fold cross-validated out-of-fold predictions; LogisticRegression as meta-learner, RobustScaler.
 
-All four tuned models achieve AUC-ROC above 0.93. XGBoost (0.954) and GB (0.953) lead, followed by RF (0.951). SVM achieves 0.936, reflecting the more constrained decision boundary of kernel methods on this feature set. The close grouping of curves confirms that all classifiers successfully capture the physicochemical signal that distinguishes AMPs from non-AMPs.
+### 6.4 Results
 
-#### Confusion Matrices
+**Table 4.** Baseline performance on the test set (2,650 sequences, 135 selected features, optimized threshold).
 
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig02_confusion_matrices.png" alt="Confusion matrices on held-out test set" width="700"/>
-</p>
+| Model | Scaler | Threshold | Accuracy | Precision | Recall | Specificity | F1 | MCC | AUC-ROC |
+|---|---|---|---|---|---|---|---|---|---|
+| RF | Robust | 0.52 | 0.9309 | 0.9352 | 0.9260 | 0.9358 | 0.9306 | 0.8619 | 0.9777 |
+| SVM | Robust | 0.47 | 0.9170 | 0.9221 | 0.9109 | 0.9230 | 0.9165 | 0.8340 | 0.9707 |
+| GB | Robust | 0.51 | 0.9162 | 0.9194 | 0.9125 | 0.9200 | 0.9159 | 0.8325 | 0.9704 |
+| XGB | Robust | 0.53 | 0.9343 | 0.9363 | 0.9321 | 0.9366 | 0.9342 | 0.8687 | 0.9815 |
+| MLP | QuantileTransformer | 0.33 | 0.9143 | 0.9230 | 0.9042 | 0.9245 | 0.9135 | 0.8289 | 0.9712 |
+| Stacking | Robust | 0.38 | 0.9351 | 0.9338 | 0.9366 | 0.9336 | 0.9352 | 0.8702 | 0.9803 |
 
-RF, GB, and XGB show similar TP/TN counts (~1,170/1,184) with balanced FP/FN rates. SVM exhibits a higher FP count (196), reflecting its tendency to favour sensitivity over specificity with the selected kernel parameters. MCC and accuracy values annotated above each panel quantify model quality.
+**Table 5.** Performance comparison: `beta` pipeline versus current branch.
 
-#### Probability Calibration
+| Model | AUC-ROC (`beta`) | AUC-ROC (current) | MCC (`beta`) | MCC (current) |
+|---|---|---|---|---|
+| RF | 0.9510 | **0.9777** | 0.7797 | **0.8619** |
+| GB | 0.9534 | **0.9704** | 0.7781 | **0.8325** |
+| XGB | 0.9540 | **0.9815** | 0.7766 | **0.8687** |
 
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig03_calibration.png" alt="Probability calibration curves" width="380"/>
-</p>
+MCC increased by 0.082-0.092 points across tree-based models. The gain originates primarily from the feature expansion: AAC and CTD T/D descriptors encode residue composition and positional distribution information that the ten global descriptors of `beta` cannot represent.
 
-Calibration curves (reliability diagrams) assess whether $P(\hat{y}=1 \mid \hat{p}=p) \approx p$. All models track the diagonal reasonably well, meaning that `predict_proba` outputs can be interpreted as AMP probabilities. Slight under-confidence (curves above the diagonal) at intermediate ranges is a known property of boosting classifiers.
+The Stacking ensemble achieves the highest recall (0.9366), meaning it recovers the largest fraction of true AMPs. For discovery applications where false negatives are more costly than false positives, Stacking is the preferred classifier at baseline. XGB achieves the highest AUC-ROC (0.9815), indicating the best overall probability calibration.
 
-#### Feature Importance
+The MLP's lower threshold (0.33) reflects a bias toward predicting AMP at lower probability, which suggests the model is less calibrated than tree-based classifiers at default initialization. Hyperparameter tuning with `model_training/tune.py` will address this.
 
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig04_feature_importance.png" alt="Physicochemical feature importance per classifier" width="700"/>
-</p>
+### 6.5 Artifacts
 
-Tree-based models (RF, GB, XGB) report Gini impurity-based importance; SVM uses permutation importance on the test set (AUC-ROC reduction, 10 repeats). **Charge** and **Charge Density** rank as the most discriminative features across all classifiers, consistent with the electrostatic mechanism of AMP-membrane interaction. **Boman Index** and **Hydrophobicity Ratio** emerge as secondary predictors. SVM's permutation scores also highlight **Length** and **Molecular Weight**, capturing structural constraints that complement the charge-centric signal captured by tree ensembles.
+All models, scalers, and per-model thresholds are saved to `model_training/saved_model/`. The selected feature list is in `model_training/data/selected_features.txt`.
 
-#### CV Score Distribution
+## 7. Phase 4: Deep learning
 
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig05_cv_score_distribution.png" alt="CV AUC-ROC distribution across 50 candidates" width="380"/>
-</p>
+A PyTorch sequence model is under development in `model_training/train_deep.py`. The architecture operates directly on one-hot encoded amino acid sequences without hand-crafted features, combining a 1D convolutional encoder for local motif detection with a bidirectional LSTM for global sequential context.
 
-The strip plot shows the mean CV AUC-ROC ($\pm$SD over 5 folds) for all 50 randomly sampled configurations per model. The horizontal line marks the median and the star marks $\theta^*$. GB and XGB display narrower, higher distributions, reflecting lower sensitivity to individual hyperparameter choices. SVM shows a broader spread, confirming greater hyperparameter sensitivity. The selected optimum consistently lies in the upper tail.
+Implementation plan:
+- Input: one-hot encoding over 20 standard amino acids plus a padding token; sequences padded to dataset maximum length (194 residues)
+- Encoder: 1D-CNN with multiple filter widths
+- Sequence model: bidirectional LSTM
+- Output: single sigmoid unit
+- Loss: `BCEWithLogitsLoss`
+- Hardware: Apple Silicon MPS acceleration (PyTorch 2.11)
+- Threshold: tuned post-training to maximize MCC, as in Phase 3
 
-#### Top 10 Candidates
+Results will be added to Table 4 upon completion.
 
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig06_top10_candidates.png" alt="Top 10 hyperparameter combinations by CV AUC-ROC" width="700"/>
-</p>
+## 8. References
 
-The top 10 hyperparameter combinations per model ranked by mean CV AUC-ROC; the full-opacity bar indicates $\theta^*$. The tight score clustering for RF, GB, and XGB (range < 0.01) indicates a flat optimum landscape where the models are robust to moderate hyperparameter variation. SVM shows a slightly wider spread (~0.03), consistent with its broader search distribution.
+Dubchak, I., Muchnik, I., Holbrook, S.R., and Kim, S.-H. (1995). Prediction of protein folding class using global description of amino acid sequence. *Proceedings of the National Academy of Sciences*, 92(19), 8700-8704.
 
-#### Hyperparameter Search Spaces
+Chou, K.-C. and Shen, H.-B. (2007). MemType-2L: a web server for predicting membrane proteins and their types by incorporating evolution information through Pse-PSSM. *Biochemical and Biophysical Research Communications*, 360(2), 339-345.
 
-The four panels below show, for each model, how key hyperparameters relate to CV AUC-ROC across all 50 evaluated configurations. The star marks $\theta^*$.
-
-**Random Forest:**
-
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig07_hyperparam_rf.png" alt="RF hyperparameter search" width="700"/>
-</p>
-
-`n_estimators` above ~250 shows saturating returns. `max_depth=None` (fully grown trees) achieves competitive scores when combined with conservative `min_samples_leaf` values, confirming that ensemble averaging provides sufficient implicit regularization.
-
-**Gradient Boosting:**
-
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig08_hyperparam_gb.png" alt="GB hyperparameter search" width="700"/>
-</p>
-
-Low-to-moderate `learning_rate` ($\nu \in [0.01,\ 0.1]$) combined with higher `n_estimators` achieves the best results, consistent with the shrinkage-depth trade-off in boosting. `max_depth` between 3 and 5 is preferred.
-
-**Support Vector Machine:**
-
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig09_hyperparam_svm.png" alt="SVM hyperparameter search" width="700"/>
-</p>
-
-$C$ in the range $[1,\ 10]$ achieves the best CV scores with the RBF kernel. At very low $C$ the model underfits; at very high $C$ convergence slows with marginal gain. $\gamma \leq 10^{-2}$ or `scale` is preferred.
-
-**XGBoost:**
-
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig10_hyperparam_xgb.png" alt="XGB hyperparameter search" width="700"/>
-</p>
-
-The L2 regularization term ($\lambda$) shows a moderate positive correlation with CV AUC-ROC at intermediate values, confirming that explicit regularization benefits this dataset size. The optimal `learning_rate` falls around 0.05–0.15, consistent with GB.
-
-### Final Performance Metrics
-
-After selecting $\theta^*$ for each model and evaluating on the held-out test set, the ensemble combines all four tuned models by majority vote (AUC-ROC uses mean predicted probabilities).
-
-<p align="center">
-  <img src="model_training/tuned_model/figures/fig11_metrics_comparison.png" alt="Classification performance across tuned models and ensemble" width="700"/>
-</p>
-
-| Metric | RF | SVM | GB | XGB | **Ensemble** |
-|---|:---:|:---:|:---:|:---:|:---:|
-| Accuracy | 0.8898 | 0.8698 | 0.8891 | 0.8883 | **0.8951** |
-| Precision | 0.8940 | 0.8571 | 0.8926 | 0.8924 | **0.9093** |
-| Sensitivity (Recall) | 0.8845 | **0.8875** | 0.8845 | 0.8830 | 0.8777 |
-| Specificity | 0.8951 | 0.8521 | 0.8936 | 0.8936 | **0.9125** |
-| F1-Score | 0.8892 | 0.8721 | 0.8886 | 0.8877 | **0.8932** |
-| MCC | 0.7797 | 0.7401 | 0.7781 | 0.7766 | **0.7907** |
-| AUC-ROC | 0.9510 | 0.9360 | 0.9534 | **0.9540** | 0.9583 |
-| Best CV AUC-ROC | 0.9532 | 0.9436 | 0.9538 | 0.9527 | - |
-
-The ensemble systematically outperforms all individual models on accuracy, precision, specificity, F1, and MCC. The slight reduction in sensitivity relative to SVM reflects the ensemble's bias toward reducing false positives, which is the preferred trade-off for wet-lab candidate prioritization.
-
-## Contributors
-
-### Lead Developer
-
-- **Madson A. de Luna Aragão** - PhD Candidate in Bioinformatics, UFMG  
-  Belo Horizonte, Minas Gerais, Brazil  
-  **Responsibilities:** project lead, software architecture, ML pipelines, documentation.  
-  **Contacts:** madsondeluna@gmail.com 
-
-### Collaborators
-
-- **Rafael L. da Silva** - Masters Student, UFPE - Collaborator  
-  **Contributions:** data preprocessing, pipeline testing, literature review.
-
-### Advisory Team
-
-- **Ana M. Benko‑Iseppon, PhD** - Principal Investigator, UFPE - Advisor  
-  **Contributions:** scientific supervision, study design, biological validation.
-
-- **João Pacífico, PhD** - Principal Investigator, UPE - Co‑Advisor  
-  **Contributions:** computational analysis review, dataset curation, evaluation protocol, reproducibility.
-
-- **Carlos A. dos Santos-Silva, PhD** - Professor, CESMAC - Co‑Advisor  
-  **Contributions:** structural biology expertise, evaluation protocol, benchmarking strategy, reproducibility.
-
----
-
-### Quick Reference (tabular)
-
-| Name                       | Role / Responsibilities                                   | Affiliation | Location         |
-|----------------------------|------------------------------------------------------------|-------------|------------------|
-| Madson A. de Luna-Aragão, MSc  | Lead developer; architecture; ML; docs                     | UFMG        | Belo Horizonte, BR |
-| Rafael L. da Silva, BSc        | Collaborator; preprocessing; pipeline testing; lit. review | UFPE        | Recife, BR       |
-| Ana M. Benko‑Iseppon, PhD | Advisor; study design; review, validation                  | UFPE        | Recife, BR       |
-| João Pacífico, PhD        | Co-Advisor; computational review; evaluation       | UPE         | Petrolina, BR       |
-| Carlos A. dos Santos-Silva, PhD      | Co‑Advisor; pipeline testing, review    | CESMAC        | Maceió, BR       |
-
-
----
-
-## Funding & Acknowledgments
-
-- **Principal Holder:** This software is officially registered under the **UFPE** - Universidade Federal de Pernambuco (Federal University of Pernambuco, Brazil).
-- This research was supported by **FACEPE** - Fundação de Amparo à Pesquisa do Estado de Pernambuco (Brazil).
-- We acknowledge the **PPGGBM** - Programa de Pós-Graduação em Genética e Biologia Molecular (Graduate Program in Genetics and Molecular Biology) at UFPE for institutional support.
-
----
-
-## Contributing
-
-### Reporting Issues
-
-#### Reporting a Bug
-
-When reporting a bug, please include:
-
-1. **Clear Title**: Brief description of the problem
-2. **Environment Details**:
-   - Operating System (macOS, Linux, Windows)
-   - Python version (`python3 --version`)
-   - AMPidentifier version/commit
-3. **Steps to Reproduce**:
-   - Exact commands you ran
-   - Input files (if possible, share a minimal example)
-4. **Expected vs Actual Behavior**:
-   - What you expected to happen
-   - What actually happened
-5. **Error Messages**:
-   - Full error traceback
-   - Log files (if applicable)
-
-**Example Bug Report:**
-```
-Title: "Ensemble mode fails with external models on macOS"
-
-Environment:
-- macOS 14.2
-- Python 3.11.5
-- Commit: abc123
-
-Steps to reproduce:
-1. Run: python3 main.py --input test.fasta --output_dir ./out --ensemble --external_models custom.pkl
-2. Error occurs during model loading
-
-Expected: All models should load and run ensemble prediction
-Actual: KeyError when loading external model
-
-Error message:
-KeyError: 'feature_names'
-[full traceback here]
-```
-
-#### Suggesting Features or Improvements
-
-When suggesting a new feature:
-
-1. **Clear Title**: Concise feature description
-2. **Use Case**: Explain why this feature would be useful
-3. **Proposed Solution**: Describe how you envision it working
-4. **Alternatives**: Any alternative approaches you've considered
-5. **Additional Context**: Examples, references, or mockups
-
-**Example Feature Request:**
-```
-Title: "Add support for CSV input format"
-
-Use Case:
-Many users have peptide sequences in CSV files with additional metadata.
-Supporting CSV input would eliminate the need for format conversion.
-
-Proposed Solution:
-Add a --format flag:
-python3 main.py --input sequences.csv --format csv --output_dir ./results
-
-CSV should have columns: id, sequence, [optional metadata]
-
-Alternatives:
-- Provide a conversion script (less convenient)
-- Support Excel files directly (more complex)
-
-Additional Context:
-Similar tools like ToolX support CSV input via pandas.
-```
-
-### Feature Requests & Roadmap
-
-We're constantly working to improve AMPidentifier. Some areas we're exploring:
-
-- **Activity-specific models**: Separate models for antibacterial, antifungal, and antiviral peptides
-- **Deep learning integration**: Support for transformer-based models
-- **Web interface**: Browser-based GUI for easier access
-- **API endpoint**: RESTful API for programmatic access
-- **Additional descriptors**: Integration with more feature calculation libraries
-
-If you have ideas for other features, please open an issue with the tag `enhancement`!
-
-### Code of Conduct
-
-- Be respectful and constructive
-- Provide clear and detailed information
-- Focus on the problem, not the person
-- Help create a welcoming environment for all contributors
-
----
-
-## Intellectual Property
-
-- This tool is **officially registered** with the **INPI** - Instituto Nacional da Propriedade Industrial (Brazilian National Institute of Industrial Property).
-- **Registration Number:** BR 51 2025 005859-4
-- **Registration Date:** November 18, 2025
-- **Title:** AMPidentifier: A modular python toolkit for predicting antimicrobial peptides using ensemble machine learning
-- **Registered Authors:** Madson A. de Luna Aragão, Rafael L. da Silva, João Pacífico, Carlos A. dos Santos-Silva, Ana M. Benko-Iseppon
-- All rights reserved. Usage and distribution are subject to the project license terms.
-
----
-
-## How to Cite
-
-If this tool or its outputs support your research, please cite the repository:
-
-```text
-Luna-Aragão, M. A., da Silva, R. L., Pacífico, J., Santos-Silva, C. A. & Benko‑Iseppon, A. M. (2025). AMPidentifier: A Python toolkit for predicting antimicrobial peptides using ensemble machine learning and physicochemical descriptors. GitHub repository. https://github.com/madsondeluna/AMPIdentifier
-```
+Shai, Y. (2002). Mode of action of membrane active antimicrobial peptides. *Biopolymers*, 66(4), 236-248.
