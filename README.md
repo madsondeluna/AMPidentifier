@@ -95,7 +95,7 @@ Feature selection was implemented in `model_training/feature_analysis.py` and pr
 
 ### 4.1 Step 1: Variance threshold
 
-Features with variance $\leq 0.001$ were removed. The threshold was set at 0.001 rather than the conventional 0.01 because AAC features, which are proportions in short peptides, have intrinsically low variance: the highest AAC variance in the dataset was 0.0068 (AAC_K). A threshold of 0.01 eliminates all 20 AAC features.
+Features with variance $\leq 0.001$ were removed. The threshold was set at 0.001 rather than the conventional 0.01 because AAC features, which are proportions in short peptides, have intrinsically low variance: the highest AAC variance in the dataset was 0.0068 (`AAC_K`). A threshold of 0.01 eliminates all 20 AAC features.
 
 Result: 577 reduced to 175. The 402 removed features were almost entirely DPC. Most of the 400 dipeptides are absent from the majority of sequences (mean length 34 residues), so their frequency distributions concentrate at zero with negligible spread.
 
@@ -107,10 +107,12 @@ All 21 CTD Composition features (CTD\_\*\_C1, CTD\_\*\_C2, CTD\_\*\_C3) were rem
 
 **Reason 2: Redundancy with AAC.** CTD Composition is a linear combination of AAC by construction. For the charge property:
 
-$$\text{CTD\_charge\_C1} = \text{AAC\_K} + \text{AAC\_R}$$
-$$\text{CTD\_charge\_C3} = \text{AAC\_D} + \text{AAC\_E}$$
+```
+CTD_charge_C1  =  AAC_K + AAC_R
+CTD_charge_C3  =  AAC_D + AAC_E
+```
 
-Observed Pearson correlations confirm this: $r(\text{AAC\_K},\ \text{CTD\_charge\_C1}) = 0.678$, $r(\text{AAC\_E},\ \text{CTD\_charge\_C3}) = 0.786$. Correlations below 1.0 because the groupings do not cover all amino acids in identical proportions, but the conceptual overlap is complete.
+Observed Pearson correlations confirm this: $r = 0.678$ for `AAC_K` versus `CTD_charge_C1`, and $r = 0.786$ for `AAC_E` versus `CTD_charge_C3`. Correlations below 1.0 because the groupings do not cover all amino acids in identical proportions, but the conceptual overlap is complete.
 
 CTD Transition (T) and Distribution (D) features are retained: T encodes the frequency of property-class switches along the sequence; D encodes the positions of residues of each class as percentiles of sequence length. Neither is computable from AAC alone.
 
@@ -118,7 +120,7 @@ Result: 175 reduced to 154.
 
 ### 4.3 Step 3: Pairwise Pearson correlation filter
 
-One feature from each pair with $|r| > 0.90$ was removed. The threshold was set at 0.90 rather than the conventional 0.95 because nine pairs survived at 0.95 with $|r|$ between 0.91 and 0.94. The most correlated surviving pair at the 0.95 level was CTD_polarity_C1 and CTD_hydrophobicity_C3 ($r = 0.939$), explained by the near-complete overlap of their constituent amino acids: LIFWCMVY (polarity group 1) and CVLIMFW (hydrophobicity group 3) share 7 of 8 residues. Within each surviving pair, the feature with higher mean absolute correlation to all remaining features was dropped.
+One feature from each pair with $|r| > 0.90$ was removed. The threshold was set at 0.90 rather than the conventional 0.95 because nine pairs survived at 0.95 with $|r|$ between 0.91 and 0.94. The most correlated surviving pair at the 0.95 level was `CTD_polarity_C1` and `CTD_hydrophobicity_C3` ($r = 0.939$), explained by the near-complete overlap of their constituent amino acids: LIFWCMVY (polarity group 1) and CVLIMFW (hydrophobicity group 3) share 7 of 8 residues. Within each surviving pair, the feature with higher mean absolute correlation to all remaining features was dropped.
 
 Result: 154 reduced to 135. No pair with $|r| > 0.90$ remains in the final set.
 
@@ -167,7 +169,7 @@ Result: 154 reduced to 135. No pair with $|r| > 0.90$ remains in the final set.
 | 19 | CTD_solvent_access_D12 | 0.0124 |
 | 20 | AAC_Y | 0.0120 |
 
-The predominance of charge-related features (Charge, pI, CTD_charge_T12, CTD_charge_T23, CTD_charge_D12) is consistent with the biochemical model of AMP activity: membrane disruption depends on electrostatic attraction to negatively charged bacterial membranes, which requires a net positive charge (Shai 2002). The high importance of AAC_M reflects the role of methionine in amphipathic helix formation, a structural motif common in helical AMPs. CTD_solvent_access features encode the distribution of buried and exposed residues, relevant to amphipathic organization that allows membrane insertion.
+The predominance of charge-related features (`Charge`, `pI`, `CTD_charge_T12`, `CTD_charge_T23`, `CTD_charge_D12`) is consistent with the biochemical model of AMP activity: membrane disruption depends on electrostatic attraction to negatively charged bacterial membranes, which requires a net positive charge (Shai 2002). The high importance of `AAC_M` reflects the role of methionine in amphipathic helix formation, a structural motif common in helical AMPs. `CTD_solvent_access` features encode the distribution of buried and exposed residues, relevant to amphipathic organization that allows membrane insertion.
 
 ## 5. Phase 2.5: Exploratory data analysis
 
