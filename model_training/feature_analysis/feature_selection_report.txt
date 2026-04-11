@@ -1,49 +1,49 @@
 Feature Selection Report
 ============================================================
 
-Initial features          : 577
-Samples (total)           : 13246
-  Positive (AMP)          : 6623
-  Negative (non-AMP)      : 6623
+Initial features              : 577
+Samples                       : 13246
+  Positive (AMP)              : 6623
+  Negative (non-AMP)          : 6623
 
-Variance threshold        : 0.001
-Removed by variance filter: 402
-Features after variance   : 175
+Step 1 — Variance filter      : threshold = 0.001
+  Removed                     : 402
+  Remaining                   : 175
 
-Structural filter (CTD_C) : removed 21, kept 154
-  Rationale: C1+C2+C3=1 (perfect multicollinearity) and CTD_C
-  features are linear combinations of AAC (Dubchak et al. 1995).
+Step 2 — Structural filter    : CTD_*_C1/C2/C3 removed
+  Removed                     : 21
+  Remaining                   : 154
+  Rationale: C1+C2+C3=1 (Dubchak et al. 1995) and CTD_C
+  features are linear combinations of AAC descriptors.
 
-Correlation threshold     : 0.9
-Removed by corr filter    : 19
-Features after corr filter: 135
+Step 3 — Correlation filter   : |r| > 0.9
+  Removed                     : 19
+  Remaining                   : 135
 
-Final selected features   : 135
+Final selected features       : 135
+  GlobalDesc                  : 8
+  AAC                         : 20
+  CTD Transition (T)          : 19
+  CTD Distribution (D)        : 88
 
-Top 20 features by RF importance:
-   1. AAC_M                                    0.075543
-   2. Charge                                   0.068263
-   3. CTD_charge_T12                           0.029598
-   4. CTD_charge_T23                           0.026042
-   5. pI                                       0.025817
-   6. AAC_C                                    0.024364
-   7. CTD_solvent_access_D13                   0.023482
-   8. CTD_solvent_access_T23                   0.021892
-   9. Aromaticity                              0.021850
-  10. CTD_secondary_struct_D11                 0.019287
-  11. AAC_K                                    0.019096
-  12. CTD_polarity_D11                         0.019049
-  13. AAC_G                                    0.017005
-  14. CTD_polarizability_D13                   0.016774
-  15. MW                                       0.016157
-  16. CTD_solvent_access_D11                   0.015841
-  17. CTD_charge_D12                           0.014743
-  18. AAC_W                                    0.012905
-  19. CTD_solvent_access_D12                   0.012352
-  20. AAC_Y                                    0.012023
-
-Feature group breakdown (final):
-  GlobalDesc  : 8
-  AAC         : 20
-  DPC         : 0
-  CTD         : 107
+Top 20 features by RF importance (RobustScaler, 200 trees):
+   1. AAC_M                                      0.075543
+   2. Charge                                     0.068263
+   3. CTD_charge_T12                             0.029598
+   4. CTD_charge_T23                             0.026042
+   5. pI                                         0.025817
+   6. AAC_C                                      0.024364
+   7. CTD_solvent_access_D13                     0.023482
+   8. CTD_solvent_access_T23                     0.021892
+   9. Aromaticity                                0.021850
+  10. CTD_secondary_struct_D11                   0.019287
+  11. AAC_K                                      0.019096
+  12. CTD_polarity_D11                           0.019049
+  13. AAC_G                                      0.017005
+  14. CTD_polarizability_D13                     0.016774
+  15. MW                                         0.016157
+  16. CTD_solvent_access_D11                     0.015841
+  17. CTD_charge_D12                             0.014743
+  18. AAC_W                                      0.012905
+  19. CTD_solvent_access_D12                     0.012352
+  20. AAC_Y                                      0.012023
