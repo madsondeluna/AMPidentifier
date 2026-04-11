@@ -1,0 +1,45 @@
+Feature Selection Report
+============================================================
+
+Initial features          : 577
+Samples (total)           : 13246
+  Positive (AMP)          : 6623
+  Negative (non-AMP)      : 6623
+
+Variance threshold        : 0.001
+Removed by variance filter: 402
+Features after variance   : 175
+
+Correlation threshold     : 0.95
+Removed by corr filter    : 16
+Features after corr filter: 159
+
+Final selected features   : 159
+
+Top 20 features by RF importance:
+   1. AAC_M                                    0.068526
+   2. Charge                                   0.058127
+   3. CTD_charge_C1                            0.029673
+   4. CTD_solvent_access_C1                    0.028247
+   5. CTD_solvent_access_C3                    0.024010
+   6. pI                                       0.020887
+   7. CTD_charge_T23                           0.020570
+   8. CTD_volume_C1                            0.020145
+   9. AAC_K                                    0.019226
+  10. CTD_charge_T12                           0.017969
+  11. AAC_C                                    0.017808
+  12. CTD_solvent_access_D13                   0.017409
+  13. CTD_hydrophobicity_D13                   0.016655
+  14. CTD_polarity_D11                         0.016391
+  15. CTD_charge_D12                           0.015983
+  16. CTD_secondary_struct_D11                 0.015160
+  17. Aromaticity                              0.014048
+  18. CTD_charge_C3                            0.014011
+  19. MW                                       0.013574
+  20. CTD_polarizability_D13                   0.012834
+
+Feature group breakdown (final):
+  GlobalDesc  : 8
+  AAC         : 20
+  DPC         : 0
+  CTD         : 131
