@@ -10,36 +10,40 @@ Variance threshold        : 0.001
 Removed by variance filter: 402
 Features after variance   : 175
 
-Correlation threshold     : 0.95
-Removed by corr filter    : 16
-Features after corr filter: 159
+Structural filter (CTD_C) : removed 21, kept 154
+  Rationale: C1+C2+C3=1 (perfect multicollinearity) and CTD_C
+  features are linear combinations of AAC (Dubchak et al. 1995).
 
-Final selected features   : 159
+Correlation threshold     : 0.9
+Removed by corr filter    : 19
+Features after corr filter: 135
+
+Final selected features   : 135
 
 Top 20 features by RF importance:
-   1. AAC_M                                    0.068526
-   2. Charge                                   0.058127
-   3. CTD_charge_C1                            0.029673
-   4. CTD_solvent_access_C1                    0.028247
-   5. CTD_solvent_access_C3                    0.024010
-   6. pI                                       0.020887
-   7. CTD_charge_T23                           0.020570
-   8. CTD_volume_C1                            0.020145
-   9. AAC_K                                    0.019226
-  10. CTD_charge_T12                           0.017969
-  11. AAC_C                                    0.017808
-  12. CTD_solvent_access_D13                   0.017409
-  13. CTD_hydrophobicity_D13                   0.016655
-  14. CTD_polarity_D11                         0.016391
-  15. CTD_charge_D12                           0.015983
-  16. CTD_secondary_struct_D11                 0.015160
-  17. Aromaticity                              0.014048
-  18. CTD_charge_C3                            0.014011
-  19. MW                                       0.013574
-  20. CTD_polarizability_D13                   0.012834
+   1. AAC_M                                    0.075543
+   2. Charge                                   0.068263
+   3. CTD_charge_T12                           0.029598
+   4. CTD_charge_T23                           0.026042
+   5. pI                                       0.025817
+   6. AAC_C                                    0.024364
+   7. CTD_solvent_access_D13                   0.023482
+   8. CTD_solvent_access_T23                   0.021892
+   9. Aromaticity                              0.021850
+  10. CTD_secondary_struct_D11                 0.019287
+  11. AAC_K                                    0.019096
+  12. CTD_polarity_D11                         0.019049
+  13. AAC_G                                    0.017005
+  14. CTD_polarizability_D13                   0.016774
+  15. MW                                       0.016157
+  16. CTD_solvent_access_D11                   0.015841
+  17. CTD_charge_D12                           0.014743
+  18. AAC_W                                    0.012905
+  19. CTD_solvent_access_D12                   0.012352
+  20. AAC_Y                                    0.012023
 
 Feature group breakdown (final):
   GlobalDesc  : 8
   AAC         : 20
   DPC         : 0
-  CTD         : 131
+  CTD         : 107

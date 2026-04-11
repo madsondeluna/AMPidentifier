@@ -5,10 +5,16 @@
 # Pipeline:
 #   1. Load sequences and extract the full feature set (~577 features).
 #   2. Variance threshold: remove features with variance <= VARIANCE_THRESHOLD.
-#   3. Pearson correlation filter: remove one of each pair with |r| > CORR_THRESHOLD.
-#      The feature with lower mean absolute correlation to the rest of the set is kept.
-#   4. Random Forest importance ranking on the filtered feature set.
-#   5. Save:
+#   3. Structural filter: remove CTD Composition features (CTD_*_C1/C2/C3).
+#      Rationale: C1+C2+C3=1 by definition (Dubchak et al. 1995), creating
+#      perfect multicollinearity when all three groups are present. Additionally,
+#      CTD_C features are linear combinations of AAC features, making them
+#      structurally redundant. CTD Transition (T) and Distribution (D) are
+#      retained as they encode positional information absent from AAC.
+#   4. Pearson correlation filter: remove one of each pair with |r| > CORR_THRESHOLD.
+#      The feature with higher mean absolute correlation to the rest is dropped.
+#   5. Random Forest importance ranking on the filtered feature set.
+#   6. Save:
 #       - model_training/data/selected_features.txt  (feature names, one per line)
 #       - model_training/feature_analysis/fig_variance_distribution.png
 #       - model_training/feature_analysis/fig_correlation_heatmap_before.png
@@ -31,7 +37,7 @@ import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler
 
 from amp_identifier.feature_extraction import calculate_physicochemical_features
 from amp_identifier.data_io import load_fasta_sequences
@@ -48,7 +54,7 @@ SELECTED_FEATURES_PATH = os.path.join(DATA_DIR, "selected_features.txt")
 RANDOM_STATE     = 42
 TEST_SIZE        = 0.2
 VARIANCE_THRESHOLD = 0.001  # remove features with variance <= this value
-CORR_THRESHOLD   = 0.95     # remove one of each pair with |r| > this value
+CORR_THRESHOLD   = 0.90     # remove one of each pair with |r| > this value
 RF_N_ESTIMATORS  = 200      # quick RF for importance ranking
 TOP_N_IMPORTANCE = 40       # how many top features to plot
 
@@ -85,6 +91,28 @@ def _variance_filter(X: pd.DataFrame) -> pd.DataFrame:
     removed = len(X.columns) - len(kept)
     print(f"Variance filter (threshold={VARIANCE_THRESHOLD}): "
           f"removed {removed}, kept {len(kept)}")
+    return X[kept]
+
+
+def _structural_filter(X: pd.DataFrame) -> pd.DataFrame:
+    """Remove CTD Composition features (CTD_*_C1, CTD_*_C2, CTD_*_C3).
+
+    CTD Composition features are excluded for two structural reasons:
+      1. C1+C2+C3=1 by construction (Dubchak et al. 1995): when all three
+         groups are present for a property, perfect multicollinearity exists.
+         Pairwise Pearson filters miss this because the individual r values
+         are negative and below the threshold.
+      2. CTD_C features are linear combinations of AAC features (e.g.,
+         CTD_charge_C1 = AAC_K + AAC_R), making them redundant with
+         information already encoded by the composition descriptors.
+    CTD Transition (T) and Distribution (D) features are retained: they
+    encode positional and sequential information not present in AAC.
+    """
+    import re
+    ctd_c_pattern = re.compile(r"^CTD_\w+_C[123]$")
+    to_drop = [c for c in X.columns if ctd_c_pattern.match(c)]
+    kept = [c for c in X.columns if c not in to_drop]
+    print(f"Structural filter (CTD_C removal): removed {len(to_drop)}, kept {len(kept)}")
     return X[kept]
 
 
@@ -159,25 +187,32 @@ def _plot_variance_distribution(X_full: pd.DataFrame, X_after_var: pd.DataFrame)
 
 
 def _plot_correlation_heatmap(corr: pd.DataFrame, title: str, filename: str):
-    """Clustermap of the absolute Pearson correlation matrix."""
+    """Clustermap of the absolute Pearson correlation matrix with feature labels."""
     n = corr.shape[0]
-    # With many features, hide individual tick labels
-    show_labels = n <= 60
+    # Scale figure and font so labels remain readable at any n
+    cell_size = max(0.13, min(0.22, 14.0 / n))
+    figsize   = (n * cell_size + 2, n * cell_size + 2)
+    font_size = max(4, min(8, int(130 / n)))
 
-    figsize = (max(10, n * 0.07), max(8, n * 0.07))
     g = sns.clustermap(
         corr,
         cmap="coolwarm",
         vmin=0, vmax=1,
         figsize=figsize,
-        xticklabels=show_labels,
-        yticklabels=show_labels,
-        linewidths=0 if n > 60 else 0.3,
-        cbar_kws={"shrink": 0.5, "label": "|Pearson r|"},
+        xticklabels=True,
+        yticklabels=True,
+        linewidths=0,
+        cbar_kws={"shrink": 0.4, "label": "|Pearson r|"},
     )
-    g.fig.suptitle(title, y=1.01, fontsize=11)
+    g.ax_heatmap.set_xticklabels(
+        g.ax_heatmap.get_xticklabels(), fontsize=font_size, rotation=90
+    )
+    g.ax_heatmap.set_yticklabels(
+        g.ax_heatmap.get_yticklabels(), fontsize=font_size, rotation=0
+    )
+    g.fig.suptitle(title, y=1.01, fontsize=10)
     path = os.path.join(OUT_DIR, filename)
-    g.savefig(path, dpi=FIGURE_DPI)
+    g.savefig(path, dpi=FIGURE_DPI, bbox_inches="tight")
     plt.close(g.fig)
     print(f"  Saved: {path}")
 
@@ -316,23 +351,35 @@ def main():
     print("  Plotting variance distribution...")
     _plot_variance_distribution(X, X_var)
 
-    # 3. Correlation filter
-    print("\n--- Step 2: Correlation filter ---")
+    # 3. Structural filter: remove CTD_C features
+    print("\n--- Step 2: Structural filter (CTD Composition removal) ---")
+    X_struct = _structural_filter(X_var)
+    n_after_struct = X_struct.shape[1]
+    report_lines += [
+        f"Structural filter (CTD_C) : removed {n_after_var - n_after_struct}, "
+        f"kept {n_after_struct}",
+        f"  Rationale: C1+C2+C3=1 (perfect multicollinearity) and CTD_C",
+        f"  features are linear combinations of AAC (Dubchak et al. 1995).",
+        "",
+    ]
+
+    # 4. Correlation filter
+    print("\n--- Step 3: Correlation filter ---")
     print("  Computing correlation matrix before filtering...")
-    corr_before = X_var.corr(method="pearson").abs()
+    corr_before = X_struct.corr(method="pearson").abs()
 
     print("  Plotting correlation heatmap (before)...")
     _plot_correlation_heatmap(
         corr_before,
-        f"Absolute Pearson correlation — before filtering (n={n_after_var})",
+        f"Absolute Pearson correlation — before filtering (n={n_after_struct})",
         "fig_correlation_heatmap_before.png",
     )
 
-    X_final, corr_before_ret = _correlation_filter(X_var)
+    X_final, corr_before_ret = _correlation_filter(X_struct)
     n_final = X_final.shape[1]
     report_lines += [
         f"Correlation threshold     : {CORR_THRESHOLD}",
-        f"Removed by corr filter    : {n_after_var - n_final}",
+        f"Removed by corr filter    : {n_after_struct - n_final}",
         f"Features after corr filter: {n_final}",
         "",
     ]
@@ -348,12 +395,12 @@ def main():
     print("  Plotting correlation histogram...")
     _plot_correlation_histogram(corr_before_ret, X_final)
 
-    # 4. RF importance
-    print("\n--- Step 3: RF importance ranking ---")
+    # 5. RF importance
+    print("\n--- Step 4: RF importance ranking ---")
     X_train, _, y_train, _ = train_test_split(
         X_final, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
     )
-    scaler = StandardScaler()
+    scaler = RobustScaler()
     X_train_sc = pd.DataFrame(
         scaler.fit_transform(X_train),
         columns=X_train.columns,
@@ -362,17 +409,17 @@ def main():
     importance = _rf_importance(X_train_sc, y_train)
     _plot_feature_importance(importance)
 
-    # 5. Group summary
+    # 6. Group summary
     print("  Plotting feature group summary...")
     _plot_feature_group_summary(X, X_final)
 
-    # 6. Save selected features
+    # 7. Save selected features
     with open(SELECTED_FEATURES_PATH, "w") as f:
         for feat in X_final.columns:
             f.write(feat + "\n")
     print(f"\nSelected features saved -> {SELECTED_FEATURES_PATH}  ({n_final} features)")
 
-    # 7. Report
+    # 8. Report
     report_lines += [
         f"Final selected features   : {n_final}",
         "",
