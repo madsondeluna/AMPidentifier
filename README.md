@@ -12,6 +12,7 @@ Branch: `feature/expanded-features-deeplearning`
 - [Phase 3: Classical ML models (baseline)](#phase-3-classical-ml-models-baseline)
 - [Phase 3.1: Hyperparameter tuning](#phase-31-hyperparameter-tuning)
 - [Phase 4: Deep learning](#phase-4-deep-learning)
+- [Phase 5: Independent benchmark evaluation](#phase-5-independent-benchmark-evaluation)
 - [Figures](#figures)
 - [Discussion](#discussion)
 - [References](#references)
@@ -347,6 +348,44 @@ Architecture:
 - Threshold: optimized post-training to maximize MCC on test set (threshold = 0.12)
 
 DEEP achieves AUC-ROC 0.9845 (tied with GB) and the highest recall (0.9668, TP=1341, FN=46), while having the highest FP count (117) and lowest specificity (0.9156) among all models. This trade-off reflects the low threshold selected by MCC optimization: the model scores AMP candidates high, so sensitivity is maximized at the cost of specificity. DEEP is preferred in discovery pipelines where missing a true AMP (false negative) is more costly than investigating a false positive candidate.
+
+## Phase 5: Independent benchmark evaluation
+
+All seven models were evaluated on `benchmarking/benchmark.fasta`, an independent set of 4,736 peptide sequences (2,368 AMP, 2,368 non-AMP) not present in the training or test data. Labels are encoded in the FASTA header (`label=1` or `label=0`). The evaluation script is `model_training/benchmark.py`. Results are in `benchmarking/benchmark_results.csv`.
+
+The benchmark positives have median length 30 residues (range 10-255). The benchmark negatives have median length 25 residues (range 10-94). Both sets are composed exclusively of short peptides, in contrast to the training negatives, which were drawn from Swiss-Prot reviewed proteins with lengths up to 200 residues and include full-length enzymes, receptors, and structural proteins.
+
+### Results
+
+**Table 7.** Model performance on the independent benchmark (n=4,736; thresholds from training MCC optimization).
+
+| Model | Threshold | Accuracy | Precision | Recall | Specificity | F1 | MCC | AUC-ROC |
+|---|---|---|---|---|---|---|---|---|
+| RF | 0.47 | 0.4979 | 0.4989 | 0.9759 | 0.0198 | 0.6603 | -0.014 | 0.7985 |
+| SVM | 0.42 | 0.5285 | 0.5150 | 0.9759 | 0.0811 | 0.6743 | 0.128 | 0.8010 |
+| GB | 0.37 | 0.5008 | 0.5004 | 0.9780 | 0.0236 | 0.6621 | 0.006 | 0.8099 |
+| XGB | 0.37 | 0.5068 | 0.5035 | 0.9818 | 0.0317 | 0.6656 | 0.043 | 0.8094 |
+| MLP | 0.27 | 0.5160 | 0.5084 | 0.9709 | 0.0612 | 0.6673 | 0.077 | 0.7316 |
+| **STACK** | **0.31** | **0.4958** | **0.4979** | **0.9780** | **0.0135** | **0.6598** | **-0.032** | **0.8393** |
+| DEEP | 0.12 | 0.5006 | 0.5003 | 0.9683 | 0.0329 | 0.6598 | 0.004 | 0.7608 |
+
+**Figure 20.** ROC curves for all seven models on the independent benchmark.
+
+![ROC benchmark](benchmarking/fig_bench_roc.png)
+
+**Figure 21.** Per-metric comparison of all models on the independent benchmark.
+
+![Metrics benchmark](benchmarking/fig_bench_metrics.png)
+
+### Discussion
+
+AUC-ROC on the benchmark ranges from 0.731 (MLP) to 0.839 (STACK), compared to 0.975-0.985 on the held-out test set. The drop of approximately 0.15-0.17 AUC-ROC units is explained by the nature of the negative class in each evaluation. The training and test negatives are Swiss-Prot proteins with diverse functions and lengths up to 200 residues; these are distinguishable from AMPs by length, charge, and CTD positional descriptors with high confidence. The benchmark negatives are short peptides (median 25 residues) whose physicochemical profiles overlap substantially with AMPs in the 127-feature space. Both classes share low molecular weight, compact length, and similar charge distributions.
+
+The threshold-dependent metrics (MCC, accuracy, specificity) collapse to near zero for all models. This is expected: the thresholds (0.12-0.47) were selected to maximize MCC on the original test set, where the negative class is physicochemically distinct. Applied to a dataset where both classes are short peptides, the same probability scores concentrate in the same region for true positives and false positives, and any threshold that captures high recall produces near-zero specificity. AUC-ROC, which is threshold-independent, is the appropriate metric for comparing models on this benchmark.
+
+STACK achieves the highest AUC-ROC (0.8393), consistent with its design as a combination of complementary base learners. GB (0.8099) and XGB (0.8094) rank second and third, continuing their pattern from the test set. MLP (0.7316) and DEEP (0.7608) rank lowest on this benchmark, suggesting that the QuantileTransformer normalization and raw sequence encoding strategies used by these models are more sensitive to the distributional shift introduced by the short-peptide negatives.
+
+The results indicate that models trained on protein-based negatives require threshold recalibration before deployment in contexts where the negative class consists of short non-AMP peptides. Recalibrating on a held-out subset of the benchmark or using isotonic regression post-hoc would restore meaningful threshold-based discrimination.
 
 ## Figures
 
