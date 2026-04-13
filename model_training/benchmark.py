@@ -330,8 +330,9 @@ def fig_bench_metrics(results):
 
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
-    ax.set_ylim(0.84, 1.00)
-    ax.yaxis.set_major_locator(mticker.MultipleLocator(0.02))
+    ax.set_ylim(-0.10, 1.05)
+    ax.yaxis.set_major_locator(mticker.MultipleLocator(0.20))
+    ax.axhline(0, color="#bbbbbb", linewidth=0.6, linestyle=":")
     ax.set_ylabel("Score")
     ax.set_title("Model performance — independent benchmark (n=4,736)")
     ax.legend(loc="lower right", ncol=4, fontsize=6)
