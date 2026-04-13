@@ -15,6 +15,7 @@ Branch: `feature/expanded-features-deeplearning`
 - [Phase 5: Independent benchmark evaluation](#phase-5-independent-benchmark-evaluation)
 - [Figures](#figures)
 - [Discussion](#discussion)
+- [Known limitations and next steps](#known-limitations-and-next-steps)
 - [References](#references)
 
 ## Motivation
@@ -487,6 +488,18 @@ The MCC-optimized thresholds range from 0.12 (DEEP) to 0.47 (RF). Low thresholds
 ### Recommendations
 
 For experimental validation follow-up: use GB at threshold 0.37 (MCC 0.8913, balanced FP/FN) or DEEP at threshold 0.12 (maximum sensitivity, FN=46 on 2,774 test sequences). For production deployment on balanced databases: GB or XGB. For high-throughput screening of uncharacterized proteomes: DEEP (AUC-ROC 0.9845, recall 0.9668).
+
+## Known limitations and next steps
+
+### Negative class distribution shift
+
+The benchmark evaluation (Phase 5) shows AUC-ROC dropping from 0.975-0.985 (test set) to 0.731-0.839 (independent benchmark). The cause is not overfitting in the classical sense: the models generalize well to held-out data from the same distribution, as confirmed by the consistent test-set performance across all seven architectures. The problem is that the training negatives (Swiss-Prot reviewed proteins, diverse functions, lengths up to 200 residues) are physicochemically distinct from AMPs along multiple feature axes (length, MW, CTD Distribution). The benchmark negatives are short peptides (median 25 aa) that occupy the same region of the 127-feature space as AMPs. The decision boundary learned during training does not exist in the peptide-vs-peptide subspace.
+
+Three changes are needed to address this:
+
+- **Negative class recomposition**: replace or augment the Swiss-Prot negatives with short non-AMP peptides sampled from the same length range as AMPs (10-50 residues). Candidate sources include Swiss-Prot signal peptides, propeptides, and short regulatory peptides annotated as non-antimicrobial, as well as experimentally validated inactive AMP analogues from APD3 and DRAMP.
+- **Threshold recalibration**: the MCC-optimized thresholds (0.12-0.47) were derived from the original test set and do not transfer to the benchmark distribution. Post-hoc isotonic regression or Platt scaling on a held-out subset of the benchmark would restore meaningful threshold-based classification without retraining.
+- **Feature augmentation for peptide-level discrimination**: add descriptors that distinguish short AMPs from short non-AMP peptides specifically, including net charge normalized by length, amphipathicity index (hydrophobic moment), fraction of cationic residues (K+R) in the N-terminal half versus C-terminal half, and secondary structure propensity scores. These features encode the amphipathic helix and cationic gradient patterns characteristic of AMPs but absent in short non-AMP peptides.
 
 ## References
 
