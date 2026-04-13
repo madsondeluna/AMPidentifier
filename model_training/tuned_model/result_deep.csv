@@ -1,0 +1,2 @@
+model,best_cv_roc_auc,threshold,accuracy,precision,recall,specificity,f1,mcc,auc_roc,tp,tn,fp,fn
+DEEP,0.9802,0.12000000000000001,0.9412,0.9198,0.9668,0.9156,0.9427,0.8836,0.9845,1341,1270,117,46

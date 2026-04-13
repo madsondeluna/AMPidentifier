@@ -1,2 +1,2 @@
 model,best_cv_roc_auc,threshold,accuracy,precision,recall,specificity,f1,mcc,auc_roc,tp,tn,fp,fn
-XGB,0.9815,0.37,0.9441,0.9326,0.9575,0.9308,0.9449,0.8886,0.9836,1328,1291,96,59
+MLP,0.9746,0.27,0.9268,0.9105,0.9466,0.907,0.9282,0.8543,0.9749,1313,1258,129,74

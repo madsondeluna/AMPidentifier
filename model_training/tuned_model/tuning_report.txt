@@ -1,63 +1,66 @@
 ########### Hyperparameter Tuning Report ###########
 
-CV strategy : StratifiedKFold(n_splits=5, shuffle=True)
-Scoring     : roc_auc
-n_iter      : 50
-random_state: 42
+CV strategy  : StratifiedKFold(n_splits=5, shuffle=True)
+Scoring      : roc_auc
+n_iter       : 50
+random_state : 42
+Scaling      : RobustScaler (rf/svm/gb/xgb/stack) | QuantileTransformer/normal (mlp)
+Features     : 127 selected (selected_features.txt)
 
 ======================================================
- MODEL: RF
+ MODEL: SVM
 ======================================================
- Best CV roc_auc  : 0.9532
- Test Accuracy   : 0.8898
- Test Precision  : 0.8940
- Test Recall     : 0.8845
- Test Specificity: 0.8951
- Test F1         : 0.8892
- Test MCC        : 0.7797
- Test AUC-ROC    : 0.9510
- TP=1172  TN=1186  FP=139  FN=153
+ Best CV roc_auc  : 0.9732
+ Threshold (MCC) : 0.42
+ Test Accuracy   : 0.9369
+ Test Precision  : 0.9304
+ Test Recall     : 0.9445
+ Test Specificity: 0.9293
+ Test F1         : 0.9374
+ Test MCC        : 0.8739
+ Test AUC-ROC    : 0.9765
+ TP=1310  TN=1289  FP=98  FN=77
 
  Best hyperparameters:
-   max_depth: 40
-   max_features: 0.5
-   min_samples_leaf: 1
-   min_samples_split: 2
-   n_estimators: 574
+   C: 12.273800987852969
+   gamma: 0.01
+   kernel: rbf
 
 ======================================================
  MODEL: GB
 ======================================================
- Best CV roc_auc  : 0.9538
- Test Accuracy   : 0.8891
- Test Precision  : 0.8926
- Test Recall     : 0.8845
- Test Specificity: 0.8936
- Test F1         : 0.8886
- Test MCC        : 0.7781
- Test AUC-ROC    : 0.9534
- TP=1172  TN=1184  FP=141  FN=153
+ Best CV roc_auc  : 0.9814
+ Threshold (MCC) : 0.37
+ Test Accuracy   : 0.9456
+ Test Precision  : 0.9371
+ Test Recall     : 0.9553
+ Test Specificity: 0.9358
+ Test F1         : 0.9461
+ Test MCC        : 0.8913
+ Test AUC-ROC    : 0.9845
+ TP=1325  TN=1298  FP=89  FN=62
 
  Best hyperparameters:
-   learning_rate: 0.09234940072815244
+   learning_rate: 0.06176911409536507
    max_depth: 6
-   min_samples_leaf: 4
+   min_samples_leaf: 2
    min_samples_split: 3
-   n_estimators: 297
-   subsample: 0.6994122212222765
+   n_estimators: 293
+   subsample: 0.8459475988463466
 
 ======================================================
  MODEL: XGB
 ======================================================
- Best CV roc_auc  : 0.9527
- Test Accuracy   : 0.8883
- Test Precision  : 0.8924
- Test Recall     : 0.8830
- Test Specificity: 0.8936
- Test F1         : 0.8877
- Test MCC        : 0.7766
- Test AUC-ROC    : 0.9540
- TP=1170  TN=1184  FP=141  FN=155
+ Best CV roc_auc  : 0.9815
+ Threshold (MCC) : 0.37
+ Test Accuracy   : 0.9441
+ Test Precision  : 0.9326
+ Test Recall     : 0.9575
+ Test Specificity: 0.9308
+ Test F1         : 0.9449
+ Test MCC        : 0.8886
+ Test AUC-ROC    : 0.9836
+ TP=1328  TN=1291  FP=96  FN=59
 
  Best hyperparameters:
    colsample_bytree: 0.7583481287132834
@@ -68,3 +71,42 @@ random_state: 42
    reg_alpha: 0.012531420756075008
    reg_lambda: 0.31294064907273156
    subsample: 0.6779863393256308
+
+======================================================
+ MODEL: MLP
+======================================================
+ Best CV roc_auc  : 0.9746
+ Threshold (MCC) : 0.27
+ Test Accuracy   : 0.9268
+ Test Precision  : 0.9105
+ Test Recall     : 0.9466
+ Test Specificity: 0.9070
+ Test F1         : 0.9282
+ Test MCC        : 0.8543
+ Test AUC-ROC    : 0.9749
+ TP=1313  TN=1258  FP=129  FN=74
+
+ Best hyperparameters:
+   activation: tanh
+   alpha: 6.290644294586152e-05
+   batch_size: 128
+   hidden_layer_sizes: (512, 256)
+   learning_rate_init: 0.0015304852121831463
+   solver: adam
+
+======================================================
+ MODEL: STACK
+======================================================
+ Best CV roc_auc  : 0.9807
+ Threshold (MCC) : 0.31
+ Test Accuracy   : 0.9430
+ Test Precision  : 0.9324
+ Test Recall     : 0.9553
+ Test Specificity: 0.9308
+ Test F1         : 0.9437
+ Test MCC        : 0.8864
+ Test AUC-ROC    : 0.9829
+ TP=1325  TN=1291  FP=96  FN=62
+
+ Best hyperparameters:
+   final_estimator__C: 0.2991469302130217
