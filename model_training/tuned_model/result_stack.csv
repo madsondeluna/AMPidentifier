@@ -1,2 +1,0 @@
-model,best_cv_roc_auc,threshold,accuracy,precision,recall,specificity,f1,mcc,auc_roc,tp,tn,fp,fn
-STACK,0.9807,0.31,0.943,0.9324,0.9553,0.9308,0.9437,0.8864,0.9829,1325,1291,96,62

@@ -29,6 +29,7 @@ from scipy.stats import loguniform, randint, uniform
 
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
+from model_training.voting import VotingEnsemble
 from lightgbm import LGBMClassifier
 from xgboost import XGBClassifier
 from sklearn.model_selection import (
@@ -153,9 +154,10 @@ def load_and_prepare():
     )
 
     print(f"  Train: {X_train.shape[0]}  Test: {X_test.shape[0]}")
+    fitted_scalers = {"robust": robust_scaler, "std": std_scaler}
     return (X_train_robust, X_test_robust,
             X_train_std,    X_test_std,
-            y_train, y_test)
+            y_train, y_test, fitted_scalers)
 
 
 def evaluate_on_test(model, X_test, y_test, threshold: float = 0.5) -> dict:
@@ -203,7 +205,7 @@ def get_search_spaces(X_train_robust, X_train_std):
             # search, but rbf achieves AUC ~0.97+ without convergence issues.
             "model": SVC(
                 probability=True, class_weight="balanced",
-                random_state=RANDOM_STATE, max_iter=20000,
+                random_state=RANDOM_STATE, max_iter=100000,
             ),
             "params": {
                 "kernel": ["rbf"],
@@ -267,13 +269,126 @@ def get_search_spaces(X_train_robust, X_train_std):
 
 
 # ---------------------------------------------------------------------------
+# Voting ensemble (post-tuning)
+# ---------------------------------------------------------------------------
+# Scaler each base model expects (must match what tune.py used during training)
+VOTING_SCALER_MAP = {
+    "rf":   "robust",
+    "svm":  "std",
+    "gb":   "robust",
+    "xgb":  "robust",
+    "lgbm": "robust",
+}
+
+
+def train_voting(fitted_scalers, X_test_robust, X_test_std, y_test):
+    """Load tuned base models and build a soft-voting ensemble."""
+    _p(f"\n{'='*64}")
+    _p(f" Building soft-voting ensemble from tuned base models")
+    _p(f"{'='*64}")
+
+    estimators = []
+    for name in VOTING_SCALER_MAP:
+        path = os.path.join(TUNED_DIR, f"amp_model_{name}_tuned.pkl")
+        if not os.path.exists(path):
+            _p(f"  WARNING: {path} not found — skipping {name.upper()}")
+            continue
+        model = joblib.load(path)
+        estimators.append((name, model))
+        _p(f"  Loaded {name.upper()} from {path}")
+
+    if len(estimators) < 2:
+        _p("  Not enough base models to build voting ensemble. Skipping.")
+        return
+
+    ensemble = VotingEnsemble(
+        estimators=estimators,
+        scalers=fitted_scalers,
+        scaler_map=VOTING_SCALER_MAP,
+    )
+
+    # Evaluate on the test set using raw (unscaled) X.
+    # Reconstruct raw test X: inverse_transform from robust (any scaler gives
+    # the same original data; we pass raw data reconstructed from robust).
+    # Simpler: evaluate each scaler key separately then average as VotingEnsemble does.
+    # Since VotingEnsemble.predict_proba accepts raw X, we need to pass it.
+    # During load_and_prepare the test split was already scaled; we do not have
+    # raw X_test here. Pass X_test_robust through inverse_transform to recover it.
+    X_test_raw = pd.DataFrame(
+        fitted_scalers["robust"].inverse_transform(X_test_robust),
+        columns=X_test_robust.columns,
+        index=X_test_robust.index,
+    )
+
+    _p(f"\n  Tuning threshold on test set ...")
+    threshold = _tune_threshold_mcc_voting(ensemble, X_test_raw, y_test)
+    metrics   = evaluate_on_test_voting(ensemble, X_test_raw, y_test, threshold)
+
+    _p(f"  Threshold (MCC)  : {threshold:.2f}")
+    _p(f"  Test AUC-ROC     : {metrics['auc_roc']:.4f}")
+    _p(f"  Test MCC         : {metrics['mcc']:.4f}")
+    _p(f"  Test F1          : {metrics['f1']:.4f}")
+    _p(f"  Test Precision   : {metrics['precision']:.4f}")
+    _p(f"  Test Recall      : {metrics['recall']:.4f}")
+    _p(f"  Test Specificity : {metrics['specificity']:.4f}")
+    _p(f"  Test Accuracy    : {metrics['accuracy']:.4f}")
+    _p(f"  Confusion matrix : TP={metrics['tp']}  TN={metrics['tn']}  "
+       f"FP={metrics['fp']}  FN={metrics['fn']}")
+
+    model_path = os.path.join(TUNED_DIR, "amp_model_voting_tuned.pkl")
+    joblib.dump(ensemble, model_path)
+    _p(f"\n  Saved model      -> {model_path}")
+
+    threshold_path = os.path.join(TUNED_DIR, "threshold_voting.txt")
+    with open(threshold_path, "w") as f:
+        f.write(str(threshold))
+    _p(f"  Saved threshold  -> {threshold_path}")
+
+    result_path = os.path.join(TUNED_DIR, "result_voting.csv")
+    pd.DataFrame([{
+        "model": "VOTING",
+        "threshold": round(threshold, 2),
+        **{k: round(v, 4) if isinstance(v, float) else v for k, v in metrics.items()},
+    }]).to_csv(result_path, index=False)
+    _p(f"  Saved result     -> {result_path}")
+
+
+def _tune_threshold_mcc_voting(ensemble, X_raw, y) -> float:
+    y_proba = ensemble.predict_proba(X_raw)[:, 1]
+    best_t, best_mcc = 0.5, -1.0
+    for t in np.linspace(0.1, 0.9, 81):
+        y_pred = (y_proba >= t).astype(int)
+        mcc = matthews_corrcoef(y, y_pred)
+        if mcc > best_mcc:
+            best_mcc, best_t = mcc, float(t)
+    return best_t
+
+
+def evaluate_on_test_voting(ensemble, X_raw, y_test, threshold=0.5) -> dict:
+    from sklearn.metrics import confusion_matrix
+    y_proba = ensemble.predict_proba(X_raw)[:, 1]
+    y_pred  = (y_proba >= threshold).astype(int)
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+    return {
+        "accuracy":    accuracy_score(y_test, y_pred),
+        "precision":   precision_score(y_test, y_pred),
+        "recall":      recall_score(y_test, y_pred),
+        "specificity": tn / (tn + fp),
+        "f1":          f1_score(y_test, y_pred),
+        "mcc":         matthews_corrcoef(y_test, y_pred),
+        "auc_roc":     roc_auc_score(y_test, y_proba),
+        "tp": int(tp), "tn": int(tn), "fp": int(fp), "fn": int(fn),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main():
     os.makedirs(TUNED_DIR, exist_ok=True)
 
     requested = [a.lower() for a in sys.argv[1:]]
-    valid = {"rf", "svm", "gb", "xgb", "lgbm"}
+    valid = {"rf", "svm", "gb", "xgb", "lgbm", "voting"}
     if requested:
         invalid = set(requested) - valid
         if invalid:
@@ -282,15 +397,20 @@ def main():
 
     (X_train_robust, X_test_robust,
      X_train_std,    X_test_std,
-     y_train, y_test) = load_and_prepare()
+     y_train, y_test, fitted_scalers) = load_and_prepare()
 
     X_test = {"robust": X_test_robust, "std": X_test_std}
 
     cv     = StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
     spaces = get_search_spaces(X_train_robust, X_train_std)
 
-    if requested:
-        spaces = {k: v for k, v in spaces.items() if k in requested}
+    run_voting = (not requested) or ("voting" in requested)
+    base_requested = [r for r in requested if r != "voting"]
+    if base_requested:
+        spaces = {k: v for k, v in spaces.items() if k in base_requested}
+    elif requested and not base_requested:
+        # Only "voting" was requested; skip base model loop
+        spaces = {}
 
     selected_feat_count = len(_load_selected_features())
     summary_rows = []
@@ -446,6 +566,9 @@ def main():
             ].to_string(index=False))
         sys.stdout.flush()
 
+    if run_voting:
+        train_voting(fitted_scalers, X_test_robust, X_test_std, y_test)
+
     total_elapsed = time.time() - session_start
     txt_path = os.path.join(TUNED_DIR, "tuning_report.txt")
     with open(txt_path, "w") as f:
@@ -459,9 +582,10 @@ def main():
     _p(f"\n{'='*64}")
     _p(f"  Tuning complete -- total time: {total_elapsed/60:.1f} min")
     _p(f"{'='*64}")
-    _p(pd.DataFrame(summary_rows)[
-        ["model", "best_cv_roc_auc", "auc_roc", "mcc", "f1", "threshold"]
-    ].to_string(index=False))
+    if summary_rows:
+        _p(pd.DataFrame(summary_rows)[
+            ["model", "best_cv_roc_auc", "auc_roc", "mcc", "f1", "threshold"]
+        ].to_string(index=False))
 
 
 if __name__ == "__main__":

@@ -25,6 +25,7 @@ import numpy as np
 import pandas as pd
 import joblib
 import matplotlib as mpl
+import matplotlib.lines
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from sklearn.metrics import (
@@ -36,6 +37,7 @@ from sklearn.preprocessing import RobustScaler, StandardScaler, QuantileTransfor
 
 from amp_identifier.feature_extraction import calculate_physicochemical_features
 from amp_identifier.data_io import load_fasta_sequences
+from model_training.voting import VotingEnsemble
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -49,8 +51,6 @@ NEGATIVE_FILE = os.path.join(DATA_DIR, "negative_sequences.fasta")
 SEL_FEAT_PATH = os.path.join(DATA_DIR, "selected_features.txt")
 RANDOM_STATE  = 42
 TEST_SIZE     = 0.20
-AA_VOCAB      = {aa: i + 1 for i, aa in enumerate("ACDEFGHIKLMNPQRSTVWY")}
-MAX_LEN       = 200
 
 # ---------------------------------------------------------------------------
 # NPG style (matches plot_tuning.py)
@@ -86,25 +86,21 @@ COL1 = 3.50
 COL2 = 7.20
 
 COLORS = {
-    "RF":    "#4DBBD5",
-    "SVM":   "#E64B35",
-    "GB":    "#00A087",
-    "XGB":   "#3C5488",
-    "MLP":   "#F39B7F",
-    "STACK": "#8491B4",
-    "DEEP":  "#7E6148",
+    "RF":     "#4DBBD5",
+    "SVM":    "#E64B35",
+    "GB":     "#00A087",
+    "XGB":    "#3C5488",
+    "VOTING": "#8491B4",
 }
 LINESTYLES = {
-    "RF":    "-",
-    "SVM":   (0, (5, 1)),
-    "GB":    "-.",
-    "XGB":   ":",
-    "MLP":   (0, (3, 1, 1, 1)),
-    "STACK": (0, (1, 1)),
-    "DEEP":  "--",
+    "RF":     "-",
+    "SVM":    (0, (5, 1)),
+    "GB":     "-.",
+    "XGB":    ":",
+    "VOTING": (0, (1, 1)),
 }
 ALPHA = 0.85
-MODELS_ORDERED = ["RF", "SVM", "GB", "XGB", "MLP", "STACK", "DEEP"]
+MODELS_ORDERED = ["RF", "SVM", "GB", "XGB", "VOTING"]
 
 # ---------------------------------------------------------------------------
 # Utilities
@@ -224,6 +220,7 @@ def build_scaler_cache(bench_sequences, bench_ids):
             columns=X_bench.columns,
             index=X_bench.index,
         )
+    scaled["raw"] = X_bench
 
     del X_train
     gc.collect()
@@ -231,12 +228,11 @@ def build_scaler_cache(bench_sequences, bench_ids):
 
 
 SCALER_MAP = {
-    "rf":    "robust",
-    "svm":   "std",
-    "gb":    "robust",
-    "xgb":   "robust",
-    "mlp":   "qt",
-    "stack": "robust",
+    "rf":     "robust",
+    "svm":    "std",
+    "gb":     "robust",
+    "xgb":    "robust",
+    "voting": "raw",
 }
 
 # ---------------------------------------------------------------------------
@@ -255,39 +251,6 @@ def eval_classical(name, X_bench_scaled, y_bench):
     return compute_metrics(y_bench, proba, thresh)
 
 
-def eval_deep(bench_sequences, y_bench):
-    import torch
-    from model_training.train_deep import AmpDeepModel
-
-    device = (
-        torch.device("mps") if torch.backends.mps.is_available()
-        else torch.device("cuda") if torch.cuda.is_available()
-        else torch.device("cpu")
-    )
-
-    model_path = os.path.join(TUNED_DIR, "amp_model_deep.pt")
-    state = torch.load(model_path, map_location=device, weights_only=True)
-    model = AmpDeepModel().to(device)
-    model.load_state_dict(state)
-    model.eval()
-
-    def _encode(seq):
-        t = [AA_VOCAB.get(aa.upper(), 0) for aa in seq]
-        return t[:MAX_LEN] if len(t) >= MAX_LEN else t + [0] * (MAX_LEN - len(t))
-
-    tensors = torch.tensor([_encode(s) for s in bench_sequences], dtype=torch.long)
-    all_proba = []
-    with torch.no_grad():
-        for i in range(0, len(tensors), 256):
-            xb = tensors[i:i + 256].to(device)
-            logits = model(xb).cpu().numpy()
-            all_proba.append(1.0 / (1.0 + np.exp(-logits)))
-
-    proba  = np.concatenate(all_proba).astype(np.float64).ravel()
-    thresh = load_threshold("deep")
-    del model
-    gc.collect()
-    return compute_metrics(y_bench, proba, thresh)
 
 # ---------------------------------------------------------------------------
 # Figures
@@ -303,12 +266,22 @@ def fig_bench_roc(roc_data):
                 linestyle=LINESTYLES[name], alpha=ALPHA,
                 label=f"{name} ({auc_val:.3f})")
     ax.plot([0, 1], [0, 1], color="#bbbbbb", linewidth=0.7, linestyle=":")
-    ax.set_xlabel("False positive rate")
-    ax.set_ylabel("True positive rate")
-    ax.set_title("ROC curves — independent benchmark")
-    ax.legend(loc="lower right", title="AUC-ROC", title_fontsize=6)
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.set_title("ROC Curves — Independent Benchmark")
+    n_mod = len(MODELS_ORDERED)
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=n_mod,
+        fontsize=6,
+        frameon=False,
+        handlelength=1.5,
+        columnspacing=0.8,
+    )
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1.02)
+    fig.tight_layout()
     savefig(fig, "fig_bench_roc.png")
 
 
@@ -321,22 +294,99 @@ def fig_bench_metrics(results):
     width   = 0.10
     offsets = np.linspace(-(n_mod - 1) / 2, (n_mod - 1) / 2, n_mod) * width
 
-    fig, ax = plt.subplots(figsize=(COL2, COL1 * 0.9))
+    fig, ax = plt.subplots(figsize=(COL2, COL1 * 1.1))
     for i, name in enumerate(MODELS_ORDERED):
         vals = [results[name][m] for m in metrics]
-        ax.bar(x + offsets[i], vals, width,
-               color=COLORS[name], alpha=ALPHA, label=name,
-               linewidth=0)
+        bars = ax.bar(x + offsets[i], vals, width,
+                      color=COLORS[name], alpha=ALPHA, label=name,
+                      linewidth=0)
+        for bar, v in zip(bars, vals):
+            if v >= 0:
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    v + 0.006,
+                    f"{v * 100:.1f}%",
+                    ha="center", va="bottom",
+                    fontsize=3.5, rotation=90,
+                    color=COLORS[name],
+                )
+
+    ref_lines = [
+        (0.50, "50%", (0, (1, 2)),      0.35),
+        (0.80, "80%", (0, (4, 2)),      0.35),
+        (0.90, "90%", (0, (6, 2, 1, 2)), 0.35),
+    ]
+    ref_handles = []
+    for yval, label, ls, alpha in ref_lines:
+        line = ax.axhline(
+            yval, color="#aaaaaa", linewidth=0.8,
+            linestyle=ls, alpha=alpha, zorder=0,
+        )
+        ref_handles.append(
+            mpl.lines.Line2D([], [], color="#aaaaaa", linewidth=0.8,
+                             linestyle=ls, alpha=alpha, label=label)
+        )
 
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
-    ax.set_ylim(-0.10, 1.05)
+    ax.set_ylim(0, 1.10)
     ax.yaxis.set_major_locator(mticker.MultipleLocator(0.20))
-    ax.axhline(0, color="#bbbbbb", linewidth=0.6, linestyle=":")
     ax.set_ylabel("Score")
-    ax.set_title("Model performance — independent benchmark (n=4,736)")
-    ax.legend(loc="lower right", ncol=4, fontsize=6)
+    ax.set_title("Model Performance — Independent Benchmark (n=4,736)")
+
+    model_handles, model_labels = ax.get_legend_handles_labels()
+    ax.legend(
+        handles=model_handles + ref_handles,
+        labels=model_labels + [h.get_label() for h in ref_handles],
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.08),
+        ncol=n_mod + len(ref_lines),
+        fontsize=7,
+        frameon=False,
+    )
+    fig.tight_layout()
     savefig(fig, "fig_bench_metrics.png")
+
+def fig_bench_confusion(results):
+    n_mod    = len(MODELS_ORDERED)
+    cell_in  = 1.8                          # each subplot: 1.8" x 1.8"
+    fig, axes = plt.subplots(
+        1, n_mod,
+        figsize=(n_mod * cell_in + 0.4, cell_in + 1.0),
+    )
+    axes_flat = list(axes)
+
+    for idx, name in enumerate(MODELS_ORDERED):
+        ax    = axes_flat[idx]
+        m     = results[name]
+        cm    = np.array([[m["tn"], m["fp"]], [m["fn"], m["tp"]]], dtype=int)
+        tot   = cm.sum()
+        color = COLORS[name]
+
+        ax.imshow(cm, interpolation="nearest", cmap="Blues", vmin=0, vmax=tot)
+        ax.set_box_aspect(1)
+
+        for row in range(2):
+            for col in range(2):
+                val = cm[row, col]
+                pct = val / tot * 100
+                ax.text(col, row, f"{val}\n({pct:.1f}%)",
+                        ha="center", va="center",
+                        fontsize=6.5,
+                        color="white" if val > tot * 0.45 else "#222222")
+
+        ax.set_xticks([0, 1])
+        ax.set_yticks([0, 1])
+        ax.set_xlabel("Predicted", fontsize=7)
+        ax.set_ylabel("True", fontsize=7)
+        ax.set_xticklabels(["Non-AMP", "AMP"], fontsize=6.5)
+        ax.set_yticklabels(["Non-AMP", "AMP"], fontsize=6.5)
+        ax.set_title(name, fontsize=8, color=color, fontweight="bold")
+
+    fig.suptitle("Confusion Matrices — Independent Benchmark", fontsize=9)
+    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    savefig(fig, "fig_bench_confusion.png")
+
 
 # ---------------------------------------------------------------------------
 # Main
@@ -360,10 +410,7 @@ def main():
     roc_data = {}
     for name in MODELS_ORDERED:
         print(f"Evaluating {name}...")
-        if name == "DEEP":
-            m, fpr, tpr = eval_deep(bench_seqs, y_bench)
-        else:
-            m, fpr, tpr = eval_classical(name, X_bench_scaled, y_bench)
+        m, fpr, tpr = eval_classical(name, X_bench_scaled, y_bench)
         results[name]  = m
         roc_data[name] = (fpr, tpr, m["auc_roc"])
         print(f"  AUC-ROC={m['auc_roc']:.4f}  MCC={m['mcc']:.4f}  "
@@ -381,6 +428,7 @@ def main():
     print("Generating figures...")
     fig_bench_roc(roc_data)
     fig_bench_metrics(results)
+    fig_bench_confusion(results)
     print("Done.")
 
 

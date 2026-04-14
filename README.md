@@ -10,6 +10,8 @@ Branch: `feature/expanded-features-deeplearning`
 - [Phase 2: Exploratory data analysis](#phase-2-exploratory-data-analysis)
 - [Phase 3: Classical ML models (baseline)](#phase-3-classical-ml-models-baseline)
 - [Phase 3.1: Hyperparameter tuning](#phase-31-hyperparameter-tuning)
+- [Phase 3.2: Soft-voting ensemble](#phase-32-soft-voting-ensemble)
+- [Phase 4: Independent benchmark](#phase-4-independent-benchmark)
 - [Figures](#figures)
 - [Discussion](#discussion)
 - [References](#references)
@@ -186,44 +188,83 @@ Five models are trained in `model_training/train.py` with default hyperparameter
 
 ## Phase 3.1: Hyperparameter tuning
 
+Tuning is performed with `model_training/tune.py`. `RandomizedSearchCV` samples 50 candidate hyperparameter combinations per model over `StratifiedKFold(n_splits=5)`, scoring by `roc_auc`. The search uses `refit=True`, so the best estimator is retrained on the full training set (10,596 sequences) with the selected hyperparameters. No separate retraining step is required.
+
 ### Configuration
 
-Tuning is performed with `model_training/tune.py`:
-
 - Strategy: `RandomizedSearchCV`, 50 iterations, `StratifiedKFold(n_splits=5)`, scoring: `roc_auc`
-- Features: 22 features (Macrel-inspired set, `model_training/data/selected_features.txt`)
-- Dataset: 13,246 sequences total (80/20 split, `random_state=42`); training set: 10,596 sequences
-- Threshold: optimized post-training by MCC sweep on test set (0.10 to 0.90, steps of 0.0125)
+- Features: 22 features (`model_training/data/selected_features.txt`)
+- Dataset: 13,246 sequences (80/20 split, `random_state=42`); tuning performed on training set only
+- Scaling: `RobustScaler` for RF, GB, XGB, LGBM; `StandardScaler` for SVM
+- Threshold: MCC sweep on test set (0.10 to 0.90, steps of 0.0125) after fitting
+- Outputs: `model_training/tuned_model/amp_model_{name}_tuned.pkl`
 
-Results will be updated after tuning completes on the current dataset.
+To run:
+
+```bash
+python3 -m model_training.tune          # all five models
+python3 -m model_training.tune rf xgb  # specific models
+```
+
+### Results after tuning
+
+**Table 3.** Test set results after hyperparameter tuning (n=2,650).
+
+| Model | Best CV AUC | AUC-ROC | MCC | F1 | Precision | Recall | Threshold |
+|---|---|---|---|---|---|---|---|
+| RF | 0.9695 | 0.9719 | 0.8386 | 0.9170 | 0.9384 | 0.8966 | 0.56 |
+| SVM | 0.9671 | 0.9692 | 0.8385 | 0.9194 | 0.9180 | 0.9208 | 0.47 |
+| GB | 0.9723 | 0.9741 | 0.8394 | 0.9187 | 0.9290 | 0.9087 | 0.55 |
+| XGB | 0.9741 | 0.9744 | 0.8430 | 0.9217 | 0.9196 | 0.9238 | 0.48 |
+| LGBM | 0.9740 | 0.9752 | 0.8548 | 0.9260 | 0.9415 | 0.9109 | 0.71 |
+
+Tuning improved AUC-ROC and MCC for SVM (+0.008, +0.025), GB (+0.012, +0.028), and LGBM (+0.003, +0.021) relative to baseline. RF and XGB showed marginal changes because the baseline hyperparameters were already near the optimum for this dataset and feature set.
+
+## Phase 3.2: Soft-voting ensemble
+
+After tuning all five base models, a soft-voting ensemble is constructed with `python3 -m model_training.tune voting`. The ensemble loads the five tuned models from `tuned_model/` and averages their predicted AMP probabilities:
+
+$$\hat{p}_{\text{voting}} = \frac{1}{K} \sum_{k=1}^{K} \hat{p}_k$$
+
+where $K = 5$ and $\hat{p}_k$ is the probability output of base model $k$. Each base model applies its own fitted scaler internally before prediction (RobustScaler for RF, GB, XGB, LGBM; StandardScaler for SVM), so the ensemble accepts raw unscaled feature matrices.
+
+The decision threshold is optimized by MCC sweep on the same test set. The ensemble is saved as `model_training/tuned_model/amp_model_voting_tuned.pkl`.
+
+**Table 4.** Voting ensemble test set results (n=2,650).
+
+| Model | AUC-ROC | MCC | F1 | Precision | Recall | Specificity | Threshold |
+|---|---|---|---|---|---|---|---|
+| VOTING | 0.9771 | 0.8585 | 0.9280 | 0.9424 | 0.9140 | 0.9442 | 0.56 |
+
+The voting ensemble achieves AUC-ROC 0.9771 and MCC 0.8585, exceeding all individual base models. The gain over the best single model (LGBM, MCC 0.8548) reflects partial independence of prediction errors across the five architectures.
+
+## Phase 4: Independent benchmark
+
+The benchmark evaluates all tuned models on a held-out FASTA file (`benchmarking/benchmark.fasta`) that was not used during training or tuning. Each sequence is labeled in its FASTA header (`label=1` for AMP, `label=0` for non-AMP). Scalers for each model are refitted on the training set and applied to benchmark sequences without leakage.
+
+To run:
+
+```bash
+python3 -m model_training.benchmark
+```
+
+Outputs: `benchmarking/benchmark_results.csv`, `benchmarking/fig_bench_roc.png`, `benchmarking/fig_bench_metrics.png`, `benchmarking/fig_bench_confusion.png`.
+
+**Table 5.** Independent benchmark results (n=4,736; 2,368 AMP, 2,368 non-AMP).
+
+| Model | AUC-ROC | MCC | F1 | Precision | Recall | Specificity | Threshold |
+|---|---|---|---|---|---|---|---|
+| RF | 0.9477 | 0.7364 | 0.8736 | 0.8152 | 0.9409 | 0.7867 | 0.56 |
+| SVM | 0.9432 | 0.6947 | 0.8548 | 0.7847 | 0.9388 | 0.7424 | 0.47 |
+| GB | 0.9351 | 0.7266 | 0.8691 | 0.8045 | 0.9451 | 0.7703 | 0.55 |
+| XGB | 0.9300 | 0.7070 | 0.8603 | 0.7874 | 0.9481 | 0.7441 | 0.48 |
+| VOTING | 0.9503 | 0.7424 | 0.8763 | 0.8144 | 0.9485 | 0.7838 | 0.56 |
+
+The voting ensemble achieves the highest AUC-ROC (0.950) and MCC (0.742) on the independent benchmark. All models show a drop in MCC relative to the internal test set (0.70-0.74 vs. 0.84-0.86), which is expected given that the benchmark sequences come from a different distribution. Recall remains high across all models (0.939-0.949), indicating consistent sensitivity to AMP sequences. Specificity is lower (0.742-0.787), reflecting the greater difficulty of rejecting non-AMP sequences in out-of-distribution data.
 
 ## Figures
 
-Figures 1-5 are in `model_training/eda/`. Figures from feature analysis are in `model_training/feature_analysis/`. Post-tuning figures are generated by `model_training/plot_tuning.py` and saved to `model_training/tuned_model/figures/`.
-
-The following figures will be added after tuning completes on the current dataset:
-
-**Figure 6.** ROC curves for all five models on the held-out test set.
-
-**Figure 7.** Confusion matrices for all five models on the held-out test set.
-
-**Figure 8.** Calibration curves (reliability diagrams) for all models.
-
-**Figure 9.** Mean impurity-based feature importances for tree-based models (RF, GB, XGB), top features each.
-
-**Figure 10.** Cross-validation AUC-ROC score distributions (50 iterations, RandomizedSearchCV).
-
-**Figure 11.** Top 10 predicted AMP candidates from an external validation set.
-
-**Figure 12-15.** Hyperparameter performance surfaces for RF, GB, SVM, and XGB.
-
-**Figure 16.** Per-model comparison of all metrics (Accuracy, Precision, Recall, Specificity, F1, MCC, AUC-ROC) on the test set.
-
-**Figure 17.** Precision-recall curves for all models.
-
-**Figure 18.** Detection error tradeoff (DET) curves for all models.
-
-**Figure 19.** Threshold sensitivity: MCC, F1, Precision, and Recall as a function of decision threshold for the best model.
+Figures 1-5 are in `model_training/eda/`. Post-tuning figures are generated by `model_training/plot_tuning.py` and saved to `model_training/tuned_model/figures/`. Benchmark figures are saved to `benchmarking/`.
 
 ## Discussion
 
@@ -235,11 +276,13 @@ The 22 features extend the global descriptors with the hydrophobic moment (amphi
 
 ### Model comparison
 
-At baseline, RF, XGB, and LGBM are tied at AUC-ROC 0.972. XGB achieves the highest MCC (0.841) and LGBM the highest precision (0.942) at the cost of lower recall. SVM has the highest recall (0.926) among the five models. Tuning results will be added after re-run on the current dataset.
+At baseline, RF, XGB, and LGBM reach AUC-ROC 0.972 with MCC 0.834-0.841. SVM and GB are lower at AUC-ROC 0.961-0.963 and MCC 0.811-0.814. After tuning, LGBM shows the largest MCC gain (+0.021) and becomes the strongest single model at MCC 0.855. XGB improves to MCC 0.843. RF and SVM converge to nearly identical MCC (0.839 each). GB shows the smallest absolute gain but its AUC-ROC increases from 0.963 to 0.974.
+
+The voting ensemble (AUC-ROC 0.977, MCC 0.859) exceeds all individual models. The margin over LGBM (MCC 0.855) is small but consistent, indicating that the five models make partially independent errors.
 
 ### Practical threshold selection
 
-The MCC-optimized thresholds range from 0.40 (SVM) to 0.64 (XGB) at baseline. For any deployment context, threshold selection should be driven by the acceptable FP/FN trade-off, not by the MCC-optimized value alone.
+The MCC-optimized thresholds range from 0.47 (SVM) to 0.71 (LGBM) after tuning. For any deployment context, threshold selection should be driven by the acceptable FP/FN trade-off rather than by the MCC-optimized value alone. The voting ensemble at threshold 0.56 achieves a balanced trade-off: precision 0.942, recall 0.914, specificity 0.944.
 
 ## References
 
