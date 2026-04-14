@@ -136,7 +136,7 @@ The feature set follows the Macrel design (Santos-Júnior et al. 2020), with add
 | Aliphatic index | `AliphaticInd` | Global | Relative volume of aliphatic side chains |
 | Boman index | `BomanInd` | Global | Protein-binding propensity (Boman 2003) |
 | Hydrophobic ratio | `HydrophRatio` | Global | Fraction of hydrophobic residues (ACFILMVW) |
-| Hydrophobic moment | `HydrophobicMoment` | Global | Amphipathic helical moment, Eisenberg scale, $\delta=100°$ |
+| Hydrophobic moment | `HydrophobicMoment` | Global | Amphipathic helical moment, Eisenberg scale, δ=100° |
 | Acidic fraction | `f_acidic` | Grouped AAC | Fraction of DE residues |
 | Basic fraction | `f_basic` | Grouped AAC | Fraction of KRH residues |
 | Polar fraction | `f_polar` | Grouped AAC | Fraction of STNQ residues |
@@ -155,11 +155,11 @@ The feature set follows the Macrel design (Santos-Júnior et al. 2020), with add
 
 ### Global descriptors
 
-Six scalar descriptors were computed using `modlamp.GlobalDescriptor` (Müller et al. 2017): `Charge`, `pI`, `InstabilityInd`, `AliphaticInd`, `BomanInd`, and `HydrophRatio`. The hydrophobic moment was computed using `modlamp.PeptideDescriptor` with the Eisenberg hydrophobicity scale (Eisenberg et al. 1982) and a helical projection angle of $\delta = 100°$:
+Six scalar descriptors were computed using `modlamp.GlobalDescriptor` (Müller et al. 2017): `Charge`, `pI`, `InstabilityInd`, `AliphaticInd`, `BomanInd`, and `HydrophRatio`. The hydrophobic moment was computed using `modlamp.PeptideDescriptor` with the Eisenberg hydrophobicity scale (Eisenberg et al. 1982) and a helical projection angle of $\delta = 100^\circ$:
 
 $$\mu_H = \frac{1}{L} \sqrt{ \left( \sum_{i=1}^{L} H_i \sin(i \cdot \delta) \right)^2 + \left( \sum_{i=1}^{L} H_i \cos(i \cdot \delta) \right)^2 }$$
 
-where $H_i$ is the Eisenberg hydrophobicity of residue $i$, $\delta = 100°$ is the helical rotation angle per residue, and $L$ is sequence length. $\mu_H$ captures amphipathic helical character: sequences with a hydrophobic face and a hydrophilic face yield high $\mu_H$ even when mean hydrophobicity is moderate.
+where $H_i$ is the Eisenberg hydrophobicity of residue $i$, $\delta = 100^\circ$ is the helical rotation angle per residue, and $L$ is sequence length. $\mu_H$ captures amphipathic helical character: sequences with a hydrophobic face and a hydrophilic face yield high $\mu_H$ even when mean hydrophobicity is moderate.
 
 ### Grouped amino acid composition
 
@@ -258,30 +258,30 @@ Tuning is performed with `model_training/tune.py`. `RandomizedSearchCV` samples 
 | RF | `min_samples_split` | Uniform integer [2, 15) |
 | RF | `min_samples_leaf` | Uniform integer [1, 8) |
 | RF | `max_features` | Categorical: sqrt, log2, 0.3, 0.5 |
-| SVM | `C` | Log-uniform [$10^{-2}$, $10^{2}$] |
-| SVM | `gamma` | Categorical: scale, $10^{-4}$, $10^{-3}$, $10^{-2}$, $10^{-1}$, 1.0 |
+| SVM | `C` | Log-uniform [10⁻², 10²] |
+| SVM | `gamma` | Categorical: scale, 10⁻⁴, 10⁻³, 10⁻², 10⁻¹, 1.0 |
 | GB | `n_estimators` | Uniform integer [100, 500) |
-| GB | `learning_rate` | Log-uniform [$10^{-3}$, $5 \times 10^{-1}$] |
+| GB | `learning_rate` | Log-uniform [10⁻³, 5×10⁻¹] |
 | GB | `max_depth` | Uniform integer [2, 8) |
 | GB | `subsample` | Uniform [0.5, 1.0] |
 | GB | `min_samples_split` | Uniform integer [2, 15) |
 | GB | `min_samples_leaf` | Uniform integer [1, 8) |
 | XGB | `n_estimators` | Uniform integer [100, 500) |
-| XGB | `learning_rate` | Log-uniform [$10^{-3}$, $5 \times 10^{-1}$] |
+| XGB | `learning_rate` | Log-uniform [10⁻³, 5×10⁻¹] |
 | XGB | `max_depth` | Uniform integer [2, 8) |
 | XGB | `subsample` | Uniform [0.5, 1.0] |
 | XGB | `colsample_bytree` | Uniform [0.5, 1.0] |
-| XGB | `reg_alpha` | Log-uniform [$10^{-4}$, $10^{1}$] |
-| XGB | `reg_lambda` | Log-uniform [$10^{-1}$, $10^{1}$] |
+| XGB | `reg_alpha` | Log-uniform [10⁻⁴, 10¹] |
+| XGB | `reg_lambda` | Log-uniform [10⁻¹, 10¹] |
 | XGB | `min_child_weight` | Uniform integer [1, 10) |
 | LGBM | `n_estimators` | Uniform integer [100, 600) |
-| LGBM | `learning_rate` | Log-uniform [$10^{-3}$, $5 \times 10^{-1}$] |
+| LGBM | `learning_rate` | Log-uniform [10⁻³, 5×10⁻¹] |
 | LGBM | `max_depth` | Uniform integer [3, 10) |
 | LGBM | `num_leaves` | Uniform integer [20, 150) |
 | LGBM | `subsample` | Uniform [0.5, 1.0] |
 | LGBM | `colsample_bytree` | Uniform [0.5, 1.0] |
-| LGBM | `reg_alpha` | Log-uniform [$10^{-4}$, $10^{1}$] |
-| LGBM | `reg_lambda` | Log-uniform [$10^{-1}$, $10^{1}$] |
+| LGBM | `reg_alpha` | Log-uniform [10⁻⁴, 10¹] |
+| LGBM | `reg_lambda` | Log-uniform [10⁻¹, 10¹] |
 | LGBM | `min_child_samples` | Uniform integer [5, 50) |
 
 **Table 4.** Best hyperparameters selected by `RandomizedSearchCV`.
