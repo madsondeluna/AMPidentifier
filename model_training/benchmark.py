@@ -90,6 +90,7 @@ COLORS = {
     "SVM":    "#E64B35",
     "GB":     "#00A087",
     "XGB":    "#3C5488",
+    "LGBM":   "#F39B7F",
     "VOTING": "#8491B4",
 }
 LINESTYLES = {
@@ -97,10 +98,11 @@ LINESTYLES = {
     "SVM":    (0, (5, 1)),
     "GB":     "-.",
     "XGB":    ":",
+    "LGBM":   (0, (3, 1, 1, 1)),
     "VOTING": (0, (1, 1)),
 }
 ALPHA = 0.85
-MODELS_ORDERED = ["RF", "SVM", "GB", "XGB", "VOTING"]
+MODELS_ORDERED = ["RF", "SVM", "GB", "XGB", "LGBM", "VOTING"]
 
 # ---------------------------------------------------------------------------
 # Utilities
@@ -232,6 +234,7 @@ SCALER_MAP = {
     "svm":    "std",
     "gb":     "robust",
     "xgb":    "robust",
+    "lgbm":   "robust",
     "voting": "raw",
 }
 

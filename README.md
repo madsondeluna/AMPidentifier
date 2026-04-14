@@ -448,9 +448,10 @@ Outputs saved to `benchmarking/`:
 | SVM | 0.9432 | 0.6947 | 0.8548 | 0.7847 | 0.9388 | 0.7424 | 0.47 |
 | GB | 0.9351 | 0.7266 | 0.8691 | 0.8045 | 0.9451 | 0.7703 | 0.55 |
 | XGB | 0.9300 | 0.7070 | 0.8603 | 0.7874 | 0.9481 | 0.7441 | 0.48 |
+| LGBM | 0.9480 | 0.7491 | 0.8794 | 0.8224 | 0.9449 | 0.7991 | 0.71 |
 | VOTING | 0.9503 | 0.7424 | 0.8763 | 0.8144 | 0.9485 | 0.7838 | 0.56 |
 
-The voting ensemble achieves the highest AUC-ROC (0.950) and MCC (0.742) on the independent benchmark. LGBM is not listed as a standalone entry here because it was not part of the original benchmark run; it contributes to the VOTING ensemble score. All models show a drop in MCC relative to the internal test set (0.695-0.742 vs. 0.839-0.859). This is expected: the benchmark sequences come from a different source distribution. Recall remains high across all models (0.939-0.949), indicating consistent AMP sensitivity. Specificity is lower (0.742-0.787), reflecting the greater difficulty of rejecting non-AMP sequences from out-of-distribution data. RF achieves the best specificity (0.787) among the single models.
+LGBM achieves the highest MCC (0.749) and specificity (0.799) among all individual models on the independent benchmark, and the highest AUC-ROC among individual models (0.948). The voting ensemble reaches the highest overall AUC-ROC (0.950) by aggregating probability estimates across all five models. All models show a drop in MCC relative to the internal test set (0.695-0.855 vs. 0.839-0.859 on the internal set). This is expected: the benchmark sequences come from a different source distribution. Recall remains high across all models (0.939-0.949), indicating consistent AMP sensitivity. Specificity is lower (0.742-0.799), reflecting the greater difficulty of rejecting non-AMP sequences from out-of-distribution data.
 
 ### Comparison with AMPidentifier beta
 
@@ -478,7 +479,6 @@ The gain from beta to v2.0 (MCC +0.079 for the voting ensemble) is primarily att
 
 The following tasks are planned for future development.
 
-- [ ] **Benchmark LGBM standalone**: re-run `model_training/benchmark.py` after adding LGBM to `MODELS_ORDERED` and `SCALER_MAP`. Update Table 7 with per-model LGBM benchmark metrics.
 - [ ] **Repository cleanup**: remove stale artefacts, enforce directory conventions, and verify reproducibility from a clean clone. Prompt for Claude Code session:
 
   > Review and clean the AMPidentifier 2.0 repository. Specifically: (1) list all files that are not referenced by any script and flag candidates for deletion; (2) confirm that `model_training/saved_model/` is obsolete (all production models are now in `model_training/tuned_model/`) and remove it if so; (3) verify that `__pycache__` directories and `*.pyc` files are covered by `.gitignore`; (4) check that `requirements.txt` lists every import found in the source files and remove any unused dependency; (5) confirm that the benchmark FASTA at `benchmarking/benchmark.fasta` and all figures under `model_training/tuned_model/figures/` and `benchmarking/` are either tracked by git or explicitly excluded; (6) report any broken relative paths in README.md. Do not delete anything without listing it first and waiting for confirmation.
