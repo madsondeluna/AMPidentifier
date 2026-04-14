@@ -1,49 +1,49 @@
 Feature Selection Report
 ============================================================
 
-Initial features              : 577
-Samples                       : 13866
-  Positive (AMP)              : 6933
-  Negative (non-AMP)          : 6933
+Initial features              : 22
+Samples                       : 13246
+  Positive (AMP)              : 6623
+  Negative (non-AMP)          : 6623
 
 Step 1 — Variance filter      : threshold = 0.001
-  Removed                     : 405
-  Remaining                   : 172
+  Removed                     : 0
+  Remaining                   : 22
 
 Step 2 — Structural filter    : CTD_*_C1/C2/C3 removed
-  Removed                     : 21
-  Remaining                   : 151
+  Removed                     : 0
+  Remaining                   : 22
   Rationale: C1+C2+C3=1 (Dubchak et al. 1995) and CTD_C
   features are linear combinations of AAC descriptors.
 
 Step 3 — Correlation filter   : |r| > 0.9
-  Removed                     : 24
-  Remaining                   : 127
+  Removed                     : 0
+  Remaining                   : 22
 
-Final selected features       : 127
-  GlobalDesc                  : 10
-  AAC                         : 15
-  CTD Transition (T)          : 17
-  CTD Distribution (D)        : 85
+Final selected features       : 22
+  GlobalDesc                  : 22
+  AAC                         : 0
+  CTD Transition (T)          : 0
+  CTD Distribution (D)        : 0
 
 Top 20 features by RF importance (RobustScaler, 200 trees):
-   1. CTD_hydrophobicity_D13                     0.137561
-   2. CTD_polarizability_D13                     0.092716
-   3. CTD_solvent_access_D13                     0.086449
-   4. CTD_charge_D12                             0.076493
-   5. CTD_secondary_struct_D11                   0.064873
-   6. MW                                         0.061443
-   7. CTD_volume_D12                             0.021471
-   8. CTD_charge_D1003                           0.021176
-   9. AAC_E                                      0.017983
-  10. CTD_hydrophobicity_D11                     0.017419
-  11. AAC_C                                      0.016644
-  12. CTD_charge_D503                            0.015345
-  13. CTD_polarizability_D12                     0.014668
-  14. AAC_D                                      0.013475
-  15. CTD_solvent_access_D11                     0.011909
-  16. CTD_charge_T23                             0.011042
-  17. CTD_polarity_D12                           0.010837
-  18. AAC_T                                      0.009193
-  19. CTD_volume_D1002                           0.008737
-  20. CTD_secondary_struct_D12                   0.007585
+   1. Charge                                     0.131757
+   2. SA_inter_D1                                0.069885
+   3. pI                                         0.065082
+   4. FET_low_D1                                 0.063525
+   5. HydrophobicMoment                          0.062459
+   6. SA_buried_D1                               0.055019
+   7. f_aromatic                                 0.054361
+   8. f_acidic                                   0.052665
+   9. f_tiny                                     0.045975
+  10. f_basic                                    0.040135
+  11. f_polar                                    0.039652
+  12. SA_exposed_D1                              0.038174
+  13. f_nonpolar                                 0.037338
+  14. AliphaticInd                               0.031951
+  15. HydrophRatio                               0.030110
+  16. FET_high_D1                                0.029000
+  17. FET_mid_D1                                 0.028118
+  18. f_small                                    0.027744
+  19. f_aliphatic                                0.027441
+  20. BomanInd                                   0.026533

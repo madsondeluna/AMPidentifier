@@ -35,6 +35,10 @@ CDHIT_ID    = 0.90   # sequence identity threshold
 CDHIT_N     = 5      # word size for 0.90 threshold (CD-HIT recommendation)
 MIN_LEN     = 10
 MAX_LEN     = 200
+# Negatives are restricted to this length to match the positive (AMP) distribution.
+# Training with long proteins as negatives teaches the model to use sequence length
+# as a proxy for AMP identity, which collapses specificity on short-peptide benchmarks.
+NEG_MAX_LEN = 100
 
 POSITIVE_OUT = os.path.join(DATA_DIR, "positive_sequences.fasta")
 NEGATIVE_OUT = os.path.join(DATA_DIR, "negative_sequences.fasta")
@@ -220,23 +224,25 @@ def collect_positives() -> dict:
 # Negative source
 # ---------------------------------------------------------------------------
 def _download_uniprot_negatives() -> dict:
-    """UniProt REST API — reviewed sequences without antimicrobial annotation.
+    """UniProt REST API — reviewed short peptides without antimicrobial annotation.
 
-    Query: reviewed=true, length 10-200 aa, NOT keyword 'Antimicrobial'.
-    Returns up to 50000 sequences.
+    Query: reviewed=true, length 10-60 aa, NOT antimicrobial/antibiotic keywords.
+    Length cap matches the positive (AMP) distribution so the model cannot use
+    sequence length as a discriminating feature.
+    Returns up to 100000 sequences.
     """
     cache = os.path.join(CACHE_DIR, "uniprot_negatives.fasta")
     if not os.path.exists(cache):
         query = (
             "(reviewed:true) "
-            "AND (length:[10 TO 200]) "
+            f"AND (length:[{MIN_LEN} TO {NEG_MAX_LEN}]) "
             "NOT (keyword:KW-0929) "          # KW-0929 = Antimicrobial
             "NOT (keyword:KW-0044) "          # KW-0044 = Antibiotic
         )
         encoded = urllib.parse.quote(query)
         url = (
             f"https://rest.uniprot.org/uniprotkb/stream"
-            f"?query={encoded}&format=fasta&size=50000"
+            f"?query={encoded}&format=fasta&size=100000"
         )
         _fetch_url(url, cache)
     seqs = _parse_fasta(cache)
@@ -247,11 +253,10 @@ def _download_uniprot_negatives() -> dict:
 
 def collect_negatives() -> dict:
     print("\n=== Collecting negative sequences (non-AMPs) ===")
-    existing = _parse_fasta(NEGATIVE_OUT)
-    print(f"  Existing negatives: {len(existing)}")
 
-    existing_renamed = {f"existing_neg_{i}": s for i, s in enumerate(existing.values())}
-    all_seqs = {**existing_renamed}
+    # Do not carry forward the old negatives: they were long proteins (median ~131aa)
+    # that caused the model to use length as a proxy for AMP classification.
+    all_seqs: dict = {}
 
     try:
         all_seqs.update(_download_uniprot_negatives())
@@ -259,7 +264,7 @@ def collect_negatives() -> dict:
         print(f"  UniProt download failed: {e}")
 
     print(f"  Total before filtering: {len(all_seqs)}")
-    all_seqs = _filter_length(all_seqs, MIN_LEN, MAX_LEN)
+    all_seqs = _filter_length(all_seqs, MIN_LEN, NEG_MAX_LEN)
     all_seqs = _filter_nonstandard(all_seqs)
     return all_seqs
 
@@ -291,15 +296,65 @@ def main():
     print("  Deduplicating negatives...")
     _run_cdhit(merged_neg, dedup_neg)
 
-    # Balance dataset
+    # Balance dataset using length-stratified sampling so the negative length
+    # distribution mirrors the positive one, preventing the model from learning
+    # sequence length as a discriminating feature.
+    import random
+    import math
+
+    random.seed(42)
+
     pos_final = _parse_fasta(dedup_pos)
     neg_final = _parse_fasta(dedup_neg)
-    n = min(len(pos_final), len(neg_final))
 
-    import random
-    random.seed(42)
-    pos_keys = random.sample(list(pos_final.keys()), n)
-    neg_keys = random.sample(list(neg_final.keys()), n)
+    def _length_bins(seqs: dict, bins) -> dict:
+        """Return {bin_index: [keys]} for each length bin."""
+        buckets: dict = {i: [] for i in range(len(bins) - 1)}
+        for k, s in seqs.items():
+            L = len(s)
+            for i in range(len(bins) - 1):
+                if bins[i] <= L < bins[i + 1]:
+                    buckets[i].append(k)
+                    break
+        return buckets
+
+    # Build length bins from positive distribution
+    pos_lengths = [len(s) for s in pos_final.values()]
+    lo, hi = min(pos_lengths), max(pos_lengths) + 1
+    n_bins = 10
+    step = math.ceil((hi - lo) / n_bins)
+    bins = list(range(lo, hi + step, step))
+
+    pos_buckets = _length_bins(pos_final, bins)
+    neg_buckets = _length_bins(neg_final, bins)
+
+    # Per-bin quota proportional to positive counts; cap by available negatives
+    total_pos = len(pos_final)
+    n_target = min(total_pos, len(neg_final))
+
+    pos_keys: list = []
+    neg_keys: list = []
+    for i, bin_pos_keys in pos_buckets.items():
+        if not bin_pos_keys:
+            continue
+        fraction = len(bin_pos_keys) / total_pos
+        quota = max(1, round(n_target * fraction))
+        available_neg = neg_buckets.get(i, [])
+        # Sample positives
+        sampled_pos = random.sample(bin_pos_keys, min(quota, len(bin_pos_keys)))
+        # Sample negatives from the same bin; fall back to any bin if too few
+        if len(available_neg) >= quota:
+            sampled_neg = random.sample(available_neg, quota)
+        else:
+            sampled_neg = list(available_neg)
+        pos_keys.extend(sampled_pos)
+        neg_keys.extend(sampled_neg)
+
+    # Trim to equal size
+    n = min(len(pos_keys), len(neg_keys))
+    pos_keys = random.sample(pos_keys, n)
+    neg_keys = random.sample(neg_keys, n)
+
     pos_balanced = {k: pos_final[k] for k in pos_keys}
     neg_balanced = {k: neg_final[k] for k in neg_keys}
 

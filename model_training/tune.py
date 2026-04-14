@@ -11,13 +11,12 @@
 #   - Tuned models saved to model_training/tuned_model/
 #
 # Scaling:
-#   RobustScaler                -> rf, svm, gb, xgb, stack
-#   QuantileTransformer(normal) -> mlp
+#   RobustScaler   -> rf, gb, xgb, lgbm
+#   StandardScaler -> svm
 #
 # Run from project root:
 #   python -m model_training.tune            (all models)
 #   python -m model_training.tune rf gb      (specific models)
-#   python -m model_training.tune mlp        (MLP only)
 
 import os
 import sys
@@ -28,17 +27,14 @@ import pandas as pd
 import joblib
 from scipy.stats import loguniform, randint, uniform
 
-from sklearn.ensemble import (
-    RandomForestClassifier, GradientBoostingClassifier, StackingClassifier
-)
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
-from sklearn.neural_network import MLPClassifier
+from lightgbm import LGBMClassifier
 from xgboost import XGBClassifier
 from sklearn.model_selection import (
     train_test_split, RandomizedSearchCV, StratifiedKFold, ParameterSampler
 )
-from sklearn.preprocessing import RobustScaler, QuantileTransformer, StandardScaler
+from sklearn.preprocessing import RobustScaler, StandardScaler
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
     confusion_matrix, roc_auc_score, matthews_corrcoef
@@ -141,9 +137,6 @@ def load_and_prepare():
     )
 
     robust_scaler = RobustScaler()
-    qt_scaler     = QuantileTransformer(
-        output_distribution="normal", random_state=RANDOM_STATE
-    )
     std_scaler    = StandardScaler()
 
     X_train_robust = pd.DataFrame(
@@ -151,12 +144,6 @@ def load_and_prepare():
     )
     X_test_robust  = pd.DataFrame(
         robust_scaler.transform(X_test), columns=X_test.columns, index=X_test.index
-    )
-    X_train_qt = pd.DataFrame(
-        qt_scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index
-    )
-    X_test_qt  = pd.DataFrame(
-        qt_scaler.transform(X_test), columns=X_test.columns, index=X_test.index
     )
     X_train_std = pd.DataFrame(
         std_scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index
@@ -167,7 +154,6 @@ def load_and_prepare():
 
     print(f"  Train: {X_train.shape[0]}  Test: {X_test.shape[0]}")
     return (X_train_robust, X_test_robust,
-            X_train_qt,     X_test_qt,
             X_train_std,    X_test_std,
             y_train, y_test)
 
@@ -191,21 +177,11 @@ def evaluate_on_test(model, X_test, y_test, threshold: float = 0.5) -> dict:
 # ---------------------------------------------------------------------------
 # Search spaces
 # ---------------------------------------------------------------------------
-def get_search_spaces(X_train_robust, X_train_qt, X_train_std):
+def get_search_spaces(X_train_robust, X_train_std):
     """
     Returns dict: name -> {model, params, X_train, X_test_key}
-    X_test_key: 'robust' or 'qt' to select the correct scaled test set.
+    X_test_key: 'robust' or 'std' to select the correct scaled test set.
     """
-    stacking_base = [
-        ("rf",  RandomForestClassifier(n_estimators=200, class_weight="balanced",
-                                       random_state=RANDOM_STATE, n_jobs=1)),
-        ("xgb", XGBClassifier(n_estimators=100, scale_pos_weight=1,
-                               eval_metric="logloss", verbosity=0,
-                               random_state=RANDOM_STATE)),
-        ("svm", SVC(probability=True, class_weight="balanced",
-                    random_state=RANDOM_STATE)),
-    ]
-
     return {
         "rf": {
             "model": RandomForestClassifier(
@@ -268,38 +244,21 @@ def get_search_spaces(X_train_robust, X_train_qt, X_train_std):
             "X_train": X_train_robust,
             "scaler":  "robust",
         },
-        "mlp": {
-            "model": MLPClassifier(
-                random_state=RANDOM_STATE,
-                early_stopping=True,
-                validation_fraction=0.1,
-                max_iter=500,
+        "lgbm": {
+            "model": LGBMClassifier(
+                class_weight="balanced", random_state=RANDOM_STATE,
+                verbose=-1, n_jobs=N_JOBS,
             ),
             "params": {
-                "hidden_layer_sizes": [
-                    (256,), (512,), (256, 128), (512, 256),
-                    (256, 128, 64), (512, 256, 128),
-                ],
-                "activation":  ["relu", "tanh"],
-                "solver":      ["adam"],
-                "alpha":       loguniform(1e-5, 1e-1),
-                "learning_rate_init": loguniform(1e-4, 1e-2),
-                "batch_size":  [32, 64, 128, 256],
-            },
-            "X_train": X_train_qt,
-            "scaler":  "qt",
-        },
-        "stack": {
-            "model": StackingClassifier(
-                estimators=stacking_base,
-                final_estimator=LogisticRegression(
-                    max_iter=1000, random_state=RANDOM_STATE
-                ),
-                cv=5,
-                n_jobs=N_JOBS,
-            ),
-            "params": {
-                "final_estimator__C": loguniform(1e-3, 1e2),
+                "n_estimators":    randint(100, 600),
+                "learning_rate":   loguniform(1e-3, 5e-1),
+                "max_depth":       randint(3, 10),
+                "num_leaves":      randint(20, 150),
+                "subsample":       uniform(0.5, 0.5),
+                "colsample_bytree":uniform(0.5, 0.5),
+                "reg_alpha":       loguniform(1e-4, 1e1),
+                "reg_lambda":      loguniform(1e-1, 1e1),
+                "min_child_samples":randint(5, 50),
             },
             "X_train": X_train_robust,
             "scaler":  "robust",
@@ -314,7 +273,7 @@ def main():
     os.makedirs(TUNED_DIR, exist_ok=True)
 
     requested = [a.lower() for a in sys.argv[1:]]
-    valid = {"rf", "svm", "gb", "xgb", "mlp", "stack"}
+    valid = {"rf", "svm", "gb", "xgb", "lgbm"}
     if requested:
         invalid = set(requested) - valid
         if invalid:
@@ -322,14 +281,13 @@ def main():
             sys.exit(1)
 
     (X_train_robust, X_test_robust,
-     X_train_qt,     X_test_qt,
      X_train_std,    X_test_std,
      y_train, y_test) = load_and_prepare()
 
-    X_test = {"robust": X_test_robust, "qt": X_test_qt, "std": X_test_std}
+    X_test = {"robust": X_test_robust, "std": X_test_std}
 
     cv     = StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
-    spaces = get_search_spaces(X_train_robust, X_train_qt, X_train_std)
+    spaces = get_search_spaces(X_train_robust, X_train_std)
 
     if requested:
         spaces = {k: v for k, v in spaces.items() if k in requested}
@@ -343,8 +301,7 @@ def main():
         f"Scoring      : {SCORING}",
         f"n_iter       : {N_ITER}",
         f"random_state : {RANDOM_STATE}",
-        f"Scaling      : RobustScaler (rf/svm/gb/xgb/stack) | "
-        f"QuantileTransformer/normal (mlp)",
+        f"Scaling      : RobustScaler (rf/gb/xgb/lgbm) | StandardScaler (svm)",
         f"Features     : {selected_feat_count} selected (selected_features.txt)",
         "",
     ]

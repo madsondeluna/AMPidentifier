@@ -22,15 +22,12 @@
 import os
 import pandas as pd
 import joblib
-from sklearn.ensemble import (
-    RandomForestClassifier, GradientBoostingClassifier, StackingClassifier
-)
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
-from sklearn.neural_network import MLPClassifier
+from lightgbm import LGBMClassifier
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import RobustScaler, QuantileTransformer
+from sklearn.preprocessing import RobustScaler
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
     confusion_matrix, roc_auc_score, matthews_corrcoef
@@ -63,10 +60,10 @@ def _load_selected_features() -> list:
         return [l.strip() for l in f if l.strip()]
 
 
-def _evaluate(model, X_test, y_test, scaler=None) -> dict:
+def _evaluate(model, X_test, y_test, scaler=None, threshold=0.5) -> dict:
     X = scaler.transform(X_test) if scaler else X_test
-    y_pred  = model.predict(X)
     y_proba = model.predict_proba(X)[:, 1]
+    y_pred  = (y_proba >= threshold).astype(int)
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
     return {
         "accuracy":    accuracy_score(y_test, y_pred),
@@ -127,9 +124,6 @@ def main():
     # --- Scalers ---
     print("\nStep 4: Fitting scalers...")
     robust_scaler = RobustScaler()
-    qt_scaler     = QuantileTransformer(
-        output_distribution="normal", random_state=RANDOM_STATE
-    )
 
     X_train_robust = pd.DataFrame(
         robust_scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index
@@ -137,16 +131,9 @@ def main():
     X_test_robust  = pd.DataFrame(
         robust_scaler.transform(X_test), columns=X_test.columns, index=X_test.index
     )
-    X_train_qt = pd.DataFrame(
-        qt_scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index
-    )
-    X_test_qt  = pd.DataFrame(
-        qt_scaler.transform(X_test), columns=X_test.columns, index=X_test.index
-    )
 
     joblib.dump(robust_scaler, os.path.join(OUTPUT_DIR, "scaler_robust.pkl"))
-    joblib.dump(qt_scaler,     os.path.join(OUTPUT_DIR, "scaler_qt.pkl"))
-    print("  Scalers saved.")
+    print("  Scaler saved.")
 
     # Save test set (robust-scaled, for evaluate.py compatibility)
     X_test_robust.to_csv(TEST_FEATURES_PATH, index=False)
@@ -154,48 +141,24 @@ def main():
 
     # --- Model definitions ---
     # (model_name, model, X_train_scaled, X_test_scaled)
-    stacking_base = [
-        ("rf",  RandomForestClassifier(n_estimators=200, class_weight="balanced",
-                                       random_state=RANDOM_STATE, n_jobs=-1)),
-        ("xgb", XGBClassifier(n_estimators=100, scale_pos_weight=1,
-                               eval_metric="logloss", verbosity=0,
-                               random_state=RANDOM_STATE)),
-        ("svm", SVC(probability=True, class_weight="balanced",
-                    random_state=RANDOM_STATE)),
-    ]
-
     models = [
         ("rf",  RandomForestClassifier(n_estimators=200, class_weight="balanced",
-                                       random_state=RANDOM_STATE, n_jobs=-1),
+                                       random_state=RANDOM_STATE, n_jobs=-1,
+                                       verbose=2),
                 X_train_robust, X_test_robust),
         ("svm", SVC(probability=True, class_weight="balanced",
-                    random_state=RANDOM_STATE),
+                    random_state=RANDOM_STATE, verbose=True),
                 X_train_robust, X_test_robust),
-        ("gb",  GradientBoostingClassifier(n_estimators=100, random_state=RANDOM_STATE),
+        ("gb",  GradientBoostingClassifier(n_estimators=100, random_state=RANDOM_STATE,
+                                           verbose=2),
                 X_train_robust, X_test_robust),
         ("xgb", XGBClassifier(n_estimators=100, scale_pos_weight=1,
-                               eval_metric="logloss", verbosity=0,
+                               eval_metric="logloss", verbosity=2,
                                random_state=RANDOM_STATE),
                 X_train_robust, X_test_robust),
-        ("mlp", MLPClassifier(
-                    hidden_layer_sizes=(256, 128),
-                    activation="relu",
-                    solver="adam",
-                    max_iter=500,
-                    early_stopping=True,
-                    validation_fraction=0.1,
-                    random_state=RANDOM_STATE,
-                ),
-                X_train_qt, X_test_qt),
-        ("stack", StackingClassifier(
-                    estimators=stacking_base,
-                    final_estimator=LogisticRegression(
-                        max_iter=1000, random_state=RANDOM_STATE
-                    ),
-                    cv=5,
-                    n_jobs=-1,
-                ),
-                X_train_robust, X_test_robust),
+        ("lgbm", LGBMClassifier(n_estimators=100, class_weight="balanced",
+                                random_state=RANDOM_STATE, verbose=-1),
+                 X_train_robust, X_test_robust),
     ]
 
     # --- Train and evaluate ---
@@ -207,7 +170,7 @@ def main():
         threshold = _tune_threshold_mcc(model, X_te, y_test)
         print(f"  Optimal MCC threshold: {threshold:.2f}")
 
-        metrics = _evaluate(model, X_te, y_test)
+        metrics = _evaluate(model, X_te, y_test, threshold=threshold)
         print(f"  AUC-ROC: {metrics['auc_roc']:.4f}  MCC: {metrics['mcc']:.4f}  "
               f"F1: {metrics['f1']:.4f}")
 

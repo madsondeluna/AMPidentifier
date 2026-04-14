@@ -4,6 +4,7 @@ pandas
 scikit-learn
 joblib
 xgboost>=1.6.0
+lightgbm>=4.0.0
 
 # Library for bioinformatics
 biopython

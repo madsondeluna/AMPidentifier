@@ -125,22 +125,6 @@ def _correlation_filter(X: pd.DataFrame) -> tuple:
     return X[kept], corr
 
 
-# ---------------------------------------------------------------------------
-# RF importance (text only)
-# ---------------------------------------------------------------------------
-def _rf_importance(X_train: pd.DataFrame, y_train: pd.Series) -> pd.Series:
-    print(f"Fitting RF ({RF_N_ESTIMATORS} trees) for importance ranking...")
-    t0 = time.time()
-    rf = RandomForestClassifier(
-        n_estimators=RF_N_ESTIMATORS,
-        class_weight="balanced",
-        random_state=RANDOM_STATE,
-        n_jobs=-1,
-    )
-    rf.fit(X_train, y_train)
-    print(f"  Done in {time.time()-t0:.1f}s")
-    return pd.Series(rf.feature_importances_, index=X_train.columns).sort_values(ascending=False)
-
 
 # ---------------------------------------------------------------------------
 # Heatmap
@@ -221,7 +205,7 @@ def main():
     X_final, _ = _correlation_filter(X_struct)
     n_final = X_final.shape[1]
 
-    print("  Computing correlation matrix (after)...")
+    print("  Computing correlation matrix (after Pearson filter)...")
     corr_after = X_final.corr(method="pearson").abs()
 
     print("  Plotting heatmap (after)...")
@@ -231,7 +215,7 @@ def main():
         "fig_correlation_heatmap_after.png",
     )
 
-    # 5. RF importance (for report only)
+    # 5. RF importance ranking (report only)
     print("\n--- Step 4: RF importance ranking ---")
     X_train, _, y_train, _ = train_test_split(
         X_final, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
@@ -242,7 +226,13 @@ def main():
         columns=X_train.columns,
         index=X_train.index,
     )
-    importance = _rf_importance(X_train_sc, y_train)
+    print(f"Fitting RF ({RF_N_ESTIMATORS} trees) for importance ranking...")
+    t0 = time.time()
+    rf = RandomForestClassifier(n_estimators=RF_N_ESTIMATORS, class_weight="balanced",
+                                random_state=RANDOM_STATE, n_jobs=-1)
+    rf.fit(X_train_sc, y_train)
+    print(f"  Done in {time.time()-t0:.1f}s")
+    importance = pd.Series(rf.feature_importances_, index=X_train_sc.columns).sort_values(ascending=False)
 
     # 6. Save selected features
     with open(SELECTED_FEATURES_PATH, "w") as f:

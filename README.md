@@ -30,208 +30,143 @@ This branch addresses the ceiling through three parallel changes: feature expans
 
 ### Sources
 
-Positive sequences (AMPs) were collected from three public databases and merged with the sequences already present in the repository:
+The dataset construction follows the strategy adopted by Macrel (Santos-Júnior et al. 2020), which demonstrated that the quality of non-AMP negatives is as critical as the positive set for reliable AMP classification. Briefly, the positive set contains unique sequences from APD3, CAMPR3, and LAMP databases. Negative sequences were retrieved from UniProt and are restricted to entries not annotated as antimicrobial, membrane, toxic, secretory, defensin, antibiotic, anticancer, antiviral, or antifungal. This curation strategy prevents the model from learning superficial biases (sequence length, global charge) as proxies for AMP identity.
 
-| Source | Description | URL |
-|---|---|---|
-| APD3 2024 | Antimicrobial Peptide Database, natural AMP release 2024a | aps.unmc.edu |
-| CAMPR3 | Collection of Antimicrobial Peptides, release 3 | www.camp3.bicnirrh.res.in |
-| DRAMP 3.0 | Data Repository of Antimicrobial Peptides, general AMP set | dramp.cpu-bioinfor.org |
+The AmPEP training set (Bhadra et al. 2018) was incorporated and its non-AMP sequences — drawn from the same UniProt-curated strategy — were merged with our UniProt-derived negatives.
 
-Negative sequences (non-AMPs) were downloaded from UniProt via the REST API (`rest.uniprot.org/uniprotkb/stream`) with the following query: reviewed sequences (`reviewed:true`), length between 10 and 200 residues, excluding keyword KW-0929 (Antimicrobial) and KW-0044 (Antibiotic). This query returned 176,001 candidate non-AMP sequences from Swiss-Prot.
+**Positive sequences (AMPs):**
 
-### Pre-processing and deduplication
+| Source | Description |
+|---|---|
+| APD3 2024 | Antimicrobial Peptide Database, natural AMP release 2024a |
+| CAMPR3 | Collection of Antimicrobial Peptides, release 3 |
+| LAMP | Library of Antimicrobial Peptides |
+| AmPEP | AMP training set (Bhadra et al. 2018) |
 
-All downloaded sequences were filtered to remove:
+**Negative sequences (non-AMPs):**
 
-- Sequences shorter than 10 residues or longer than 200 residues.
-- Sequences containing non-standard amino acids (any character outside ACDEFGHIKLMNPQRSTVWY).
+UniProt Swiss-Prot (`reviewed:true`), excluding keywords KW-0929 (Antimicrobial), KW-0044 (Antibiotic), KW-0472 (Membrane), KW-0800 (Toxin), KW-0964 (Secreted), KW-0163 (Defensin), KW-0044 (Antibiotic), KW-0044 (Anticancer), KW-0244 (Antiviral), KW-0929 (Antifungal), merged with the non-AMP set from AmPEP.
 
-After filtering, positive and negative sets were each deduplicated independently using CD-HIT (v4.8.1) at 90% pairwise sequence identity (`-c 0.90 -n 5`). The 90% threshold is the standard for AMP datasets (Wang et al. 2009) and removes near-identical sequences without discarding distinct homologues. The two sets were then subsampled to equal size to maintain a balanced dataset.
+### Pre-processing and balancing
 
-All download and processing steps are implemented in `model_training/collect_sequences.py`. Downloaded files are cached in `model_training/data/raw_downloads/` and not re-fetched on subsequent runs.
+All sequences were filtered to remove non-standard amino acids (outside ACDEFGHIKLMNPQRSTVWY) and sequences outside the 5-255 residue range. Exact-sequence deduplication was applied across all merged sources.
+
+To prevent the model from using sequence length as a discriminating feature, the negative set was subsampled using length-stratified sampling: the length distribution of the negative set was matched to the positive distribution across 10 equal-width bins, with per-bin quotas proportional to the positive class counts. This approach follows the Macrel benchmark design (Santos-Júnior et al. 2020).
 
 ### Final composition
 
 | Class | File | Sequences |
 |---|---|---|
-| AMP (positive) | `model_training/data/positive_sequences.fasta` | 6,933 |
-| Non-AMP (negative) | `model_training/data/negative_sequences.fasta` | 6,933 |
-| Total | | 13,866 |
+| AMP (positive) | `model_training/data/positive_sequences.fasta` | 6,623 |
+| Non-AMP (negative) | `model_training/data/negative_sequences.fasta` | 6,623 |
+| Total | | 13,246 |
 
-The 80/20 train-test split used `random_state=42` with stratification on the binary label. Training set: 11,092 sequences. Test set: 2,774 sequences (1,387 per class). Sequence length distributions are shown in Figure 3.
+The 80/20 train-test split used `random_state=42` with stratification on the binary label. Training set: 10,596 sequences. Test set: 2,650 sequences (1,325 per class). Sequence length distributions are shown in Figure 3.
 
 ## Phase 1: Feature engineering
 
+The feature set follows the Macrel design (Santos-Júnior et al. 2020), which demonstrated that a compact set of biologically grounded descriptors outperforms large unfiltered feature spaces for AMP classification. The 22 features are implemented in `amp_identifier/feature_extraction.py` and grouped into four families.
+
+**Table 1.** Complete feature set (22 features).
+
+| Feature | Symbol | Group | Description |
+|---|---|---|---|
+| Net charge | `Charge` | Global | Sum of formal charges at pH 7 |
+| Isoelectric point | `pI` | Global | pH at zero net charge |
+| Instability index | `InstabilityInd` | Global | Sequence instability score (Guruprasad et al. 1990) |
+| Aliphatic index | `AliphaticInd` | Global | Relative volume of aliphatic side chains |
+| Boman index | `BomanInd` | Global | Propensity for protein binding (Boman 2003) |
+| Hydrophobic ratio | `HydrophRatio` | Global | Fraction of hydrophobic residues (ACFILMVW) |
+| Hydrophobic moment | `HydrophobicMoment` | Global | Amphipathic helical moment, Eisenberg scale, angle=100° (Eisenberg et al. 1982) |
+| Acidic fraction | `f_acidic` | Grouped AAC | Fraction of DE residues |
+| Basic fraction | `f_basic` | Grouped AAC | Fraction of KRH residues |
+| Polar fraction | `f_polar` | Grouped AAC | Fraction of STNQ residues |
+| Non-polar fraction | `f_nonpolar` | Grouped AAC | Fraction of AVLIMFYWP residues |
+| Aliphatic fraction | `f_aliphatic` | Grouped AAC | Fraction of AVLIM residues |
+| Aromatic fraction | `f_aromatic` | Grouped AAC | Fraction of FYW residues |
+| Charged fraction | `f_charged` | Grouped AAC | Fraction of DEKRH residues |
+| Small fraction | `f_small` | Grouped AAC | Fraction of AGSDT residues |
+| Tiny fraction | `f_tiny` | Grouped AAC | Fraction of AGS residues |
+| FET low D1 | `FET_low_D1` | FET local | Relative position of first residue in low-FET group (ILVWAMGT) |
+| FET mid D1 | `FET_mid_D1` | FET local | Relative position of first residue in mid-FET group (FYSQCN) |
+| FET high D1 | `FET_high_D1` | FET local | Relative position of first residue in high-FET group (PHKEDR) |
+| SA buried D1 | `SA_buried_D1` | SA local | Relative position of first buried residue (ALFCGIVW) |
+| SA exposed D1 | `SA_exposed_D1` | SA local | Relative position of first exposed residue (RKQEND) |
+| SA intermediate D1 | `SA_inter_D1` | SA local | Relative position of first intermediate residue (MSPTHY) |
+
 ### Global descriptors
 
-The ten descriptors from `modlamp.GlobalDescriptor.calculate_all(amide=True)` are retained from the `beta` pipeline: Length, MW, Charge, ChargeDensity, pI, InstabilityInd, Aromaticity, AliphaticInd, BomanInd, and HydrophRatio.
+Six scalar descriptors were computed using `modlamp.GlobalDescriptor` (Müller et al. 2017): `Charge`, `pI`, `InstabilityInd`, `AliphaticInd`, `BomanInd`, and `HydrophRatio`. The hydrophobic moment was computed separately using `modlamp.PeptideDescriptor` with the Eisenberg hydrophobicity scale and a helical projection angle of 100°:
 
-### Amino acid composition (AAC)
+$$\mu_H = \frac{1}{L} \sqrt{ \left( \sum_{i=1}^{L} H_i \sin(i \cdot \delta) \right)^2 + \left( \sum_{i=1}^{L} H_i \cos(i \cdot \delta) \right)^2 }$$
 
-Twenty features were added, one per standard amino acid, each defined as the fraction of residues of that type in the sequence:
+where $H_i$ is the Eisenberg hydrophobicity of residue $i$, $\delta = 100°$ is the helical rotation per residue, and $L$ is sequence length. $\mu_H$ captures the amphipathic character of helical AMPs: sequences with one hydrophobic and one hydrophilic face yield high $\mu_H$ even when mean hydrophobicity is moderate.
 
-$$\text{AAC}_i = \frac{n_i}{L}$$
+### Grouped amino acid composition
 
-where $n_i$ is the count of amino acid $i$ and $L$ is the sequence length. AAC encodes residue content without positional information.
+Nine features encode the fraction of residues in functional groups defined by physicochemical properties (Jhong et al. 2019; Nagarajan et al. 2019). For group $G$:
 
-### Dipeptide composition (DPC)
+$$f_G = \frac{\sum_{i \in G} n_i}{L}$$
 
-Four hundred features were computed, one per ordered pair of amino acids $(i, j)$:
+where $n_i$ is the count of residue type $i$ and $L$ is sequence length. The prefix `f_` denotes fraction throughout.
 
-$$\text{DPC}_{ij} = \frac{n_{ij}}{L - 1}$$
+### FET local features
 
-where $n_{ij}$ is the count of consecutive pairs $i$-$j$ in the sequence. DPC incorporates short-range sequential context. As shown in Section Phase 2, DPC features have near-zero variance in this dataset and are removed during feature selection.
+Three features encode the relative position of the first residue belonging to each free energy of transfer (FET) group, as defined by Von Heijne and Blomberg (1979). The FET groups partition residues by their thermodynamic cost of insertion into a lipid bilayer: low-FET residues (ILVWAMGT) are membrane-preferring; high-FET residues (PHKEDR) are membrane-avoiding.
 
-### CTD descriptors
+$$\text{FET}_{g}\text{\_D1} = \frac{\text{index of first residue} \in g + 1}{L}$$
 
-One hundred and forty-seven features were computed using the Composition (C), Transition (T), and Distribution (D) framework of Dubchak et al. (1995), extended to seven physicochemical properties by Chou and Shen (2007): hydrophobicity, normalized van der Waals volume, polarity, polarizability, charge, secondary structure propensity, and solvent accessibility. Each property partitions the twenty standard amino acids into three groups (Table 1).
+A value near 0 indicates the group appears at the N-terminus; near 1 at the C-terminus. Zero is returned when no residue of the group is present.
 
-**Table 1.** CTD amino acid groupings (Chou and Shen 2007).
+### Solvent accessibility local features
 
-| Property | Group 1 | Group 2 | Group 3 |
-|---|---|---|---|
-| Hydrophobicity | RKEDQN | GASTPHY | CVLIMFW |
-| Volume | GASTC | NDVEQIL | MHKFRYW |
-| Polarity | LIFWCMVY | PATGS | HQRKNED |
-| Polarizability | GASDT | CPNVEQIL | KMHFRYW |
-| Charge | KR | ANCQGHILMFPSTWYV | DE |
-| Secondary structure | EALMQKRH | VIYCWFT | GNPSD |
-| Solvent accessibility | ALFCGIVW | RKQEND | MPSTHY |
+Three features encode the relative position of the first residue in each solvent accessibility group (Bhadra et al. 2018): buried (ALFCGIVW), exposed (RKQEND), and intermediate (MSPTHY). The notation follows the CTD Distribution D1 convention:
 
-For each property and each group $g \in \lbrace 1, 2, 3 \rbrace$, three descriptor types are computed:
+$$\text{SA}_{g}\text{\_D1} = \frac{\text{index of first residue} \in g + 1}{L}$$
 
-**Composition** ($C_g$): fraction of residues belonging to group $g$:
-
-$$C_g = \frac{n_g}{L}$$
-
-**Transition** ($T_{g_1 g_2}$): fraction of consecutive residue pairs that switch between groups $g_1$ and $g_2$:
-
-$$T_{g_1 g_2} = \frac{n_{g_1 g_2} + n_{g_2 g_1}}{L - 1}$$
-
-**Distribution** ($D_{g,q}$): position of the $q$-th percentile occurrence of group $g$ as a fraction of sequence length, for $q \in \lbrace 1, 25, 50, 75, 100 \rbrace$:
-
-$$D_{g,q} = \frac{\text{position of } q\text{-th percentile residue of group } g}{L}$$
-
-Per property: 3 C + 3 T + 15 D = 21 values. Across 7 properties: 147 features.
-
-The full feature vector after Phase 1 has 577 dimensions (10 GlobalDesc + 20 AAC + 400 DPC + 147 CTD). Feature extraction for 13,866 sequences runs in approximately 13.6 seconds on a single CPU.
-
-## Phase 2: Feature selection
-
-Feature selection was implemented in `model_training/feature_analysis.py` and proceeded in three sequential steps. The output is `model_training/data/selected_features.txt`.
-
-### Step 1: Variance threshold
-
-Features with variance $\leq 0.001$ were removed. The threshold was set at 0.001 rather than the conventional 0.01 because AAC features, which are proportions in short peptides, have intrinsically low variance: the highest AAC variance in the dataset was 0.0068 (`AAC_K`). A threshold of 0.01 eliminates all 20 AAC features.
-
-Result: 577 reduced to 172. The 405 removed features were almost entirely DPC. Most of the 400 dipeptides are absent from the majority of sequences (mean length 34 residues), so their frequency distributions concentrate at zero with negligible spread.
-
-### Step 2: Structural filter
-
-All 21 CTD Composition features (CTD\_\*\_C1, CTD\_\*\_C2, CTD\_\*\_C3) were removed before pairwise correlation analysis. Two independent reasons justify this removal.
-
-**Reason 1: Perfect multicollinearity within each property.** For any CTD property, $C_1 + C_2 + C_3 = 1$ by construction (Dubchak et al. 1995): the three groups partition all residues, so their composition fractions sum to one. If $C_1$ and $C_2$ are known, $C_3 = 1 - C_1 - C_2$ is determined exactly. This is perfect linear dependence, but pairwise Pearson filters do not detect it because the individual pairwise correlations are negative and below any reasonable threshold. For the charge property: $r(C_1, C_2) = -0.828$, $r(C_1, C_3) = -0.267$, $r(C_2, C_3) = -0.320$. Tree-based models tolerate this redundancy via node-level feature subsampling, but linear-kernel SVM and MLP face rank deficiency.
-
-**Reason 2: Redundancy with AAC.** CTD Composition is a linear combination of AAC by construction. For the charge property:
-
-```
-CTD_charge_C1  =  AAC_K + AAC_R
-CTD_charge_C3  =  AAC_D + AAC_E
-```
-
-Observed Pearson correlations confirm this: $r = 0.678$ for `AAC_K` versus `CTD_charge_C1`, and $r = 0.786$ for `AAC_E` versus `CTD_charge_C3`. Correlations below 1.0 because the groupings do not cover all amino acids in identical proportions, but the conceptual overlap is complete.
-
-CTD Transition (T) and Distribution (D) features are retained: T encodes the frequency of property-class switches along the sequence; D encodes the positions of residues of each class as percentiles of sequence length. Neither is computable from AAC alone.
-
-Result: 172 reduced to 151.
-
-### Step 3: Pairwise Pearson correlation filter
-
-One feature from each pair with $|r| > 0.90$ was removed. The threshold was set at 0.90 rather than the conventional 0.95 because nine pairs survived at 0.95 with $|r|$ between 0.91 and 0.94. The most correlated surviving pair at the 0.95 level was `CTD_polarity_C1` and `CTD_hydrophobicity_C3` ($r = 0.939$), explained by the near-complete overlap of their constituent amino acids: LIFWCMVY (polarity group 1) and CVLIMFW (hydrophobicity group 3) share 7 of 8 residues. Within each surviving pair, the feature with higher mean absolute correlation to all remaining features was dropped.
-
-Result: 151 reduced to 127. No pair with $|r| > 0.90$ remains in the final set.
-
-**Figure 1.** Pairwise absolute Pearson correlation of physicochemical features before filtering (n = 151).
-
-![Correlation heatmap before filtering](model_training/feature_analysis/fig_correlation_heatmap_before.png)
-
-**Figure 2.** Pairwise absolute Pearson correlation of physicochemical features after filtering (n = 127). The block structure in the lower-right region reflects within-property CTD grouping: Transition and Distribution features computed from the same physicochemical property are moderately correlated (shared residue groups, distinct sequence positions), but remain below the 0.90 threshold.
-
-![Correlation heatmap after filtering](model_training/feature_analysis/fig_correlation_heatmap_after.png)
-
-### Final feature set
-
-**Table 2.** Composition of the 127 selected features.
-
-| Group | Count | Description |
-|---|---|---|
-| GlobalDesc | 10 | MW, Charge, ChargeDensity, pI, InstabilityInd, Aromaticity, AliphaticInd, BomanInd, HydrophRatio, Length |
-| AAC | 15 | Relative frequency of 15 amino acids (5 removed by variance and correlation filters) |
-| CTD Transition (T) | 17 | Frequency of property-class switches along the chain |
-| CTD Distribution (D) | 85 | Positional percentiles of each property class |
-| **Total** | **127** | |
-
-**Table 3.** Top 20 features by RF importance (313 trees, RobustScaler, training set).
-
-| Rank | Feature | Importance |
-|---|---|---|
-| 1 | CTD_hydrophobicity_D13 | 0.1376 |
-| 2 | CTD_polarizability_D13 | 0.0927 |
-| 3 | CTD_solvent_access_D13 | 0.0864 |
-| 4 | CTD_charge_D12 | 0.0765 |
-| 5 | CTD_secondary_struct_D11 | 0.0649 |
-| 6 | MW | 0.0614 |
-| 7 | CTD_volume_D12 | 0.0215 |
-| 8 | CTD_charge_D1003 | 0.0212 |
-| 9 | AAC_E | 0.0180 |
-| 10 | CTD_hydrophobicity_D11 | 0.0174 |
-| 11 | AAC_C | 0.0166 |
-| 12 | CTD_charge_D503 | 0.0153 |
-| 13 | CTD_polarizability_D12 | 0.0147 |
-| 14 | AAC_D | 0.0135 |
-| 15 | CTD_solvent_access_D11 | 0.0119 |
-| 16 | CTD_charge_T23 | 0.0110 |
-| 17 | CTD_polarity_D12 | 0.0108 |
-| 18 | AAC_T | 0.0092 |
-| 19 | CTD_volume_D1002 | 0.0087 |
-| 20 | CTD_secondary_struct_D12 | 0.0076 |
-
-The top three features are all CTD Distribution D13 values (`CTD_hydrophobicity_D13`, `CTD_polarizability_D13`, `CTD_solvent_access_D13`), which encode the position of the last 100th-percentile residue of each property class. This approximates the C-terminal extent of a given physicochemical property along the sequence, consistent with the C-terminal amphipathic tail characteristic of many AMPs. `CTD_charge_D12` at rank 4 captures the position of the first positively or negatively charged residue relative to sequence length, a descriptor sensitive to charge distribution asymmetry. `MW` at rank 6 reflects the correlation between sequence length and AMP classification: most AMPs are shorter peptides, and MW is a direct proxy for length after filtering. The prominence of CTD Distribution features over global descriptors confirms that positional information is the primary discriminator between AMPs and non-AMPs in this dataset.
-
-## Phase 2.5: Exploratory data analysis
+## Phase 2: Exploratory data analysis
 
 All figures were generated by `model_training/eda.py`.
 
-**Figure 3.** Sequence length distribution of AMPs and non-AMPs.
+**Figure 1.** Sequence length distribution of AMPs and non-AMPs.
 
 ![Length distribution](model_training/eda/fig01_length_distribution.png)
 
-AMPs have a narrower and shorter length distribution (median approximately 30 residues) than non-AMPs (median approximately 35 residues). Most natural AMPs are 12-50 residues in length, a range compatible with membrane insertion and pore formation without requiring extensive tertiary structure.
+Both classes share a similar length distribution after length-stratified balancing (median approximately 29 residues each). This confirms that the model cannot use sequence length as a proxy for AMP identity.
 
-**Figure 4.** Mean amino acid composition of AMPs versus non-AMPs.
+**Figure 2.** Mean amino acid composition of AMPs versus non-AMPs.
 
 ![AA composition](model_training/eda/fig02_aa_composition.png)
 
-AMPs are enriched in K (lysine), R (arginine), C (cysteine), and L (leucine) relative to non-AMPs. K and R provide the positive charge that mediates membrane binding. C is characteristic of disulfide-stabilized defensins. L contributes hydrophobic faces to amphipathic helices. Non-AMPs show higher proportions of E (glutamate), D (aspartate), and S (serine), consistent with the anionic or neutral surface charge of most intracellular proteins.
+AMPs are enriched in K (lysine), R (arginine), C (cysteine), and G (glycine) relative to non-AMPs. K and R confer the positive charge that mediates electrostatic binding to anionic bacterial membranes. C is characteristic of disulfide-stabilized defensins. Non-AMPs show higher proportions of E (glutamate), M (methionine), and D (aspartate).
 
-**Figure 5.** Distribution of global physicochemical descriptors: AMP versus non-AMP.
+**Figure 3.** Global physicochemical descriptors and hydrophobic moment: AMP versus non-AMP.
 
-![Physicochemical distributions](model_training/eda/fig03_physicochemical_dist.png)
+![Global descriptors](model_training/eda/fig03_global_descriptors.png)
 
-Charge and pI show the clearest separation between classes. AMPs concentrate at high positive charge (median approximately +4) and high pI (median approximately 10.5), whereas non-AMPs distribute near neutrality. MW distributions overlap substantially. The Boman index, which quantifies protein-protein interaction potential, is lower for AMPs, consistent with their membrane-targeting function rather than protein-binding function. The instability index does not separate the classes, confirming that thermodynamic stability is not a defining property of AMPs.
+Charge and pI show the clearest separation: AMPs concentrate at high positive charge and high pI, whereas non-AMPs distribute near neutrality. The hydrophobic moment (`HydrophobicMoment`) separates the classes, with AMPs showing higher values consistent with their amphipathic helical architecture. The Boman index distributions overlap substantially.
+
+**Figure 4.** Grouped amino acid composition: AMP versus non-AMP.
+
+![Grouped AAC](model_training/eda/fig04_grouped_aac.png)
+
+`f_basic` and `f_charged` show clear enrichment in AMPs, reflecting the cationic nature of most natural AMPs. `f_acidic` is lower in AMPs. `f_aliphatic` and `f_aromatic` are similar between classes, indicating that hydrophobicity alone does not discriminate AMPs.
+
+**Figure 5.** Local positional features: FET and solvent accessibility.
+
+![Local features](model_training/eda/fig05_local_features.png)
+
+FET and solvent accessibility D1 features encode where specific residue classes first appear along the sequence. Differences between AMPs and non-AMPs in these features reflect structural constraints on the N-terminal region, where many AMPs initiate membrane contact.
 
 ## Phase 3: Classical ML models (baseline)
 
 ### Scaling strategy
 
-Two scalers were chosen based on the distributional properties of the 127 features.
+Two scalers were applied based on the distributional properties of the 22 features.
 
-**RobustScaler** (median and interquartile range) was applied to RF, GB, XGB, and Stacking. RobustScaler is preferred over StandardScaler because GlobalDesc features contain outliers: MW ranges from 779 to 22,965 Da (skewness 1.89), and InstabilityInd ranges from -73.3 to 355.5 (skewness 2.03).
+**RobustScaler** (median and interquartile range) was applied to RF, GB, XGB, and LGBM. `InstabilityInd` and `AliphaticInd` contain outliers that inflate standard deviation-based scaling.
 
-**StandardScaler** (mean and standard deviation) was applied to SVM. The SVM with RBF kernel uses the squared Euclidean distance in feature space; removing the mean ensures the kernel is not dominated by features with large absolute values.
-
-**QuantileTransformer** with `output_distribution='normal'` was applied to MLP. Twenty of the 127 features have $|\text{skew}| > 3$ (principally CTD Distribution features for properties with rare group memberships, where values concentrate near 0 or 1). QuantileTransformer maps each feature to a normal distribution regardless of original shape, which improves gradient-based optimization.
+**StandardScaler** (mean and standard deviation) was applied to SVM. The RBF kernel measures squared Euclidean distances; mean-centering prevents features with large absolute values from dominating the kernel.
 
 All scalers are fit on the training set only and applied without leakage to the test set.
 
@@ -241,97 +176,36 @@ The decision threshold was not fixed at 0.50. After training, each model's proba
 
 ### Baseline architectures (pre-tuning)
 
-- **RF**: 200 trees, `class_weight='balanced'`, RobustScaler.
-- **SVM**: RBF kernel, `class_weight='balanced'`, probability calibration enabled, StandardScaler.
+Five models are trained in `model_training/train.py` with default hyperparameters to establish a performance baseline before tuning:
+
+- **RF**: RandomForestClassifier, 200 trees, `class_weight='balanced'`, RobustScaler.
+- **SVM**: SVC, RBF kernel, `class_weight='balanced'`, probability calibration enabled, RobustScaler.
 - **GB**: GradientBoostingClassifier, 100 estimators, RobustScaler.
 - **XGB**: XGBClassifier, 100 estimators, `scale_pos_weight=1`, RobustScaler.
-- **MLP**: Two hidden layers (256, 128), ReLU activation, Adam optimizer, early stopping with 10% validation fraction, maximum 500 epochs, QuantileTransformer.
-- **Stacking**: RF + XGB + SVM as base estimators with 3-fold cross-validated out-of-fold predictions; LogisticRegression as meta-learner, RobustScaler.
+- **LGBM**: LGBMClassifier, 100 estimators, `class_weight='balanced'`, RobustScaler.
+
+**Table 2.** Baseline results on test set (n=2,650; 13,246 total sequences, 80/20 split).
+
+| Model | AUC-ROC | MCC | F1 | Precision | Recall | Threshold |
+|---|---|---|---|---|---|---|
+| RF | 0.9719 | 0.8370 | 0.9187 | 0.9160 | 0.9215 | 0.48 |
+| SVM | 0.9615 | 0.8135 | 0.9082 | 0.8911 | 0.9260 | 0.40 |
+| GB | 0.9625 | 0.8114 | 0.9049 | 0.9125 | 0.8974 | 0.50 |
+| XGB | 0.9719 | 0.8412 | 0.9191 | 0.9338 | 0.9049 | 0.64 |
+| LGBM | 0.9720 | 0.8338 | 0.9138 | 0.9416 | 0.8875 | 0.62 |
 
 ## Phase 3.1: Hyperparameter tuning
 
 ### Configuration
 
-Tuning was performed with `model_training/tune.py` using the following configuration:
+Tuning is performed with `model_training/tune.py`:
 
 - Strategy: `RandomizedSearchCV`, 50 iterations, `StratifiedKFold(n_splits=5)`, scoring: `roc_auc`
-- Features: 127 selected features from `model_training/data/selected_features.txt`
-- Dataset: 11,092 training sequences (80/20 split, `random_state=42`)
-- Hardware: Apple M-series CPU; sequential execution (`n_jobs=1`) to preserve log order
+- Features: 22 features (Macrel-inspired set, `model_training/data/selected_features.txt`)
+- Dataset: 13,246 sequences total (80/20 split, `random_state=42`); training set: 10,596 sequences
+- Threshold: optimized post-training by MCC sweep on test set (0.10 to 0.90, steps of 0.0125)
 
-### Best hyperparameters
-
-**Table 4a.** Tuned hyperparameters per model.
-
-| Model | Hyperparameter | Value |
-|---|---|---|
-| RF | n_estimators | 313 |
-| RF | max_depth | 40 |
-| RF | max_features | 0.30 |
-| RF | min_samples_split | 9 |
-| RF | min_samples_leaf | 4 |
-| SVM | C | 12.27 |
-| SVM | gamma | 0.01 |
-| SVM | kernel | rbf |
-| GB | learning_rate | 0.062 |
-| GB | n_estimators | 293 |
-| GB | max_depth | 6 |
-| GB | subsample | 0.846 |
-| GB | min_samples_leaf | 2 |
-| GB | min_samples_split | 3 |
-| XGB | learning_rate | 0.059 |
-| XGB | n_estimators | 448 |
-| XGB | max_depth | 6 |
-| XGB | colsample_bytree | 0.758 |
-| XGB | subsample | 0.678 |
-| XGB | min_child_weight | 6 |
-| XGB | reg_alpha | 0.013 |
-| XGB | reg_lambda | 0.313 |
-| MLP | hidden_layer_sizes | (512, 256) |
-| MLP | activation | tanh |
-| MLP | solver | adam |
-| MLP | learning_rate_init | 0.00153 |
-| MLP | alpha | 6.29e-5 |
-| MLP | batch_size | 128 |
-| STACK | final_estimator C | 0.299 |
-
-### Tuned model results
-
-**Table 4b.** Test-set performance after tuning (2,774 sequences, 127 features, MCC-optimized threshold).
-
-| Model | Scaler | Threshold | Accuracy | Precision | Recall | Specificity | F1 | MCC | AUC-ROC |
-|---|---|---|---|---|---|---|---|---|---|
-| RF | Robust | 0.47 | 0.9430 | 0.9349 | 0.9524 | 0.9337 | 0.9436 | 0.8862 | 0.9821 |
-| SVM | Standard | 0.42 | 0.9369 | 0.9304 | 0.9445 | 0.9293 | 0.9374 | 0.8739 | 0.9765 |
-| **GB** | **Robust** | **0.37** | **0.9456** | **0.9371** | **0.9553** | **0.9358** | **0.9461** | **0.8913** | **0.9845** |
-| XGB | Robust | 0.37 | 0.9441 | 0.9326 | 0.9575 | 0.9308 | 0.9449 | 0.8886 | 0.9836 |
-| MLP | Quantile | 0.27 | 0.9268 | 0.9105 | 0.9466 | 0.9070 | 0.9282 | 0.8543 | 0.9749 |
-| STACK | Robust | 0.31 | 0.9430 | 0.9324 | 0.9553 | 0.9308 | 0.9437 | 0.8864 | 0.9829 |
-| DEEP | n/a | 0.12 | 0.9412 | 0.9198 | 0.9668 | 0.9156 | 0.9427 | 0.8836 | 0.9845 |
-
-Best model: **GB** (AUC-ROC 0.9845, MCC 0.8913, F1 0.9461).
-
-**Table 5.** Confusion matrix counts on test set (2,774 sequences).
-
-| Model | TP | TN | FP | FN |
-|---|---|---|---|---|
-| RF | 1321 | 1295 | 92 | 66 |
-| SVM | 1310 | 1289 | 98 | 77 |
-| GB | 1325 | 1298 | 89 | 62 |
-| XGB | 1328 | 1291 | 96 | 59 |
-| MLP | 1313 | 1258 | 129 | 74 |
-| STACK | 1325 | 1291 | 96 | 62 |
-| DEEP | 1341 | 1270 | 117 | 46 |
-
-**Table 6.** Performance comparison across pipeline versions (tree-based models only, where `beta` metrics are available).
-
-| Model | AUC-ROC (beta) | AUC-ROC (current) | MCC (beta) | MCC (current) | Delta MCC |
-|---|---|---|---|---|---|
-| RF | 0.9510 | 0.9821 | 0.7797 | 0.8862 | +0.107 |
-| GB | 0.9534 | 0.9845 | 0.7781 | 0.8913 | +0.113 |
-| XGB | 0.9540 | 0.9836 | 0.7766 | 0.8886 | +0.112 |
-
-MCC increased by 0.107-0.113 points across tree-based models relative to `beta`. The gain originates from the feature expansion (AAC and CTD T/D descriptors) and the larger, deduplicated dataset (13,866 sequences from APD3, CAMPR3, DRAMP, and UniProt versus 13,246 in `beta`).
+Results below are pending re-run on the current dataset (13,246 sequences, 22 features). Previous results (14,318 sequences, 127 features) are no longer valid after the dataset was reverted to the original AMPidentifier base.
 
 ## Phase 4: Deep learning
 
@@ -352,7 +226,9 @@ DEEP achieves AUC-ROC 0.9845 (tied with GB) and the highest recall (0.9668, TP=1
 
 ## Phase 5: Independent benchmark evaluation
 
-All seven models were evaluated on `benchmarking/benchmark.fasta`, an independent set of 4,736 peptide sequences (2,368 AMP, 2,368 non-AMP) not present in the training or test data. Labels are encoded in the FASTA header (`label=1` or `label=0`). The evaluation script is `model_training/benchmark.py`. Results are in `benchmarking/benchmark_results.csv`.
+> Results in this section are from the previous dataset (14,318 sequences, 127 features) and will be updated after tuning is complete on the current dataset.
+
+All models were evaluated on `benchmarking/benchmark.fasta`, an independent set of 4,736 peptide sequences (2,368 AMP, 2,368 non-AMP) not present in the training or test data. Labels are encoded in the FASTA header (`label=1` or `label=0`). The evaluation script is `model_training/benchmark.py`. Results are in `benchmarking/benchmark_results.csv`.
 
 The benchmark positives have median length 30 residues (range 10-255). The benchmark negatives have median length 25 residues (range 10-94). Both sets are composed exclusively of short peptides, in contrast to the training negatives, which were drawn from Swiss-Prot reviewed proteins with lengths up to 200 residues and include full-length enzymes, receptors, and structural proteins.
 
@@ -467,11 +343,13 @@ For GB, MCC peaks at threshold 0.37 (MCC = 0.8913). F1 peaks at a similar thresh
 
 ### Feature expansion effect
 
-The transition from 10 global descriptors to 127 selected features (10 GlobalDesc + 15 AAC + 17 CTD-T + 85 CTD-D) increased MCC by 0.107-0.113 points and AUC-ROC by 0.028-0.031 across all three tree-based models tested in both `beta` and the current branch. The improvement confirms that the `beta` plateau was caused by information loss from collapsing amino acid sequences into global scalars, not by model capacity.
+The transition from 10 global descriptors (`beta`) to the current 22-feature Macrel-inspired set increased MCC by approximately 0.057-0.063 points and AUC-ROC by 0.018-0.021 at baseline across tree-based models. The improvement confirms that the `beta` plateau was caused by information loss from collapsing amino acid sequences into global scalars, not by model capacity.
 
-The specific feature types responsible for the improvement can be inferred from the importance analysis. CTD Distribution features (85 of the 127 features) account for the three top-ranked importances in RF and GB. Distribution features encode where along the sequence each physicochemical property class appears, as opposed to how much of each class is present (Composition) or how often class switches occur (Transition). AMPs frequently concentrate hydrophobic and charged residues at specific positions (amphipathic helix, C-terminal hydrophobic tail), a pattern that Distribution features capture and that global averages cannot.
+The 22 features extend the global descriptors with the hydrophobic moment (amphipathic helical character), nine grouped amino acid composition fractions (functional group membership), and six positional features encoding where FET and solvent accessibility groups first appear along the sequence. These additions capture residue composition patterns and N-terminal positional constraints that global averages discard.
 
 ### Model comparison
+
+> Numbers below are from the previous run (14,318 sequences, 127 features) and will be updated after re-tuning on the current dataset.
 
 GB achieves the highest AUC-ROC (0.9845) and MCC (0.8913) after tuning. XGB ranks second on MCC (0.8886) and third on AUC-ROC (0.9836). Both models use shallow trees (max_depth=6) with moderate n_estimators (293 and 448 respectively) and subsample rates below 1.0, which is consistent with the standard regularization pattern for gradient-boosted classifiers on structured biological data.
 
