@@ -42,7 +42,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-AMPidentifier 2.0 is invoked from the project root via `python main.py`.
+AMPidentifier 2.0 is invoked from the project root via `python3 main.py`.
 
 ### Command-line flags
 
@@ -69,16 +69,16 @@ AMPidentifier 2.0 is invoked from the project root via `python main.py`.
 
 ```bash
 # Predict with the voting ensemble (default, recommended)
-python main.py -i sequences.fasta -o results/
+python3 main.py -i sequences.fasta -o results/
 
 # Predict with a specific model
-python main.py -i sequences.fasta -o results/ -m xgb
+python3 main.py -i sequences.fasta -o results/ -m xgb
 
 # Predict with a custom threshold
-python main.py -i sequences.fasta -o results/ -m voting --threshold 0.40
+python3 main.py -i sequences.fasta -o results/ -m voting --threshold 0.40
 
 # Include external models for comparison
-python main.py -i sequences.fasta -o results/ -e /path/to/custom_model.pkl
+python3 main.py -i sequences.fasta -o results/ -e /path/to/custom_model.pkl
 ```
 
 ### Output files
@@ -104,26 +104,13 @@ python main.py -i sequences.fasta -o results/ -e /path/to/custom_model.pkl
 
 ### Sources
 
-The dataset construction follows the strategy of Macrel (Santos-Júnior et al. 2020), which demonstrated that the quality of non-AMP negatives is as critical as the positive set for reliable AMP classification. The positive set contains unique sequences from APD3, CAMPR3, and LAMP databases, plus the AMP training set from AmPEP (Bhadra et al. 2018). Negative sequences were retrieved from UniProt Swiss-Prot (`reviewed:true`) and are restricted to entries not annotated as antimicrobial, membrane-associated, toxic, secretory, defensin, antibiotic, anticancer, or antifungal. The AmPEP non-AMP set, drawn from the same UniProt-curated strategy, was merged with our UniProt-derived negatives.
-
-**Positive sequences (AMPs):**
-
-| Source | Description |
-|---|---|
-| APD3 (2024) | Antimicrobial Peptide Database, natural AMP release 2024a |
-| CAMPR3 | Collection of Antimicrobial Peptides, release 3 |
-| LAMP | Library of Antimicrobial Peptides |
-| AmPEP | AMP training set from Bhadra et al. 2018 |
-
-**Negative sequences (non-AMPs):**
-
-UniProt Swiss-Prot (`reviewed:true`), excluding keywords KW-0929 (Antimicrobial), KW-0044 (Antibiotic), KW-0472 (Membrane), KW-0800 (Toxin), KW-0964 (Secreted), KW-0163 (Defensin), KW-0044 (Anticancer), KW-0244 (Antiviral); merged with the non-AMP set from AmPEP.
+AMPidentifier 2.0 uses the same positive and negative sequence sets as the beta pipeline (v1.0). No new data collection was performed.
 
 ### Pre-processing
 
-All sequences were filtered to retain only the 20 standard amino acids (ACDEFGHIKLMNPQRSTVWY) and sequences in the 5-255 residue range. Exact-sequence deduplication was applied across all merged sources.
+All sequences were filtered to retain only the 20 standard amino acids (ACDEFGHIKLMNPQRSTVWY) and sequences in the 5-255 residue range. Exact-sequence deduplication was applied.
 
-To prevent sequence length from acting as a discriminating feature, the negative set was subsampled using length-stratified sampling: the length distribution of the negative set was matched to the positive distribution across 10 equal-width bins, with per-bin quotas proportional to positive class counts. This follows the Macrel benchmark design (Santos-Júnior et al. 2020).
+To prevent sequence length from acting as a discriminating feature, the negative set was subsampled using length-stratified sampling: the length distribution of the negative set was matched to the positive distribution across 10 equal-width bins, with per-bin quotas proportional to positive class counts.
 
 ### Final composition
 
@@ -308,7 +295,6 @@ Tuning is performed with `model_training/tune.py`. `RandomizedSearchCV` samples 
 | RF | `max_depth` | None (unpruned) |
 | SVM | `C` | 2.796 |
 | SVM | `gamma` | 0.1 |
-| SVM | `kernel` | rbf |
 | GB | `n_estimators` | 293 |
 | GB | `learning_rate` | 0.0618 |
 | GB | `max_depth` | 6 |
@@ -365,7 +351,7 @@ The voting ensemble achieves AUC-ROC 0.977 and MCC 0.859, exceeding all individu
 
 ### Threshold optimization
 
-The default decision threshold of 0.50 is not used. After training or tuning, each model's probability output is swept from 0.10 to 0.90 in steps of 0.0125 on the test set, and the threshold that maximizes MCC is selected. MCC is sensitive to all four entries of the confusion matrix and provides a balanced criterion for binary classification on class-balanced datasets:
+The default decision threshold of 0.50 is not used. After training or tuning, each model's probability output is swept over 81 equally spaced values from 0.10 to 0.90 (step 0.01) on the test set, and the threshold that maximizes MCC is selected. MCC is sensitive to all four entries of the confusion matrix and provides a balanced criterion for binary classification on class-balanced datasets:
 
 $$\text{MCC} = \frac{TP \cdot TN - FP \cdot FN}{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)}}$$
 
@@ -404,7 +390,7 @@ Outputs saved to `benchmarking/`:
 | XGB | 0.9300 | 0.7070 | 0.8603 | 0.7874 | 0.9481 | 0.7441 | 0.48 |
 | VOTING | 0.9503 | 0.7424 | 0.8763 | 0.8144 | 0.9485 | 0.7838 | 0.56 |
 
-The voting ensemble achieves the highest AUC-ROC (0.950) and MCC (0.742) on the independent benchmark. All models show a drop in MCC relative to the internal test set (0.695-0.742 vs. 0.839-0.859). This is expected: the benchmark sequences come from a different source distribution. Recall remains high across all models (0.939-0.949), indicating consistent AMP sensitivity. Specificity is lower (0.742-0.787), reflecting the greater difficulty of rejecting non-AMP sequences in out-of-distribution data. RF achieves the best specificity (0.787) among the single models.
+The voting ensemble achieves the highest AUC-ROC (0.950) and MCC (0.742) on the independent benchmark. LGBM is not listed as a standalone entry here because it was not part of the original benchmark run; it contributes to the VOTING ensemble score. All models show a drop in MCC relative to the internal test set (0.695-0.742 vs. 0.839-0.859). This is expected: the benchmark sequences come from a different source distribution. Recall remains high across all models (0.939-0.949), indicating consistent AMP sensitivity. Specificity is lower (0.742-0.787), reflecting the greater difficulty of rejecting non-AMP sequences from out-of-distribution data. RF achieves the best specificity (0.787) among the single models.
 
 ### Comparison with AMPidentifier beta
 
@@ -486,37 +472,50 @@ Generated by `python3 -m model_training.plot_tuning`. Output: `model_training/tu
 
 ![Hyperparam XGB](model_training/tuned_model/figures/fig10_hyperparam_xgb.png)
 
-**Figure 16.** Per-model comparison of all metrics on the internal test set.
+**Figure 16.** Hyperparameter performance surface: LGBM.
 
-![Metrics comparison](model_training/tuned_model/figures/fig11_metrics_comparison.png)
+![Hyperparam LGBM](model_training/tuned_model/figures/fig11_hyperparam_lgbm.png)
 
-**Figure 17.** Precision-recall curves for all tuned models.
+**Figure 17.** Per-model comparison of all metrics on the internal test set.
 
-![Precision-recall](model_training/tuned_model/figures/fig12_precision_recall.png)
+![Metrics comparison](model_training/tuned_model/figures/fig12_metrics_comparison.png)
 
-**Figure 18.** Detection error tradeoff (DET) curves for all tuned models.
+**Figure 18.** Precision-recall curves for all tuned models.
 
-![DET curves](model_training/tuned_model/figures/fig13_det_curves.png)
+![Precision-recall](model_training/tuned_model/figures/fig13_precision_recall.png)
 
-**Figure 19.** Threshold sensitivity: MCC, F1, Precision, and Recall as a function of decision threshold for the best model (LGBM).
+**Figure 19.** Detection error tradeoff (DET) curves for all tuned models.
 
-![Threshold sensitivity](model_training/tuned_model/figures/fig14_threshold_sensitivity.png)
+![DET curves](model_training/tuned_model/figures/fig14_det_curves.png)
+
+**Figure 20.** Threshold sensitivity for all tuned models: MCC, F1, Precision, and Recall as a function of decision threshold. The vertical dashed line marks the MCC-optimized threshold; the star marks the MCC value at that threshold.
+
+![Threshold sensitivity](model_training/tuned_model/figures/fig15_threshold_sensitivity.png)
 
 ### Independent benchmark
 
 Generated by `python3 -m model_training.benchmark`. Output: `benchmarking/`.
 
-**Figure 20.** ROC curves for all models on the independent benchmark set.
+**Figure 21.** ROC curves for all models on the independent benchmark set.
 
 ![ROC curves](benchmarking/fig_bench_roc.png)
 
-**Figure 21.** Grouped bar chart of all metrics for all models on the independent benchmark set.
+**Figure 22.** Grouped bar chart of all metrics for all models on the independent benchmark set.
 
 ![Benchmark metrics](benchmarking/fig_bench_metrics.png)
 
-**Figure 22.** Confusion matrices for all models on the independent benchmark set.
+**Figure 23.** Confusion matrices for all models on the independent benchmark set.
 
 ![Confusion matrices](benchmarking/fig_bench_confusion.png)
+
+## Roadmap
+
+The following tasks are planned for future development.
+
+- [ ] **Benchmark LGBM standalone**: re-run `model_training/benchmark.py` after adding LGBM to `MODELS_ORDERED` and `SCALER_MAP`. Update Table 7 with per-model LGBM benchmark metrics.
+- [ ] **Repository cleanup**: remove stale artefacts, enforce directory conventions, and verify reproducibility from a clean clone. Prompt for Claude Code session:
+
+  > Review and clean the AMPidentifier 2.0 repository. Specifically: (1) list all files that are not referenced by any script and flag candidates for deletion; (2) confirm that `model_training/saved_model/` is obsolete (all production models are now in `model_training/tuned_model/`) and remove it if so; (3) verify that `__pycache__` directories and `*.pyc` files are covered by `.gitignore`; (4) check that `requirements.txt` lists every import found in the source files and remove any unused dependency; (5) confirm that the benchmark FASTA at `benchmarking/benchmark.fasta` and all figures under `model_training/tuned_model/figures/` and `benchmarking/` are either tracked by git or explicitly excluded; (6) report any broken relative paths in README.md. Do not delete anything without listing it first and waiting for confirmation.
 
 ## References
 
