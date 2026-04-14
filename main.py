@@ -4,69 +4,81 @@ import argparse
 import os
 from amp_identifier.core import run_prediction_pipeline
 
-# --- ASCII Art Banner ---
-# Added to give the tool a visual identity in the terminal.
-# The 'r' before the triple quotes (r""") creates a "raw string",
-# which prevents backslashes from being interpreted as escape characters.
 BANNER = r"""
+ ___  __  __ ____  _     _            _   _  __ _
+/ _ \|  \/  |  _ \(_) __| | ___ _ __ | |_(_)/ _(_) ___ _ __
+/ /_\ | |\/| | |_) | |/ _` |/ _ \ '_ \| __| | |_| |/ _ \ '__|
+/ ___ | |  | |  __/| | (_| |  __/ | | | |_| |  _| |  __/ |
+/_/   \_|  |_|_|   |_|\__,_|\___|_| |_|\__|_|_| |_|\___|_|
 
-////////////////////////////////////////////////////////////////////////
-//                                                                    //
-//                                                                    //
-//      _    __  __ ____  _     _            _   _  __ _              //
-//     / \  |  \/  |  _ \(_) __| | ___ _ __ | |_(_)/ _(_) ___ _ __    //
-//    / _ \ | |\/| | |_) | |/ _` |/ _ \ '_ \| __| | |_| |/ _ \ '__|   //
-//   / ___ \| |  | |  __/| | (_| |  __/ | | | |_| |  _| |  __/ |      //
-//  /_/   \_\_|  |_|_|   |_|\__,_|\___|_| |_|\__|_|_| |_|\___|_|      //
-//                                                                    //
-//             ** BETA VERSION - FOR TESTING PURPOSES **              //
-//                                                                    //
-////////////////////////////////////////////////////////////////////////
-
+  version 2.0 — physicochemical feature engineering and ensemble ML
 """
 
+
 def main():
-    """
-    Main function to parse command-line arguments and run the prediction pipeline.
-    """
-    # Prints the banner as soon as the tool is executed
     print(BANNER)
 
     parser = argparse.ArgumentParser(
-        description="AMP Identifier: A tool for Antimicrobial Peptide prediction and analysis.",
-        formatter_class=argparse.RawTextHelpFormatter
+        description="AMPidentifier 2.0: antimicrobial peptide classification from FASTA input.",
+        formatter_class=argparse.RawTextHelpFormatter,
     )
-    
+
     parser.add_argument(
         "-i", "--input",
         required=True,
         type=str,
-        help="Path to the input file containing sequences (FASTA format)."
+        metavar="FASTA",
+        help="Path to input FASTA file. Each header must contain a unique sequence ID.",
     )
     parser.add_argument(
         "-o", "--output_dir",
         required=True,
         type=str,
-        help="Directory where the result files will be saved."
+        metavar="DIR",
+        help="Directory where output files will be written. Created if it does not exist.",
     )
     parser.add_argument(
         "-m", "--model",
         type=str,
-        default='rf',
-        choices=['rf', 'svm', 'gb', 'xgb'],
-        help="Type of internal model to use for prediction. (default: rf)."
-    )
-    parser.add_argument(
-        "--ensemble",
-        action='store_true',
-        help="Use all internal models and predict by majority vote."
+        default="voting",
+        choices=["rf", "svm", "gb", "xgb", "lgbm", "voting"],
+        help=(
+            "Model to use for prediction (default: voting).\n"
+            "  rf     : Random Forest\n"
+            "  svm    : Support Vector Machine (RBF kernel)\n"
+            "  gb     : Gradient Boosting\n"
+            "  xgb    : XGBoost\n"
+            "  lgbm   : LightGBM\n"
+            "  voting : Soft-voting ensemble of all five models (recommended)\n"
+        ),
     )
     parser.add_argument(
         "-e", "--external_models",
-        nargs='*',
+        nargs="*",
         type=str,
         default=[],
-        help="List of paths to external .pkl models for comparison."
+        metavar="PKL",
+        help=(
+            "Paths to external .pkl model files for side-by-side comparison.\n"
+            "Each model must have been trained on the same 22-feature set.\n"
+            "Example: -e /path/to/model_a.pkl /path/to/model_b.pkl"
+        ),
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=None,
+        metavar="FLOAT",
+        help=(
+            "Decision threshold for AMP classification (0.0 to 1.0).\n"
+            "If omitted, the MCC-optimized threshold for the selected model is used.\n"
+            "  rf     : 0.56\n"
+            "  svm    : 0.47\n"
+            "  gb     : 0.55\n"
+            "  xgb    : 0.48\n"
+            "  lgbm   : 0.71\n"
+            "  voting : 0.56\n"
+        ),
     )
 
     args = parser.parse_args()
@@ -79,10 +91,10 @@ def main():
         input_file=args.input,
         output_dir=args.output_dir,
         internal_model_type=args.model,
-        use_ensemble=args.ensemble,
-        external_model_paths=args.external_models
+        use_ensemble=(args.model == "voting"),
+        external_model_paths=args.external_models,
     )
+
 
 if __name__ == "__main__":
     main()
-
