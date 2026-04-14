@@ -155,7 +155,7 @@ The feature set follows the Macrel design (Santos-Júnior et al. 2020), with add
 
 ### Global descriptors
 
-Six scalar descriptors were computed using `modlamp.GlobalDescriptor` (Müller et al. 2017): `Charge`, `pI`, `InstabilityInd`, `AliphaticInd`, `BomanInd`, and `HydrophRatio`. The hydrophobic moment was computed using `modlamp.PeptideDescriptor` with the Eisenberg hydrophobicity scale and a helical projection angle of $\delta = 100°$:
+Six scalar descriptors were computed using `modlamp.GlobalDescriptor` (Müller et al. 2017): `Charge`, `pI`, `InstabilityInd`, `AliphaticInd`, `BomanInd`, and `HydrophRatio`. The hydrophobic moment was computed using `modlamp.PeptideDescriptor` with the Eisenberg hydrophobicity scale (Eisenberg et al. 1982) and a helical projection angle of $\delta = 100°$:
 
 $$\mu_H = \frac{1}{L} \sqrt{ \left( \sum_{i=1}^{L} H_i \sin(i \cdot \delta) \right)^2 + \left( \sum_{i=1}^{L} H_i \cos(i \cdot \delta) \right)^2 }$$
 
@@ -451,7 +451,7 @@ Outputs saved to `benchmarking/`:
 | LGBM | 0.9480 | 0.7491 | 0.8794 | 0.8224 | 0.9449 | 0.7991 | 0.71 |
 | VOTING | 0.9503 | 0.7424 | 0.8763 | 0.8144 | 0.9485 | 0.7838 | 0.56 |
 
-LGBM achieves the highest MCC (0.749) and specificity (0.799) among all individual models on the independent benchmark, and the highest AUC-ROC among individual models (0.948). The voting ensemble reaches the highest overall AUC-ROC (0.950) by aggregating probability estimates across all five models. All models show a drop in MCC relative to the internal test set (0.695-0.855 vs. 0.839-0.859 on the internal set). This is expected: the benchmark sequences come from a different source distribution. Recall remains high across all models (0.939-0.949), indicating consistent AMP sensitivity. Specificity is lower (0.742-0.799), reflecting the greater difficulty of rejecting non-AMP sequences from out-of-distribution data.
+LGBM achieves the highest MCC (0.749) and specificity (0.799) among all individual models on the independent benchmark, and the highest AUC-ROC among individual models (0.948). The voting ensemble reaches the highest overall AUC-ROC (0.950) by aggregating probability estimates across all five models. All models show a drop in MCC relative to the internal test set (0.695-0.749 on the benchmark vs. 0.839-0.859 on the internal set). This is expected: the benchmark sequences come from a different source distribution. Recall remains high across all models (0.939-0.949), indicating consistent AMP sensitivity. Specificity is lower (0.742-0.799), reflecting the greater difficulty of rejecting non-AMP sequences from out-of-distribution data.
 
 ### Comparison with AMPidentifier beta
 
@@ -507,4 +507,3 @@ Santos-Júnior, C.D., Pan, S., Zhao, X.-M., and Coelho, L.P. (2020). Macrel: ant
 
 Von Heijne, G. and Blomberg, C. (1979). Trans-membrane translocation of proteins. The direct transfer model. *European Journal of Biochemistry*, 97(1), 175-181.
 
-Wang, G., Li, X., and Wang, Z. (2009). APD2: the updated antimicrobial peptide database and its application in peptide design. *Nucleic Acids Research*, 37(D1), D933-D937.
