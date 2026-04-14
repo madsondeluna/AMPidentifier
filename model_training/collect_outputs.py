@@ -1,16 +1,16 @@
 # model_training/collect_outputs.py
 #
-# Evaluates a single model in an isolated process and saves outputs to disk.
+# Evaluates a single tuned model in an isolated process and saves outputs to disk.
 # Called by plot_tuning.py via subprocess — one call per model.
 #
 # Usage:
 #   python -m model_training.collect_outputs <model_name>
-#   model_name: rf | svm | gb | xgb | mlp | stack | deep
+#   model_name: rf | svm | gb | xgb | lgbm | voting
 #
 # Outputs saved to model_training/tuned_model/outputs/<name>_outputs.npz:
-#   proba     - predicted probabilities on test set (float32)
-#   y_test    - true labels (int8)
-#   threshold - MCC-optimal threshold (scalar)
+#   proba      - predicted probabilities on test set (float32)
+#   y_test     - true labels (int8)
+#   threshold  - MCC-optimal threshold (scalar)
 #   importance - feature importances (float32, tree models only; zeros otherwise)
 
 import os
@@ -20,8 +20,8 @@ import numpy as np
 import pandas as pd
 import joblib
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import RobustScaler, QuantileTransformer, StandardScaler
-from sklearn.metrics import confusion_matrix, matthews_corrcoef
+from sklearn.preprocessing import RobustScaler, StandardScaler
+from sklearn.metrics import matthews_corrcoef
 
 from amp_identifier.feature_extraction import calculate_physicochemical_features
 from amp_identifier.data_io import load_fasta_sequences
@@ -36,17 +36,14 @@ RANDOM_STATE  = 42
 TEST_SIZE     = 0.20
 
 SCALER_MAP = {
-    "rf":    "robust",
-    "svm":   "std",
-    "gb":    "robust",
-    "xgb":   "robust",
-    "mlp":   "qt",
-    "stack": "robust",
+    "rf":     "robust",
+    "svm":    "std",
+    "gb":     "robust",
+    "xgb":    "robust",
+    "lgbm":   "robust",
 }
-TREE_MODELS = {"rf", "gb", "xgb"}
-
-AA_VOCAB = {aa: i + 1 for i, aa in enumerate("ACDEFGHIKLMNPQRSTVWY")}
-MAX_LEN  = 200
+TREE_MODELS = {"rf", "gb", "xgb", "lgbm"}
+VALID_MODELS = set(SCALER_MAP) | {"voting"}
 
 
 def _load_features_and_split():
@@ -68,17 +65,11 @@ def _load_features_and_split():
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
     )
-    return X_train, X_test, y_train, y_test, sequences, labels
+    return X_train, X_test, y_train, y_test
 
 
 def _scale(X_train, X_test, scaler_key):
-    if scaler_key == "robust":
-        scaler = RobustScaler()
-    elif scaler_key == "qt":
-        scaler = QuantileTransformer(output_distribution="normal",
-                                     random_state=RANDOM_STATE)
-    else:
-        scaler = StandardScaler()
+    scaler = RobustScaler() if scaler_key == "robust" else StandardScaler()
     scaler.fit(X_train)
     return pd.DataFrame(scaler.transform(X_test),
                         columns=X_test.columns, index=X_test.index)
@@ -94,9 +85,17 @@ def _threshold_mcc(proba, y_true):
     return best_t
 
 
+def load_threshold(name):
+    path = os.path.join(TUNED_DIR, f"threshold_{name}.txt")
+    if os.path.exists(path):
+        with open(path) as f:
+            return float(f.read().strip())
+    return 0.5
+
+
 def run_classical(name):
     print(f"  Loading features...")
-    X_train, X_test, y_train, y_test, _, _ = _load_features_and_split()
+    X_train, X_test, y_train, y_test = _load_features_and_split()
 
     scaler_key = SCALER_MAP[name]
     X_test_sc  = _scale(X_train, X_test, scaler_key)
@@ -121,81 +120,45 @@ def run_classical(name):
     return proba, y_test.astype(np.int8), thresh, importance
 
 
-def run_deep(sequences, labels):
-    import torch
+def run_voting():
+    print(f"  Loading features...")
+    X_train, X_test, y_train, y_test = _load_features_and_split()
 
-    _, seq_test, _, y_test = train_test_split(
-        sequences, labels,
-        test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=labels,
-    )
-    y_test = np.array(y_test, dtype=np.int8)
+    model_path = os.path.join(TUNED_DIR, "amp_model_voting_tuned.pkl")
+    print(f"  Loading voting ensemble...")
+    ensemble = joblib.load(model_path)
 
-    model_path = os.path.join(TUNED_DIR, "amp_model_deep.pt")
-    if not os.path.exists(model_path):
-        print("  Deep model not found.")
-        sys.exit(1)
+    print(f"  Computing probabilities...")
+    proba = ensemble.predict_proba(X_test)[:, 1].astype(np.float32)
 
-    device = (
-        torch.device("mps") if torch.backends.mps.is_available()
-        else torch.device("cuda") if torch.cuda.is_available()
-        else torch.device("cpu")
-    )
+    thresh = load_threshold("voting")
+    importance = np.zeros(X_test.shape[1], dtype=np.float32)
+    del ensemble
+    gc.collect()
 
-    from model_training.train_deep import AmpDeepModel
-    state = torch.load(model_path, map_location=device, weights_only=True)
-    model = AmpDeepModel().to(device)
-    model.load_state_dict(state)
-    model.eval()
-
-    def _encode(seq):
-        t = [AA_VOCAB.get(aa.upper(), 0) for aa in seq]
-        if len(t) >= MAX_LEN:
-            return t[:MAX_LEN]
-        return t + [0] * (MAX_LEN - len(t))
-
-    tensors = torch.tensor([_encode(s) for s in seq_test], dtype=torch.long)
-    all_proba = []
-    with torch.no_grad():
-        for i in range(0, len(tensors), 256):
-            xb     = tensors[i:i + 256].to(device)
-            logits = model(xb).cpu().numpy()
-            all_proba.append(1.0 / (1.0 + np.exp(-logits)))
-
-    proba  = np.concatenate(all_proba).astype(np.float32)
-    thresh = load_threshold("deep")
-    return proba, y_test, thresh, np.zeros(0, dtype=np.float32)
-
-
-def load_threshold(name):
-    path = os.path.join(TUNED_DIR, f"threshold_{name}.txt")
-    if os.path.exists(path):
-        with open(path) as f:
-            return float(f.read().strip())
-    return 0.5
+    return proba, y_test.astype(np.int8), thresh, importance
 
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: python -m model_training.collect_outputs <model_name>")
+        print(f"  model_name: {' | '.join(sorted(VALID_MODELS))}")
         sys.exit(1)
 
     name = sys.argv[1].lower()
+    if name not in VALID_MODELS:
+        print(f"Unknown model: {name}. Choose from: {' | '.join(sorted(VALID_MODELS))}")
+        sys.exit(1)
+
     os.makedirs(OUT_DIR, exist_ok=True)
     out_path = os.path.join(OUT_DIR, f"{name}_outputs.npz")
 
     print(f"Collecting outputs for {name.upper()}...")
 
-    if name == "deep":
-        pos_seqs, _ = load_fasta_sequences(POSITIVE_FILE)
-        neg_seqs, _ = load_fasta_sequences(NEGATIVE_FILE)
-        sequences   = pos_seqs + neg_seqs
-        labels      = [1] * len(pos_seqs) + [0] * len(neg_seqs)
-        proba, y_test, thresh, importance = run_deep(sequences, labels)
-    elif name in SCALER_MAP:
-        proba, y_test, thresh, importance = run_classical(name)
+    if name == "voting":
+        proba, y_test, thresh, importance = run_voting()
     else:
-        print(f"Unknown model: {name}")
-        sys.exit(1)
+        proba, y_test, thresh, importance = run_classical(name)
 
     np.savez_compressed(out_path,
                         proba=proba,

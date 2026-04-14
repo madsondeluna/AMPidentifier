@@ -89,28 +89,26 @@ COL2 = 7.20
 
 # Nature Publishing Group (NPG) palette — ggsci::pal_npg
 COLORS = {
-    "RF":    "#4DBBD5",   # sky blue
-    "SVM":   "#E64B35",   # cinnabar
-    "GB":    "#00A087",   # observatory green
-    "XGB":   "#3C5488",   # san marino navy
-    "MLP":   "#F39B7F",   # tacao salmon
-    "STACK": "#8491B4",   # wistful lavender
-    "DEEP":  "#7E6148",   # spicy mix brown
+    "RF":     "#4DBBD5",   # sky blue
+    "SVM":    "#E64B35",   # cinnabar
+    "GB":     "#00A087",   # observatory green
+    "XGB":    "#3C5488",   # san marino navy
+    "LGBM":   "#F39B7F",   # tacao salmon
+    "VOTING": "#8491B4",   # wistful lavender
 }
 ALPHA    = 0.85
 ENS_CLR  = "#444444"
 
-BEST_MODEL = "GB"   # highest AUC-ROC and MCC across all tuned models
+BEST_MODEL = "LGBM"   # highest MCC among single tuned models
 
 # Distinct linestyles — one per model so colour + style give two visual channels
 LINESTYLES = {
-    "RF":    "-",
-    "SVM":   (0, (5, 1)),         # long dash
-    "GB":    "-.",
-    "XGB":   ":",
-    "MLP":   (0, (3, 1, 1, 1)),   # dash-dot-dot
-    "STACK": (0, (1, 1)),         # dense dots
-    "DEEP":  "--",
+    "RF":     "-",
+    "SVM":    (0, (5, 1)),
+    "GB":     "-.",
+    "XGB":    ":",
+    "LGBM":   (0, (3, 1, 1, 1)),
+    "VOTING": (0, (1, 1)),
 }
 
 # Per-metric colours for threshold-sensitivity plot
@@ -128,9 +126,9 @@ NPZ_DIR   = os.path.join(TUNED_DIR, "outputs")
 DATA_DIR      = "model_training/data"
 SEL_FEAT_PATH = os.path.join(DATA_DIR, "selected_features.txt")
 
-TREE_MODELS     = {"RF", "GB", "XGB"}
-CLASSICAL_ORDER = ["RF", "SVM", "GB", "XGB", "MLP", "STACK"]
-ALL_MODELS      = CLASSICAL_ORDER + ["DEEP"]
+TREE_MODELS     = {"RF", "GB", "XGB", "LGBM"}
+CLASSICAL_ORDER = ["RF", "SVM", "GB", "XGB", "LGBM"]
+ALL_MODELS      = CLASSICAL_ORDER + ["VOTING"]
 
 
 # ---------------------------------------------------------------------------
@@ -435,7 +433,7 @@ def fig04_feature_importance(outputs: dict):
 # Fig 05 — CV score distribution
 # ---------------------------------------------------------------------------
 def fig05_cv_score_distribution():
-    cv_names = ["rf", "gb", "svm", "xgb", "mlp", "stack"]
+    cv_names = ["rf", "gb", "svm", "xgb", "lgbm"]
     data = {}
     for m in cv_names:
         cv = load_cv_results(m)
@@ -485,7 +483,7 @@ def fig05_cv_score_distribution():
 # Fig 06 — Top 10 candidates per model
 # ---------------------------------------------------------------------------
 def fig06_top10_candidates():
-    cv_names = ["rf", "gb", "svm", "xgb", "mlp", "stack"]
+    cv_names = ["rf", "gb", "svm", "xgb", "lgbm"]
     available = {}
     for m in cv_names:
         cv = load_cv_results(m)

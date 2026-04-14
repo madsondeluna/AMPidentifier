@@ -1,160 +1,183 @@
 # amp_identifier/core.py
 
 import os
-import glob
+import joblib
+import numpy as np
 import pandas as pd
-from . import data_io, feature_extraction, prediction, reporting
+from . import data_io, feature_extraction, reporting
 
-# Define the location of internal models
-MODEL_DIR = "model_training/saved_model"
-SCALER_PATH = os.path.join(MODEL_DIR, "feature_scaler.pkl")
+TUNED_DIR = "model_training/tuned_model"
+DATA_DIR  = "model_training/data"
+
+SEL_FEAT_PATH = os.path.join(DATA_DIR, "selected_features.txt")
+
+# Scaler each individual model expects (VotingEnsemble handles scaling internally)
+SCALER_MAP = {
+    "rf":   "robust",
+    "svm":  "std",
+    "gb":   "robust",
+    "xgb":  "robust",
+    "lgbm": "robust",
+}
+
+THRESHOLD_DEFAULTS = {
+    "rf":     0.56,
+    "svm":    0.47,
+    "gb":     0.55,
+    "xgb":    0.48,
+    "lgbm":   0.71,
+    "voting": 0.56,
+}
 
 
-def run_prediction_pipeline(input_file: str, output_dir: str, internal_model_type: str, use_ensemble: bool, external_model_paths: list):
-    """Orchestrates the full prediction pipeline with model selection and ensemble options."""
-    
-    print("\n" + "="*72)
-    print("AMP IDENTIFICATION PIPELINE")
-    print("="*72 + "\n")
+def _load_selected_features():
+    if not os.path.exists(SEL_FEAT_PATH):
+        return None
+    with open(SEL_FEAT_PATH) as f:
+        return [l.strip() for l in f if l.strip()]
+
+
+def _load_threshold(model_type, override=None):
+    if override is not None:
+        return float(override)
+    path = os.path.join(TUNED_DIR, f"threshold_{model_type}.txt")
+    if os.path.exists(path):
+        with open(path) as f:
+            return float(f.read().strip())
+    return THRESHOLD_DEFAULTS.get(model_type, 0.5)
+
+
+def run_prediction_pipeline(
+    input_file: str,
+    output_dir: str,
+    internal_model_type: str,
+    use_ensemble: bool,
+    external_model_paths: list,
+    threshold_override=None,
+):
+    print("\n" + "=" * 72)
+    print("AMPidentifier 2.0 — prediction pipeline")
+    print("=" * 72 + "\n")
 
     # Step 1: Load sequences
     print("Step 1/4: Loading sequences")
     sequences, seq_ids = data_io.load_fasta_sequences(input_file)
-    
     if not sequences:
-        print("- No sequences loaded. Exiting pipeline.")
+        print("No sequences loaded. Exiting.")
         return
-    print(f"- Found {len(sequences)} sequence(s)\n")
+    print(f"  {len(sequences)} sequence(s) found\n")
 
-    # Step 2: Calculate features
+    # Step 2: Extract features
     print("Step 2/4: Extracting features")
     features_df = feature_extraction.calculate_physicochemical_features(sequences, seq_ids)
     features_df.fillna(0, inplace=True)
-    
-    features_report_path = os.path.join(output_dir, "physicochemical_features.csv")
-    reporting.save_features_report(features_df, features_report_path)
-    print(f"- Features saved to {features_report_path}\n")
+
+    selected = _load_selected_features()
+    if selected:
+        missing = [f for f in selected if f not in features_df.columns]
+        if missing:
+            print(f"  Warning: {len(missing)} selected features absent from feature matrix.")
+        X_raw = features_df[[f for f in selected if f in features_df.columns]].fillna(0)
+    else:
+        meta_cols = {"ID", "sequence", "label"}
+        X_raw = features_df[[c for c in features_df.columns if c not in meta_cols]].fillna(0)
+
+    feat_path = os.path.join(output_dir, "physicochemical_features.csv")
+    reporting.save_features_report(features_df, feat_path)
+    print(f"  Features saved to {feat_path}\n")
 
     # Step 3: Run predictions
     print("Step 3/4: Running predictions")
-    print(f"- Loading feature scaler...")
-    scaler = prediction.load_scaler(SCALER_PATH)
-    if scaler is None:
-        print("  Warning: Could not load scaler")
-    
-    all_predictions = {}
-    
-    print("\n")
+    model_type = internal_model_type.lower()
 
-    # --- Ensemble Voting Logic ---
-    if use_ensemble:
-        print(f"Mode: Ensemble (RF + SVM + GB + XGB)")
-        internal_model_paths = glob.glob(os.path.join(MODEL_DIR, "amp_model_*.pkl"))
-        
-        total_models = len(internal_model_paths)
-        
-        for model_path in internal_model_paths:
-            model_name = os.path.splitext(os.path.basename(model_path))[0].replace('amp_model_', '').upper()
-            print(f"- Processing {model_name}...")
-            
-            internal_model = prediction.load_model(model_path)
-            if internal_model:
-                internal_results = prediction.predict_sequences(internal_model, features_df.copy(), scaler)
-                all_predictions[f"internal_{model_name.lower()}"] = internal_results
-
-        print("\n" + "="*72)
-        print(f"{total_models} models successfully processed")
-        print("="*72)
-
-        print("\n")
-    
-    # --- Single Internal Model Logic ---
-    else:
-        print(f"Mode: Single model ({internal_model_type.upper()})")
-        
-        model_path = os.path.join(MODEL_DIR, f"amp_model_{internal_model_type}.pkl")
-        internal_model = prediction.load_model(model_path)
-        if internal_model:
-            internal_results = prediction.predict_sequences(internal_model, features_df.copy(), scaler)
-            all_predictions[f"internal_{internal_model_type}"] = internal_results
-        
-        print(f"Model executed\n")
-
-    # --- External Model Logic ---
-    if external_model_paths:
-        total_ext = len(external_model_paths)
-        
-        for model_path in external_model_paths:
-            model_name = os.path.splitext(os.path.basename(model_path))[0]
-            print(f"- Loading {model_name}...")
-            
-            external_model = prediction.load_model(model_path)
-            if external_model:
-                external_results = prediction.predict_sequences(external_model, features_df.copy(), None)
-                all_predictions[f"external_{model_name}"] = external_results
-        
-        print(f"{total_ext} external model(s) processed\n")
-    
-    # Step 4: Generate Report
-    if not all_predictions:
-        print("No models loaded. Cannot generate report.")
-        print("="*80)
+    model_path = os.path.join(TUNED_DIR, f"amp_model_{model_type}_tuned.pkl")
+    if not os.path.exists(model_path):
+        print(f"  Model file not found: {model_path}")
+        print("  Run `python3 -m model_training.tune` to generate tuned models.")
         return
-    
-    print("Step 4/4: Generating report")
-    
-    comparison_report_path = os.path.join(output_dir, "prediction_comparison_report.csv")
-    reporting.save_comparison_report(features_df, all_predictions, use_ensemble, comparison_report_path)
-    
-    print(f"- Report saved to {comparison_report_path}\n")
-    
-    # Calculate and display statistics
-    print("\n" + "="*72)
-    print("PREDICTION SUMMARY")
-    print("="*72 + "\n")
-    
-    report_df = pd.read_csv(comparison_report_path)
-    total_sequences = len(report_df)
-    
-    # Determine which column to use for AMP classification
-    if use_ensemble and 'ensemble_prediction' in report_df.columns:
-        amp_count = int(report_df['ensemble_prediction'].sum())
-        prediction_method = "Ensemble Voting"
-    elif f'pred_internal_{internal_model_type}' in report_df.columns:
-        amp_count = int(report_df[f'pred_internal_{internal_model_type}'].sum())
-        prediction_method = f"{internal_model_type.upper()}"
+
+    model = joblib.load(model_path)
+    print(f"  Loaded: {model_path}")
+
+    if model_type == "voting":
+        # VotingEnsemble stores its own scalers
+        proba = model.predict_proba(X_raw)[:, 1]
     else:
-        pred_cols = [col for col in report_df.columns if col.startswith('pred_')]
-        if pred_cols:
-            amp_count = int(report_df[pred_cols[0]].sum())
-            prediction_method = "Single Model"
+        # Individual model: apply the appropriate scaler from tuned_model/
+        scaler_key  = SCALER_MAP[model_type]
+        scaler_path = os.path.join(TUNED_DIR, f"scaler_{scaler_key}.pkl")
+        if os.path.exists(scaler_path):
+            scaler = joblib.load(scaler_path)
+            X_sc   = pd.DataFrame(
+                scaler.transform(X_raw),
+                columns=X_raw.columns, index=X_raw.index,
+            )
         else:
-            amp_count = 0
-            prediction_method = "Unknown"
-    
-    non_amp_count = total_sequences - amp_count
-    amp_percentage = (amp_count / total_sequences * 100) if total_sequences > 0 else 0
-    non_amp_percentage = 100 - amp_percentage
-    
-    # Create compact visual bar (40 chars total)
-    bar_total = 40
-    amp_bar_len = int(amp_percentage * bar_total / 100)
-    non_amp_bar_len = bar_total - amp_bar_len
-    
-    print(f"Sequences analyzed: {total_sequences}")
-    print(f"Method: {prediction_method}")
-    print()
-    print(f"Potential AMPs detected:    {amp_count:3d} ({amp_percentage:5.1f}%)  [{'█' * amp_bar_len}{'░' * non_amp_bar_len}]")
-    print(f"Potential Non-AMPs:         {non_amp_count:3d} ({non_amp_percentage:5.1f}%)  [{'░' * amp_bar_len}{'█' * non_amp_bar_len}]")
-    print()
-    print(f"Predicted Results: {comparison_report_path}")
-    print()
+            print(f"  Warning: scaler not found at {scaler_path}. Using unscaled features.")
+            X_sc = X_raw
+        proba = model.predict_proba(X_sc)[:, 1]
 
-    print("="*80)
+    threshold = _load_threshold(model_type, threshold_override)
+    predictions = (proba >= threshold).astype(int)
 
-    # Citation message
-    print("If this tool supports your research, please cite:")
-    print("Luna-Aragão, M. A., da Silva, R. L., Pacífico, J., Santos-Silva, C. A. & Benko-Iseppon, A. M. (2025).")
-    print("AMPidentifier: A Python toolkit for predicting antimicrobial peptides using ensemble machine learning.")
-    print("GitHub repository: https://github.com/madsondeluna/AMPIdentifier")
-    print("="*80 + "\n")
+    results_df = pd.DataFrame({
+        "ID":             features_df["ID"],
+        "sequence":       features_df["sequence"],
+        "probability_AMP": np.round(proba, 4),
+        "prediction":     predictions,
+        "label":          predictions.astype(str),
+    })
+    results_df["label"] = results_df["prediction"].map({1: "AMP", 0: "non-AMP"})
+
+    pred_path = os.path.join(output_dir, f"predictions_{model_type}.csv")
+    results_df.to_csv(pred_path, index=False)
+    print(f"  Predictions saved to {pred_path}\n")
+
+    # External models
+    if external_model_paths:
+        print(f"  Running {len(external_model_paths)} external model(s)...")
+        for ext_path in external_model_paths:
+            ext_name = os.path.splitext(os.path.basename(ext_path))[0]
+            try:
+                ext_model = joblib.load(ext_path)
+                ext_proba = ext_model.predict_proba(X_raw)[:, 1]
+                ext_pred  = (ext_proba >= 0.5).astype(int)
+                ext_df    = results_df[["ID", "sequence"]].copy()
+                ext_df["probability_AMP"] = np.round(ext_proba, 4)
+                ext_df["prediction"]      = ext_pred
+                ext_df["label"]           = ext_df["prediction"].map({1: "AMP", 0: "non-AMP"})
+                ext_out = os.path.join(output_dir, f"predictions_{ext_name}.csv")
+                ext_df.to_csv(ext_out, index=False)
+                print(f"    {ext_name}: saved to {ext_out}")
+            except Exception as e:
+                print(f"    {ext_name}: failed — {e}")
+
+    # Step 4: Summary
+    print("Step 4/4: Summary")
+    n_total   = len(results_df)
+    n_amp     = int(predictions.sum())
+    n_non_amp = n_total - n_amp
+    pct_amp   = n_amp / n_total * 100 if n_total > 0 else 0.0
+
+    bar_len  = 40
+    amp_bars = int(pct_amp * bar_len / 100)
+    non_bars = bar_len - amp_bars
+
+    print()
+    print("=" * 72)
+    print("PREDICTION SUMMARY")
+    print("=" * 72)
+    print(f"  Model          : {model_type.upper()}")
+    print(f"  Threshold      : {threshold:.2f}")
+    print(f"  Total sequences: {n_total}")
+    print()
+    print(f"  AMP detected   : {n_amp:4d} ({pct_amp:5.1f}%)  [{'|' * amp_bars}{' ' * non_bars}]")
+    print(f"  Non-AMP        : {n_non_amp:4d} ({100 - pct_amp:5.1f}%)  [{' ' * amp_bars}{'|' * non_bars}]")
+    print()
+    print(f"  Output         : {pred_path}")
+    print("=" * 72)
+    print()
+    print("  Citation:")
+    print("  Luna-Aragão, M.A. et al. (2025). AMPidentifier 2.0.")
+    print("  Journal of Chemical Information and Modeling.")
+    print("=" * 72 + "\n")
