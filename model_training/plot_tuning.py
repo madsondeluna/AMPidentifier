@@ -15,11 +15,15 @@
 #   fig04_feature_importance.png
 #   fig05_cv_score_distribution.png
 #   fig06_top10_candidates.png
-#   fig07_hyperparam_rf.png  ...  fig10_hyperparam_xgb.png
-#   fig11_metrics_comparison.png
-#   fig12_precision_recall.png
-#   fig13_det_curves.png
-#   fig14_threshold_sensitivity.png
+#   fig07_hyperparam_rf.png
+#   fig08_hyperparam_gb.png
+#   fig09_hyperparam_svm.png
+#   fig10_hyperparam_xgb.png
+#   fig11_hyperparam_lgbm.png
+#   fig12_metrics_comparison.png
+#   fig13_precision_recall.png
+#   fig14_det_curves.png
+#   fig15_threshold_sensitivity.png
 #
 # Run from project root:
 #   python -m model_training.plot_tuning
@@ -35,6 +39,7 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import AutoMinorLocator, MaxNLocator
 from scipy.ndimage import uniform_filter1d
 from scipy.stats import mode as scipy_mode
@@ -157,6 +162,40 @@ def rolling_mean(y, w=5):
     return uniform_filter1d(y.astype(float), size=w, mode="nearest")
 
 
+def _darken(hex_color, factor=0.60):
+    """Return a darker variant of a hex color for star markers."""
+    import matplotlib.colors as mc
+    r, g, b = mc.to_rgb(hex_color)
+    return (r * factor, g * factor, b * factor)
+
+
+def _centered_axes(fig, n, ncols, subplot_kw=None):
+    """
+    Return a flat list of n Axes in rows of ncols.
+    The last row (if incomplete) is centered horizontally via a
+    doubled-column GridSpec.
+    """
+    nrows     = (n + ncols - 1) // ncols
+    remainder = n % ncols
+    gs_cols   = ncols * 2
+    kw        = subplot_kw or {}
+    gs        = GridSpec(nrows, gs_cols, figure=fig)
+    axes      = []
+    full_rows = nrows if remainder == 0 else nrows - 1
+
+    for r in range(full_rows):
+        for c in range(ncols):
+            axes.append(fig.add_subplot(gs[r, c * 2 : c * 2 + 2], **kw))
+
+    if remainder > 0:
+        offset = (gs_cols - remainder * 2) // 2
+        for i in range(remainder):
+            c0 = offset + i * 2
+            axes.append(fig.add_subplot(gs[nrows - 1, c0 : c0 + 2], **kw))
+
+    return axes
+
+
 def _leg_outside(ax, loc="upper left", bbox=(1.02, 1.0), **kw):
     """Place legend outside axes to the right."""
     return ax.legend(loc=loc, bbox_to_anchor=bbox,
@@ -230,7 +269,7 @@ def collect_all_outputs(model_names: list) -> dict:
 # Fig 01 — ROC curves
 # ---------------------------------------------------------------------------
 def fig01_roc_curves(outputs: dict):
-    fig, ax = plt.subplots(figsize=(COL1 + 1.6, COL1))
+    fig, ax = plt.subplots(figsize=(COL2 * 0.72, COL1))
 
     for name, out in outputs.items():
         if out is None:
@@ -253,21 +292,34 @@ def fig01_roc_curves(outputs: dict):
             tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
             op_fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
             op_tpr = tp / (tp + fn) if (tp + fn) > 0 else 1.0
-            ax.scatter([op_fpr], [op_tpr], marker="*", color=COLORS[name],
+            ax.scatter([op_fpr], [op_tpr], marker="*",
+                       color=_darken(COLORS[name]),
                        s=55, zorder=6, linewidths=0)
 
     ax.plot([0, 1], [0, 1], color="#bbbbbb", linewidth=0.7, linestyle=":")
-    ax.set_xlim([-0.01, 1.01])
-    ax.set_ylim([-0.01, 1.01])
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1.02)
+    ticks = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels([f"{t:.1f}" for t in ticks])
+    ax.set_yticks(ticks)
+    ax.set_yticklabels([f"{t:.1f}" for t in ticks])
     ax.set_xlabel("False Positive Rate")
     ax.set_ylabel("True Positive Rate")
     ax.set_title("ROC Curves on Held-Out Test Set")
     ax.xaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-    _leg_outside(ax, title="Model  AUC", title_fontsize=6.5)
-
+    n_mod = len([n for n, o in outputs.items() if o is not None])
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=n_mod,
+        fontsize=6,
+        frameon=False,
+        handlelength=1.5,
+        columnspacing=0.8,
+    )
     fig.tight_layout()
-    fig.subplots_adjust(right=0.74)
     savefig(fig, "fig01_roc_curves.png")
 
 
@@ -277,58 +329,49 @@ def fig01_roc_curves(outputs: dict):
 def fig02_confusion_matrices(outputs: dict):
     names = [n for n, o in outputs.items() if o is not None]
     n     = len(names)
-    ncols = 4
+    ncols = 3
     nrows = (n + ncols - 1) // ncols
-    fig, axes = plt.subplots(nrows, ncols,
-                             figsize=(2.35 * ncols, 2.6 * nrows),
-                             squeeze=False)
-    axes_flat = axes.flatten()
+    cell_in = 2.0
+    fig = plt.figure(figsize=(ncols * cell_in + 0.4, nrows * cell_in + 0.7))
+    axes = _centered_axes(fig, n, ncols)
 
     for idx, name in enumerate(names):
-        ax     = axes_flat[idx]
+        ax     = axes[idx]
         out    = outputs[name]
         y_test = out["y_test"]
         y_pred = out["y_pred"]
         tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
-        mat   = np.array([[tn, fp], [fn, tp]], dtype=float)
+        mat = np.array([[tn, fp], [fn, tp]], dtype=int)
+        tot = mat.sum()
 
-        color = COLORS[name]
-        cmap  = mpl.colors.LinearSegmentedColormap.from_list(
-            "cm", ["#f8f8f8", color], N=256
-        )
-        im = ax.imshow(mat, cmap=cmap, vmin=0, vmax=mat.max(), aspect="equal")
+        ax.imshow(mat, interpolation="nearest", cmap="Blues",
+                  vmin=0, vmax=tot, aspect="equal")
+        ax.set_box_aspect(1)
 
-        # Colorbar (thin, right side of each subplot)
-        cbar = fig.colorbar(im, ax=ax, fraction=0.042, pad=0.03)
-        cbar.ax.tick_params(labelsize=5.5)
-        cbar.outline.set_linewidth(0.4)
-
-        cell_labels = [["TN", "FP"], ["FN", "TP"]]
         for i in range(2):
             for j in range(2):
                 val = mat[i, j]
-                tc  = "white" if val > mat.max() * 0.52 else "#222222"
-                ax.text(j, i, f"{cell_labels[i][j]}\n{int(val)}",
-                        ha="center", va="center", fontsize=7,
-                        color=tc, fontweight="bold")
+                pct = val / tot * 100
+                tc  = "white" if val > tot * 0.45 else "#222222"
+                ax.text(j, i, f"{val}\n({pct:.1f}%)",
+                        ha="center", va="center", fontsize=6.5, color=tc)
 
         ax.set_xticks([0, 1])
         ax.set_yticks([0, 1])
-        ax.set_xticklabels(["Neg.", "Pos."], fontsize=6.5)
-        ax.set_yticklabels(["Neg.", "Pos."] if idx % ncols == 0 else ["", ""],
-                           fontsize=6.5)
-        ax.set_xlabel("Predicted Label", fontsize=6.5)
-        if idx % ncols == 0:
-            ax.set_ylabel("True Label", fontsize=6.5)
+        ax.set_xticklabels(["Non-AMP", "AMP"], fontsize=6.5)
+        ax.set_yticklabels(["Non-AMP", "AMP"], fontsize=6.5)
+        ax.set_xlabel("Predicted", fontsize=7)
+        ax.set_ylabel("True", fontsize=7)
 
         mcc = matthews_corrcoef(y_test, y_pred)
         acc = accuracy_score(y_test, y_pred)
-        ax.set_title(f"{name} - Acc={acc:.3f}, MCC={mcc:.3f}", fontsize=7.5)
+        ax.set_title(
+            f"{name}",
+            fontsize=8, color=COLORS[name], fontweight="bold",
+        )
+        ax.set_xlabel(f"Acc={acc:.3f}  MCC={mcc:.3f}", fontsize=6.5)
 
-    for idx in range(n, len(axes_flat)):
-        axes_flat[idx].set_visible(False)
-
-    fig.suptitle("Confusion Matrices on Held-Out Test Set", fontsize=9, y=1.01)
+    fig.suptitle("Confusion Matrices on Held-Out Test Set", fontsize=9)
     fig.tight_layout()
     savefig(fig, "fig02_confusion_matrices.png")
 
@@ -337,23 +380,38 @@ def fig02_confusion_matrices(outputs: dict):
 # Fig 03 — Calibration curves
 # ---------------------------------------------------------------------------
 def fig03_calibration(outputs: dict):
-    fig, ax = plt.subplots(figsize=(COL1 + 1.6, COL1))
+    fig, ax = plt.subplots(figsize=(COL2 * 0.55, COL1))
 
-    for name, out in outputs.items():
-        if out is None:
-            continue
+    valid_names = [n for n, o in outputs.items() if o is not None]
+    for name in valid_names:
+        out = outputs[name]
         frac_pos, mean_pred = calibration_curve(
             out["y_test"], out["proba"], n_bins=10
         )
         is_best = name == BEST_MODEL
+        color   = COLORS[name]
         lw      = 1.6 if is_best else 1.0
         ls      = LINESTYLES.get(name, "-")
-        mrk     = "D" if is_best else "o"
-        ms      = 3.5 if is_best else 2.5
         al      = 1.0 if is_best else ALPHA * 0.80
-        ax.plot(mean_pred, frac_pos, color=COLORS[name], linewidth=lw,
-                linestyle=ls, marker=mrk, markersize=ms, alpha=al,
-                label=name, zorder=5 if is_best else 3)
+
+        # Raw calibration points (semi-transparent)
+        ax.scatter(mean_pred, frac_pos, color=color, s=14,
+                   alpha=al * 0.45, zorder=3, linewidths=0)
+
+        # Smoothed line (rolling mean via interpolation at finer resolution)
+        if len(mean_pred) >= 3:
+            from scipy.interpolate import interp1d
+            f_interp = interp1d(mean_pred, frac_pos, kind="linear",
+                                fill_value="extrapolate")
+            x_fine   = np.linspace(mean_pred.min(), mean_pred.max(), 80)
+            y_fine   = rolling_mean(f_interp(x_fine), w=7)
+            ax.plot(x_fine, y_fine, color=color, linewidth=lw,
+                    linestyle=ls, alpha=al, label=name,
+                    zorder=5 if is_best else 3)
+        else:
+            ax.plot(mean_pred, frac_pos, color=color, linewidth=lw,
+                    linestyle=ls, alpha=al, label=name,
+                    zorder=5 if is_best else 3)
 
     ax.plot([0, 1], [0, 1], color="#bbbbbb", linewidth=0.7,
             linestyle=":", label="Ideal")
@@ -364,10 +422,16 @@ def fig03_calibration(outputs: dict):
     ax.set_title("Probability Calibration (Reliability Diagram)")
     ax.xaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-    _leg_outside(ax)
-
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=len(valid_names) + 1,
+        fontsize=6,
+        frameon=False,
+        handlelength=1.5,
+        columnspacing=0.8,
+    )
     fig.tight_layout()
-    fig.subplots_adjust(right=0.74)
     savefig(fig, "fig03_calibration.png")
 
 
@@ -388,18 +452,18 @@ def fig04_feature_importance(outputs: dict):
 
     n     = len(target)
     top_k = 20
-    ncols = min(n, 3)
+    # Fit all in one row when possible; max 4 per row for readability
+    ncols = min(n, 4)
     nrows = (n + ncols - 1) // ncols
 
     # Height computed from feature count to avoid excess whitespace
     row_h = max(3.0, top_k * 0.16 + 1.0)
-    fig, axes = plt.subplots(nrows, ncols,
-                             figsize=(COL2, row_h * nrows),
-                             sharey=False, squeeze=False)
-    axes_flat = axes.flatten()
+    col_w = max(COL2 / 3, COL2 / ncols)
+    fig = plt.figure(figsize=(col_w * ncols, row_h * nrows))
+    axes = _centered_axes(fig, n, ncols)
 
     for idx, (name, out) in enumerate(target.items()):
-        ax         = axes_flat[idx]
+        ax         = axes[idx]
         color      = COLORS[name]
         importance = out["importance"]
         order      = np.argsort(importance)[-top_k:]
@@ -417,9 +481,6 @@ def fig04_feature_importance(outputs: dict):
         ax.tick_params(left=False)
         ax.xaxis.set_minor_locator(AutoMinorLocator(2))
         ax.axvline(0, color="#888888", linewidth=0.5)
-
-    for idx in range(n, len(axes_flat)):
-        axes_flat[idx].set_visible(False)
 
     fig.suptitle(
         f"Feature Importance: Top {top_k} of {len(feat_names)} Selected Features",
@@ -466,7 +527,7 @@ def fig05_cv_score_distribution():
 
         best_idx = np.argmax(scores)
         ax.scatter([pos + jitter[best_idx]], [scores[best_idx]],
-                   color=color, s=26, marker="*", zorder=5, linewidths=0)
+                   color=_darken(color), s=26, marker="*", zorder=5, linewidths=0)
 
     ax.set_xticks(positions)
     ax.set_xticklabels(list(data.keys()))
@@ -497,13 +558,11 @@ def fig06_top10_candidates():
     n     = len(available)
     ncols = 3
     nrows = (n + ncols - 1) // ncols
-    fig, axes = plt.subplots(nrows, ncols,
-                             figsize=(COL2, nrows * 2.5),
-                             squeeze=False)
-    axes_flat = axes.flatten()
+    fig   = plt.figure(figsize=(COL2, nrows * 2.5))
+    axes  = _centered_axes(fig, n, ncols)
 
     for idx, (model, cv) in enumerate(available.items()):
-        ax    = axes_flat[idx]
+        ax    = axes[idx]
         color = COLORS[model]
         top10 = cv.nlargest(10, "mean_test_score").reset_index(drop=True)
         y_pos = np.arange(len(top10))
@@ -519,7 +578,7 @@ def fig06_top10_candidates():
         ax.set_yticks(y_pos)
         ax.set_yticklabels([f"#{i+1}" for i in range(len(top10))], fontsize=6.5)
         ax.set_xlabel("CV AUC-ROC", fontsize=7)
-        ax.set_title(f"{model}: Top 10 Candidates")
+        ax.set_title(model, fontsize=8, color=color, fontweight="bold")
         ax.invert_yaxis()
         ax.spines["left"].set_visible(False)
         ax.tick_params(left=False)
@@ -528,9 +587,6 @@ def fig06_top10_candidates():
         lo = max(0, top10["mean_test_score"].min() - 0.008)
         hi = min(1.0, top10["mean_test_score"].max() + 0.010)
         ax.set_xlim(lo, hi)
-
-    for idx in range(n, len(axes_flat)):
-        axes_flat[idx].set_visible(False)
 
     fig.suptitle("Top 10 Hyperparameter Combinations by CV AUC-ROC", fontsize=9)
     fig.tight_layout(rect=[0, 0, 1, 0.96])
@@ -590,7 +646,7 @@ def fig_hyperparam(model_name, param_cols, log_params, fig_num):
 
         if mask[best_idx]:
             ax.scatter([vals[best_idx]], [cv.loc[best_idx, score_col]],
-                       color=color, s=38, zorder=5, linewidths=0, marker="*")
+                       color=_darken(color), s=38, zorder=5, linewidths=0, marker="*")
 
         if param in log_params:
             ax.set_xscale("log")
@@ -618,103 +674,82 @@ def fig_hyperparam(model_name, param_cols, log_params, fig_num):
 # ---------------------------------------------------------------------------
 # Fig 11 — All-model metrics comparison
 # ---------------------------------------------------------------------------
-def fig11_metrics_comparison(outputs: dict):
-    metrics_def = [
-        ("accuracy",    "Accuracy"),
-        ("precision",   "Precision"),
-        ("recall",      "Sensitivity"),
-        ("specificity", "Specificity"),
-        ("f1",          "F1"),
-        ("mcc",         "MCC"),
-        ("auc_roc",     "AUC-ROC"),
+def fig12_metrics_comparison(outputs: dict):
+    metrics  = ["accuracy", "precision", "recall", "specificity", "f1", "mcc", "auc_roc"]
+    labels   = ["Accuracy", "Precision", "Recall", "Specificity", "F1", "MCC", "AUC-ROC"]
+
+    # Use the canonical model order; include only models with outputs
+    model_order = [m for m in ALL_MODELS if m in outputs and outputs[m] is not None]
+    results = {n: outputs[n]["metrics"] for n in model_order}
+
+    n_met    = len(metrics)
+    n_mod    = len(model_order)
+    x        = np.arange(n_met)
+    width    = 0.75 / n_mod
+    offsets  = np.linspace(-(n_mod - 1) / 2, (n_mod - 1) / 2, n_mod) * width
+
+    fig, ax = plt.subplots(figsize=(COL2, COL1 * 1.3))
+
+    for i, name in enumerate(model_order):
+        color = COLORS[name]
+        vals  = [results[name][m] for m in metrics]
+        bars  = ax.bar(x + offsets[i], vals, width,
+                       color=color, alpha=ALPHA, label=name, linewidth=0)
+        for bar, v in zip(bars, vals):
+            if v >= 0:
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    v + 0.004,
+                    f"{v * 100:.1f}%",
+                    ha="center", va="bottom",
+                    fontsize=5.5, rotation=90,
+                    color=_darken(color, 0.75),
+                )
+
+    ref_lines = [
+        (0.50, "50%", (0, (1, 2)),       0.35),
+        (0.80, "80%", (0, (4, 2)),       0.35),
+        (0.90, "90%", (0, (6, 2, 1, 2)), 0.35),
     ]
-
-    valid   = {n: o for n, o in outputs.items() if o is not None}
-    results = {n: o["metrics"] for n, o in valid.items()}
-    y_test  = next(iter(valid.values()))["y_test"]
-
-    all_preds = {n: o["y_pred"] for n, o in valid.items()}
-    all_prob  = {n: o["proba"]  for n, o in valid.items()}
-
-    if len(all_preds) > 1:
-        preds_mat      = np.column_stack(list(all_preds.values()))
-        ens_pred, _    = scipy_mode(preds_mat, axis=1, keepdims=True)
-        ens_pred       = ens_pred.ravel().astype(int)
-        ens_proba      = np.mean(list(all_prob.values()), axis=0)
-        tn, fp, fn, tp = confusion_matrix(y_test, ens_pred).ravel()
-        results["ENS"] = {
-            "accuracy":    float(accuracy_score(y_test, ens_pred)),
-            "precision":   float(precision_score(y_test, ens_pred, zero_division=0)),
-            "recall":      float(recall_score(y_test, ens_pred, zero_division=0)),
-            "specificity": float(tn / (tn + fp)) if (tn + fp) > 0 else 0.0,
-            "f1":          float(f1_score(y_test, ens_pred, zero_division=0)),
-            "mcc":         float(matthews_corrcoef(y_test, ens_pred)),
-            "auc_roc":     float(roc_auc_score(y_test, ens_proba)),
-        }
-
-    model_names = list(results.keys())
-    n_models    = len(model_names)
-    n_metrics   = len(metrics_def)
-    x           = np.arange(n_metrics)
-    bar_width   = 0.80 / n_models
-    colors      = [COLORS.get(m, ENS_CLR) for m in model_names]
-
-    fig, ax = plt.subplots(figsize=(COL2, 2.9))
-
-    for i, (name, color) in enumerate(zip(model_names, colors)):
-        vals      = [results[name][key] for key, _ in metrics_def]
-        offset    = (i - (n_models - 1) / 2) * bar_width
-        is_best   = name == BEST_MODEL
-        alpha     = 1.0 if name == "ENS" else ALPHA
-        lw        = 0.7 if is_best else 0
-        ec        = "#111111" if is_best else "none"
-        ax.bar(x + offset, vals, bar_width,
-               color=color, alpha=alpha, linewidth=lw, edgecolor=ec)
-
-        if is_best:
-            # Star above the MCC bar
-            mcc_xi = next(j for j, (k, _) in enumerate(metrics_def) if k == "mcc")
-            ax.annotate(
-                "*",
-                xy=(x[mcc_xi] + offset, results[name]["mcc"] + 0.003),
-                ha="center", va="bottom", fontsize=9,
-                color=color, fontweight="bold",
-            )
+    ref_handles = []
+    for yval, label, ls, alpha in ref_lines:
+        ax.axhline(yval, color="#aaaaaa", linewidth=0.8,
+                   linestyle=ls, alpha=alpha, zorder=0)
+        ref_handles.append(
+            mpl.lines.Line2D([], [], color="#aaaaaa", linewidth=0.8,
+                             linestyle=ls, alpha=alpha, label=label)
+        )
 
     ax.set_xticks(x)
-    ax.set_xticklabels([lbl for _, lbl in metrics_def], fontsize=7)
+    ax.set_xticklabels(labels)
+    ax.set_ylim(0, 1.18)
+    ax.yaxis.set_major_locator(MaxNLocator(6, prune="upper"))
     ax.set_ylabel("Score")
-    ax.set_ylim(0.80, 1.01)
-    ax.yaxis.set_major_locator(MaxNLocator(5, prune="upper"))
-    ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-    ax.axhline(0.90, color="#b22222", linewidth=0.8,
-               linestyle="--", zorder=0, alpha=0.7)
-    ax.text(-0.5, 0.905, "90%", color="#b22222", fontsize=6, va="bottom")
+    ax.set_title("Classification Performance on Held-Out Test Set")
 
-    legend_patches = [
-        mpatches.Patch(color=COLORS.get(m, ENS_CLR),
-                       alpha=1.0 if m == "ENS" else ALPHA, label=m)
-        for m in model_names
-    ]
-    ax.legend(handles=legend_patches,
-              loc="upper left", bbox_to_anchor=(1.01, 1.0),
-              borderaxespad=0, fontsize=6.5,
-              handlelength=0.9, handletextpad=0.5)
-
-    ax.set_title("Classification Performance: Tuned Models and Majority-Vote Ensemble")
+    model_handles, model_labels = ax.get_legend_handles_labels()
+    ax.legend(
+        handles=model_handles + ref_handles,
+        labels=model_labels + [h.get_label() for h in ref_handles],
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.08),
+        ncol=n_mod + len(ref_lines),
+        fontsize=7,
+        frameon=False,
+    )
     fig.tight_layout()
-    savefig(fig, "fig11_metrics_comparison.png")
+    savefig(fig, "fig12_metrics_comparison.png")
 
 
 # ---------------------------------------------------------------------------
 # Fig 12 — Precision-recall curves
 # ---------------------------------------------------------------------------
-def fig12_precision_recall(outputs: dict):
-    fig, ax = plt.subplots(figsize=(COL1 + 1.6, COL1))
+def fig13_precision_recall(outputs: dict):
+    fig, ax = plt.subplots(figsize=(COL2 * 0.55, COL1))
 
-    for name, out in outputs.items():
-        if out is None:
-            continue
+    valid_names = [n for n, o in outputs.items() if o is not None]
+    for name in valid_names:
+        out = outputs[name]
         prec, rec, _ = precision_recall_curve(out["y_test"], out["proba"])
         ap      = average_precision_score(out["y_test"], out["proba"])
         is_best = name == BEST_MODEL
@@ -722,10 +757,10 @@ def fig12_precision_recall(outputs: dict):
         al      = 1.0 if is_best else ALPHA * 0.80
         ls      = LINESTYLES.get(name, "-")
         ax.plot(rec, prec, color=COLORS[name], linewidth=lw, linestyle=ls,
-                alpha=al, label=f"{name}  AP={ap:.3f}",
+                alpha=al, label=f"{name} ({ap:.3f})",
                 zorder=5 if is_best else 3)
 
-    ax.axhline(0.5, color="#bbbbbb", linewidth=0.7, linestyle=":", label="Random")
+    ax.axhline(0.5, color="#bbbbbb", linewidth=0.7, linestyle=":")
     ax.set_xlim([-0.01, 1.01])
     ax.set_ylim([0.46, 1.01])
     ax.set_xlabel("Recall")
@@ -733,24 +768,30 @@ def fig12_precision_recall(outputs: dict):
     ax.set_title("Precision-Recall Curves on Held-Out Test Set")
     ax.xaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-    _leg_outside(ax, title="Model  AP", title_fontsize=6.5)
-
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=len(valid_names),
+        fontsize=6,
+        frameon=False,
+        handlelength=1.5,
+        columnspacing=0.8,
+    )
     fig.tight_layout()
-    fig.subplots_adjust(right=0.74)
-    savefig(fig, "fig12_precision_recall.png")
+    savefig(fig, "fig13_precision_recall.png")
 
 
 # ---------------------------------------------------------------------------
 # Fig 13 — DET curves (normal-deviate scale)
 # ---------------------------------------------------------------------------
-def fig13_det_curves(outputs: dict):
+def fig14_det_curves(outputs: dict):
     from scipy.stats import norm as sp_norm
 
-    fig, ax = plt.subplots(figsize=(COL1 + 1.6, COL1))
+    fig, ax = plt.subplots(figsize=(COL2 * 0.55, COL1))
 
-    for name, out in outputs.items():
-        if out is None:
-            continue
+    valid_names = [n for n, o in outputs.items() if o is not None]
+    for name in valid_names:
+        out = outputs[name]
         fpr, fnr, _ = det_curve(out["y_test"], out["proba"])
         fpr_nd  = sp_norm.ppf(np.clip(fpr, 5e-4, 1 - 5e-4))
         fnr_nd  = sp_norm.ppf(np.clip(fnr, 5e-4, 1 - 5e-4))
@@ -765,8 +806,8 @@ def fig13_det_curves(outputs: dict):
     lims = np.array([-3.0, 2.0])
     ax.plot(lims, lims, color="#bbbbbb", linewidth=0.7, linestyle=":")
 
-    pct_ticks  = [0.5, 1, 2, 5, 10, 20, 40]
-    nd_ticks   = sp_norm.ppf([p / 100 for p in pct_ticks])
+    pct_ticks   = [0.5, 1, 2, 5, 10, 20, 40]
+    nd_ticks    = sp_norm.ppf([p / 100 for p in pct_ticks])
     tick_labels = [f"{p}%" for p in pct_ticks]
     ax.set_xticks(nd_ticks)
     ax.set_xticklabels(tick_labels, fontsize=6)
@@ -778,73 +819,101 @@ def fig13_det_curves(outputs: dict):
     ax.set_xlabel("False Positive Rate")
     ax.set_ylabel("False Negative Rate")
     ax.set_title("Detection Error Tradeoff (DET) Curves")
-    _leg_outside(ax)
-
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=len(valid_names),
+        fontsize=6,
+        frameon=False,
+        handlelength=1.5,
+        columnspacing=0.8,
+    )
     fig.tight_layout()
-    fig.subplots_adjust(right=0.74)
-    savefig(fig, "fig13_det_curves.png")
+    savefig(fig, "fig14_det_curves.png")
 
 
 # ---------------------------------------------------------------------------
 # Fig 14 — Threshold sensitivity (best model: GB)
 # ---------------------------------------------------------------------------
-def fig14_threshold_sensitivity(outputs: dict, best_model: str = "GB"):
-    out = outputs.get(best_model)
-    if out is None:
-        out = next((v for v in outputs.values() if v is not None), None)
-        if out is None:
-            print("  Skipping fig14: no model outputs available.")
-            return
-        best_model = next(n for n, v in outputs.items() if v is not None)
+def fig15_threshold_sensitivity(outputs: dict):
+    """One subplot per model showing MCC/F1/Precision/Recall vs threshold."""
+    names = [n for n, o in outputs.items() if o is not None]
+    n     = len(names)
+    if n == 0:
+        print("  Skipping fig15: no model outputs available.")
+        return
 
-    y_test = out["y_test"]
-    proba  = out["proba"]
-    color  = COLORS[best_model]
-
+    ncols      = 3
+    cell_w     = COL1 + 0.2
+    cell_h     = COL1 * 0.88
+    nrows      = (n + ncols - 1) // ncols
     thresholds = np.linspace(0.01, 0.99, 199)
-    records    = {"MCC": [], "F1": [], "Precision": [], "Recall": []}
+    styles     = {
+        "MCC":       ("-",  1.4),
+        "F1":        ("--", 1.1),
+        "Precision": (":",  1.1),
+        "Recall":    ("-.", 1.1),
+    }
 
-    for t in thresholds:
-        preds = (proba >= t).astype(int)
-        records["MCC"].append(matthews_corrcoef(y_test, preds))
-        records["F1"].append(f1_score(y_test, preds, zero_division=0))
-        records["Precision"].append(precision_score(y_test, preds, zero_division=0))
-        records["Recall"].append(recall_score(y_test, preds, zero_division=0))
+    fig = plt.figure(figsize=(ncols * cell_w, nrows * cell_h + 0.4))
+    axes = _centered_axes(fig, n, ncols)
 
-    # Each metric gets its own colour; linestyles still differentiate shape
-    styles = {"MCC":       ("-",  1.4),
-              "F1":        ("--", 1.1),
-              "Precision": (":",  1.1),
-              "Recall":    ("-.", 1.1)}
+    for idx, name in enumerate(names):
+        ax    = axes[idx]
+        out   = outputs[name]
+        y_test = out["y_test"]
+        proba  = out["proba"]
+        color  = COLORS[name]
 
-    fig, ax = plt.subplots(figsize=(COL1 + 1.6, COL1 * 0.88))
+        records = {"MCC": [], "F1": [], "Precision": [], "Recall": []}
+        for t in thresholds:
+            preds = (proba >= t).astype(int)
+            records["MCC"].append(matthews_corrcoef(y_test, preds))
+            records["F1"].append(f1_score(y_test, preds, zero_division=0))
+            records["Precision"].append(precision_score(y_test, preds, zero_division=0))
+            records["Recall"].append(recall_score(y_test, preds, zero_division=0))
 
-    for metric, vals in records.items():
-        ls, lw = styles[metric]
-        mc = METRIC_COLORS[metric]
-        ax.plot(thresholds, vals, color=mc,
-                linewidth=lw, linestyle=ls, alpha=0.9, label=metric)
+        for metric, vals in records.items():
+            ls, lw = styles[metric]
+            mc = METRIC_COLORS[metric]
+            ax.plot(thresholds, vals, color=mc,
+                    linewidth=lw, linestyle=ls, alpha=0.9,
+                    label=metric if idx == 0 else "_nolegend_")
 
-    opt = out["threshold"]
-    opt_mcc = records["MCC"][np.argmin(np.abs(thresholds - opt))]
-    ax.axvline(opt, color="#666666", linewidth=0.8, linestyle="--", zorder=0)
-    ax.scatter([opt], [opt_mcc], color=METRIC_COLORS["MCC"], s=38, zorder=5,
-               linewidths=0, marker="*")
-    ax.text(opt + 0.02, 0.07, f"t = {opt:.2f}",
-            fontsize=6.5, color="#555555", va="bottom")
+        opt     = out["threshold"]
+        opt_mcc = records["MCC"][np.argmin(np.abs(thresholds - opt))]
+        ax.axvline(opt, color="#666666", linewidth=0.8, linestyle="--", zorder=0)
+        ax.scatter([opt], [opt_mcc], color=_darken(METRIC_COLORS["MCC"]), s=28,
+                   zorder=5, linewidths=0, marker="*")
+        ax.text(opt + 0.02, 0.06, f"t={opt:.2f}",
+                fontsize=6, color="#555555", va="bottom")
 
-    ax.set_xlim([0, 1])
-    ax.set_ylim([-0.04, 1.04])
-    ax.set_xlabel("Decision Threshold")
-    ax.set_ylabel("Score")
-    ax.set_title(f"Threshold Sensitivity: {best_model}")
-    ax.xaxis.set_minor_locator(AutoMinorLocator(2))
-    ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-    _leg_outside(ax)
+        ax.set_xlim([0, 1])
+        ax.set_ylim([-0.04, 1.04])
+        ax.set_xlabel("Decision Threshold", fontsize=7)
+        ax.set_ylabel("Score", fontsize=7)
+        ax.set_title(name, fontsize=8, color=color, fontweight="bold")
+        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
 
-    fig.tight_layout()
-    fig.subplots_adjust(right=0.76)
-    savefig(fig, "fig14_threshold_sensitivity.png")
+    legend_lines = [
+        mpl.lines.Line2D([], [], color=METRIC_COLORS[m],
+                         linewidth=styles[m][1], linestyle=styles[m][0],
+                         label=m)
+        for m in ["MCC", "F1", "Precision", "Recall"]
+    ]
+
+    fig.suptitle("Threshold Sensitivity by Model", fontsize=9)
+    fig.tight_layout(rect=[0, 0.06, 1, 1])
+    fig.legend(handles=legend_lines,
+               loc="lower center",
+               bbox_to_anchor=(0.5, 0.0),
+               ncol=4,
+               fontsize=7,
+               frameon=False,
+               handlelength=1.8,
+               columnspacing=1.2)
+    savefig(fig, "fig15_threshold_sensitivity.png")
 
 
 # ---------------------------------------------------------------------------
@@ -901,17 +970,23 @@ def main():
                    log_params=["learning_rate", "reg_alpha", "reg_lambda"],
                    fig_num=10)
 
-    print("\nFig 11: Metrics comparison...")
-    fig11_metrics_comparison(valid)
+    print("\nFig 11: LightGBM hyperparameter exploration...")
+    fig_hyperparam("lgbm",
+                   ["n_estimators", "learning_rate", "num_leaves", "min_child_samples"],
+                   log_params=["learning_rate"],
+                   fig_num=11)
 
-    print("\nFig 12: Precision-recall curves...")
-    fig12_precision_recall(valid)
+    print("\nFig 12: Metrics comparison...")
+    fig12_metrics_comparison(valid)
 
-    print("\nFig 13: DET curves...")
-    fig13_det_curves(valid)
+    print("\nFig 13: Precision-recall curves...")
+    fig13_precision_recall(valid)
 
-    print("\nFig 14: Threshold sensitivity (GB)...")
-    fig14_threshold_sensitivity(valid, best_model="GB")
+    print("\nFig 14: DET curves...")
+    fig14_det_curves(valid)
+
+    print("\nFig 15: Threshold sensitivity (all models)...")
+    fig15_threshold_sensitivity(valid)
 
     print(f"\nAll figures saved to: {OUTDIR}")
 
