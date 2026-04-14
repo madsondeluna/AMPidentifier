@@ -17,7 +17,7 @@ Branch: `feature/expanded-features-deeplearning`
   - [Threshold optimization](#threshold-optimization)
 - [Independent benchmark](#independent-benchmark)
 - [Results](#results)
-- [Figures](#figures)
+- [Roadmap](#roadmap)
 - [References](#references)
 
 ## Background
@@ -319,6 +319,34 @@ Tuning is performed with `model_training/tune.py`. `RandomizedSearchCV` samples 
 | LGBM | `reg_lambda` | 0.681 |
 | LGBM | `min_child_samples` | 10 |
 
+**Figure 6.** Cross-validation AUC-ROC score distributions across 50 `RandomizedSearchCV` iterations per model. LGBM and XGB reach the highest median CV AUC, followed by GB and RF. SVM shows a narrower distribution, reflecting fewer degrees of freedom in the search space.
+
+![CV score distribution](model_training/tuned_model/figures/fig05_cv_score_distribution.png)
+
+**Figure 7.** Top 10 hyperparameter configurations by CV AUC-ROC per model. Each point represents one candidate evaluated during the randomized search; the selected configuration is marked with a star.
+
+![Top 10 candidates](model_training/tuned_model/figures/fig06_top10_candidates.png)
+
+**Figure 8.** Hyperparameter performance surface: RF. CV AUC-ROC as a function of `n_estimators` and `max_features`. Performance is stable across tree counts above 200; `max_features=0.3` consistently outperforms `sqrt` and `log2` on this feature set.
+
+![Hyperparam RF](model_training/tuned_model/figures/fig07_hyperparam_rf.png)
+
+**Figure 9.** Hyperparameter performance surface: GB. CV AUC-ROC as a function of `learning_rate` and `n_estimators`. Lower learning rates paired with more estimators produce the highest CV AUC, consistent with gradient boosting convergence theory.
+
+![Hyperparam GB](model_training/tuned_model/figures/fig08_hyperparam_gb.png)
+
+**Figure 10.** Hyperparameter performance surface: SVM. CV AUC-ROC as a function of `C` and `gamma`. Performance degrades sharply at high `gamma` values, indicating overfitting to individual training points.
+
+![Hyperparam SVM](model_training/tuned_model/figures/fig09_hyperparam_svm.png)
+
+**Figure 11.** Hyperparameter performance surface: XGB. CV AUC-ROC as a function of `learning_rate` and `n_estimators`. The selected configuration (star) sits near the peak of the surface, with `n_estimators=448` and `learning_rate=0.059`.
+
+![Hyperparam XGB](model_training/tuned_model/figures/fig10_hyperparam_xgb.png)
+
+**Figure 12.** Hyperparameter performance surface: LGBM. CV AUC-ROC as a function of `learning_rate` and `num_leaves`. High `learning_rate` paired with moderate `num_leaves` (47) yields the best generalization for this dataset.
+
+![Hyperparam LGBM](model_training/tuned_model/figures/fig11_hyperparam_lgbm.png)
+
 **Table 5.** Results after hyperparameter tuning on the internal test set (n=2,650).
 
 | Model | Best CV AUC | AUC-ROC | MCC | F1 | Precision | Recall | Specificity | Threshold |
@@ -330,6 +358,38 @@ Tuning is performed with `model_training/tune.py`. `RandomizedSearchCV` samples 
 | LGBM | 0.9740 | 0.9752 | 0.8548 | 0.9260 | 0.9415 | 0.9109 | 0.9434 | 0.71 |
 
 Tuning improved AUC-ROC and MCC for all models relative to baseline. The largest gains occurred in SVM (MCC +0.025, AUC-ROC +0.008), GB (MCC +0.028, AUC-ROC +0.012), and LGBM (MCC +0.021). RF and XGB changed marginally because their baseline hyperparameters were already near optimal for this feature set and dataset size.
+
+**Figure 13.** ROC curves for all tuned models on the internal test set (n=2,650). LGBM and XGB reach the highest AUC-ROC (0.975 and 0.974). The voting ensemble (dashed) achieves AUC-ROC 0.977, above all individual models.
+
+![ROC curves tuning](model_training/tuned_model/figures/fig01_roc_curves.png)
+
+**Figure 14.** Confusion matrices for all tuned models on the internal test set. All models correctly classify over 91% of sequences. LGBM achieves the fewest false negatives; RF achieves the fewest false positives.
+
+![Confusion matrices tuning](model_training/tuned_model/figures/fig02_confusion_matrices.png)
+
+**Figure 15.** Per-model comparison of all evaluation metrics on the internal test set. LGBM leads in MCC (0.855), precision (0.942), and specificity (0.943). The voting ensemble leads in F1 (0.928) and AUC-ROC (0.977).
+
+![Metrics comparison](model_training/tuned_model/figures/fig12_metrics_comparison.png)
+
+**Figure 16.** Precision-recall curves for all tuned models. All models maintain precision above 0.87 at recall 0.90, indicating low false positive rates at clinically relevant sensitivity levels.
+
+![Precision-recall](model_training/tuned_model/figures/fig13_precision_recall.png)
+
+**Figure 17.** Detection error tradeoff (DET) curves for all tuned models. LGBM achieves the lowest combined false positive and false negative rates on the internal test set.
+
+![DET curves](model_training/tuned_model/figures/fig14_det_curves.png)
+
+**Figure 18.** Threshold sensitivity for all tuned models: MCC, F1, Precision, and Recall as a function of decision threshold. The vertical dashed line marks the MCC-optimized threshold; the star marks the MCC at that threshold.
+
+![Threshold sensitivity](model_training/tuned_model/figures/fig15_threshold_sensitivity.png)
+
+**Figure 19.** Calibration curves (reliability diagrams) for all tuned models. RF and GB are well-calibrated; SVM shows slight overconfidence at high predicted probabilities. LGBM and XGB are slightly underconfident in the 0.6-0.8 range.
+
+![Calibration](model_training/tuned_model/figures/fig03_calibration.png)
+
+**Figure 20.** Mean impurity-based feature importances for tree-based models (RF, GB, XGB, LGBM). `Charge`, `BomanInd`, `HydrophobicMoment`, and `pI` are consistently ranked among the top features across all four models.
+
+![Feature importance](model_training/tuned_model/figures/fig04_feature_importance.png)
 
 ### Soft-voting ensemble
 
@@ -402,111 +462,17 @@ The voting ensemble achieves the highest AUC-ROC (0.950) and MCC (0.742) on the 
 
 The gain from beta to v2.0 (MCC +0.079 for the voting ensemble) is primarily attributable to feature expansion. The 22-feature set adds grouped amino acid composition fractions and positional descriptors, which capture residue-level patterns and N-terminal structural constraints discarded by global scalar averaging.
 
-## Figures
+**Figure 21.** ROC curves for all models on the independent benchmark set (n=4,736). The voting ensemble achieves AUC-ROC 0.950, the highest among all configurations evaluated on this set.
 
-### Exploratory data analysis
+![ROC curves benchmark](benchmarking/fig_bench_roc.png)
 
-Generated by `python3 -m model_training.eda`. Output: `model_training/eda/`.
-
-**Figure 1.** Sequence length distribution of AMPs and non-AMPs after length-stratified balancing.
-
-![Length distribution](model_training/eda/fig01_length_distribution.png)
-
-**Figure 2.** Mean amino acid composition: AMP versus non-AMP.
-
-![AA composition](model_training/eda/fig02_aa_composition.png)
-
-**Figure 3.** Global physicochemical descriptors and hydrophobic moment: AMP versus non-AMP.
-
-![Global descriptors](model_training/eda/fig03_global_descriptors.png)
-
-**Figure 4.** Grouped amino acid composition fractions: AMP versus non-AMP.
-
-![Grouped AAC](model_training/eda/fig04_grouped_aac.png)
-
-**Figure 5.** FET and solvent accessibility positional features: AMP versus non-AMP.
-
-![Local features](model_training/eda/fig05_local_features.png)
-
-### Post-tuning evaluation
-
-Generated by `python3 -m model_training.plot_tuning`. Output: `model_training/tuned_model/figures/`.
-
-**Figure 6.** ROC curves for all tuned models on the internal test set.
-
-![ROC curves tuning](model_training/tuned_model/figures/fig01_roc_curves.png)
-
-**Figure 7.** Confusion matrices for all tuned models on the internal test set.
-
-![Confusion matrices tuning](model_training/tuned_model/figures/fig02_confusion_matrices.png)
-
-**Figure 8.** Calibration curves (reliability diagrams) for all tuned models.
-
-![Calibration](model_training/tuned_model/figures/fig03_calibration.png)
-
-**Figure 9.** Mean impurity-based feature importances for tree-based models (RF, GB, XGB, LGBM).
-
-![Feature importance](model_training/tuned_model/figures/fig04_feature_importance.png)
-
-**Figure 10.** Cross-validation AUC-ROC score distributions across 50 `RandomizedSearchCV` iterations.
-
-![CV score distribution](model_training/tuned_model/figures/fig05_cv_score_distribution.png)
-
-**Figure 11.** Top 10 hyperparameter configurations by CV AUC-ROC per model.
-
-![Top 10 candidates](model_training/tuned_model/figures/fig06_top10_candidates.png)
-
-**Figure 12.** Hyperparameter performance surface: RF.
-
-![Hyperparam RF](model_training/tuned_model/figures/fig07_hyperparam_rf.png)
-
-**Figure 13.** Hyperparameter performance surface: GB.
-
-![Hyperparam GB](model_training/tuned_model/figures/fig08_hyperparam_gb.png)
-
-**Figure 14.** Hyperparameter performance surface: SVM.
-
-![Hyperparam SVM](model_training/tuned_model/figures/fig09_hyperparam_svm.png)
-
-**Figure 15.** Hyperparameter performance surface: XGB.
-
-![Hyperparam XGB](model_training/tuned_model/figures/fig10_hyperparam_xgb.png)
-
-**Figure 16.** Hyperparameter performance surface: LGBM.
-
-![Hyperparam LGBM](model_training/tuned_model/figures/fig11_hyperparam_lgbm.png)
-
-**Figure 17.** Per-model comparison of all metrics on the internal test set.
-
-![Metrics comparison](model_training/tuned_model/figures/fig12_metrics_comparison.png)
-
-**Figure 18.** Precision-recall curves for all tuned models.
-
-![Precision-recall](model_training/tuned_model/figures/fig13_precision_recall.png)
-
-**Figure 19.** Detection error tradeoff (DET) curves for all tuned models.
-
-![DET curves](model_training/tuned_model/figures/fig14_det_curves.png)
-
-**Figure 20.** Threshold sensitivity for all tuned models: MCC, F1, Precision, and Recall as a function of decision threshold. The vertical dashed line marks the MCC-optimized threshold; the star marks the MCC value at that threshold.
-
-![Threshold sensitivity](model_training/tuned_model/figures/fig15_threshold_sensitivity.png)
-
-### Independent benchmark
-
-Generated by `python3 -m model_training.benchmark`. Output: `benchmarking/`.
-
-**Figure 21.** ROC curves for all models on the independent benchmark set.
-
-![ROC curves](benchmarking/fig_bench_roc.png)
-
-**Figure 22.** Grouped bar chart of all metrics for all models on the independent benchmark set.
+**Figure 22.** Grouped bar chart of all metrics per model on the independent benchmark set. Recall is consistently above 0.93 across all models. Specificity is the weakest metric (0.74-0.79), reflecting the domain shift from training to benchmark sequences.
 
 ![Benchmark metrics](benchmarking/fig_bench_metrics.png)
 
-**Figure 23.** Confusion matrices for all models on the independent benchmark set.
+**Figure 23.** Confusion matrices for all models on the independent benchmark set (n=4,736). All models show higher false positive rates on the benchmark than on the internal test set, consistent with the distribution shift.
 
-![Confusion matrices](benchmarking/fig_bench_confusion.png)
+![Confusion matrices benchmark](benchmarking/fig_bench_confusion.png)
 
 ## Roadmap
 
