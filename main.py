@@ -98,12 +98,14 @@ def main():
         choices=["rf", "svm", "gb", "xgb", "lgbm", "voting"],
         help=(
             "Model to use for prediction (default: voting).\n"
-            "rf     : Random Forest\n"
-            "svm    : Support Vector Machine (RBF kernel)\n"
-            "gb     : Gradient Boosting\n"
-            "xgb    : XGBoost\n"
-            "lgbm   : LightGBM\n"
-            "voting : Soft-voting ensemble of all five models (recommended)\n"
+            "\n"
+            "         AUC-ROC   MCC    F1\n"
+            "rf     : 0.9719   0.839  0.917  Random Forest\n"
+            "svm    : 0.9692   0.839  0.919  Support Vector Machine (RBF kernel)\n"
+            "gb     : 0.9741   0.839  0.919  Gradient Boosting\n"
+            "xgb    : 0.9744   0.843  0.922  XGBoost\n"
+            "lgbm   : 0.9752   0.855  0.926  LightGBM\n"
+            "voting : 0.9771   0.859  0.928  Soft-voting ensemble (recommended)\n"
         ),
     )
     parser.add_argument(
