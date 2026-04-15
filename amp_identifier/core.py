@@ -64,8 +64,8 @@ def _gray(t):   return _c("90", t)
 BOX_W  = 72
 INNER  = BOX_W - 2
 BAR_W  = 32
-_BAR_ROW_FIXED = 2 + 9 + 6 + 3 + 5 + 3 + 2 + BAR_W   # = 62
-_BAR_TRAIL     = INNER - _BAR_ROW_FIXED                # = 8
+_BAR_ROW_FIXED = 2 + 9 + 6 + 3 + 5 + 2 + 2 + BAR_W   # = 61
+_BAR_TRAIL     = INNER - _BAR_ROW_FIXED                # = 9
 
 
 def _bar(ratio: float) -> str:
@@ -249,7 +249,7 @@ def run_prediction_pipeline(
     _box_div()
     _box_info("Output", pred_path)
     _box_div()
-    _box_dim("Luna-Aragao, M.A. et al. (2025). AMPidentifier 2.0.")
-    _box_dim("Journal of Chemical Information and Modeling.")
+    _box_dim("Luna-Aragao, M.A. et al. (2026). AMPidentifier 1.0.")
+    _box_dim("Luna-Aragao, M.A. et al. (2026). AMPidentifier 2.0.")
     _box_bot()
     print()
