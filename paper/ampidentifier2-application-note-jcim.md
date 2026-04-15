@@ -158,12 +158,10 @@ Table 3 summarizes the performance of AMPidentifier 2.0 configurations against p
 | AMPidentifier 2.0 Voting| 0.742 | 0.950   | 94.9%       | 78.4%       |
 | AMPidentifier 2.0 RF    | 0.736 | 0.948   | 94.1%       | 78.7%       |
 | AMPScanner v2           | 0.718 | 0.936   | --          | --          |
-| AMPidentifier 1.0 RF    | 0.710 | 0.935   | --          | --          |
 | AMPlify                 | --    | 0.932   | --          | --          |
-| AMPidentifier 1.0 Voting| 0.697 | --      | --          | 77.7%       |
 | amPEPpy                 | --    | 0.934   | 96.5%       | 49.3%       |
 
-All three AMPidentifier 2.0 configurations with MCC reported exceed the AMPScanner v2 reference (MCC 0.718) and the AMPidentifier 1.0 RF (MCC 0.710). The AMPidentifier 2.0 voting ensemble (MCC 0.742) improves over the AMPidentifier 1.0 voting ensemble (MCC 0.697) by 0.045 MCC units, with a simultaneous gain in specificity (78.4% vs. 77.7%).
+All three AMPidentifier 2.0 configurations with MCC reported exceed the AMPScanner v2 reference (MCC 0.718) on this benchmark.
 
 The amPEPpy classifier illustrates a trade-off that appears repeatedly in the benchmark: AUC-ROC = 0.934 reflects good probability ranking, but at its default operating threshold, specificity falls to 49.3%, meaning the tool predicts approximately half of all true non-AMP sequences as AMPs. At genomic scale, this false-positive rate generates a large volume of spurious candidates. AMPidentifier 2.0 configurations maintain specificity between 74.2% and 79.6% across all six configurations, limiting false-positive inflation while preserving high recall (93.9% to 94.9%).
 
