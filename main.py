@@ -127,6 +127,7 @@ def main():
         output_dir=args.output_dir,
         internal_model_type=args.model,
         use_ensemble=(args.model == "voting"),
+        threshold_override=args.threshold,
     )
 
 
