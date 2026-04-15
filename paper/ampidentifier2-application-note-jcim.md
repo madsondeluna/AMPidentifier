@@ -58,7 +58,7 @@ The AMPidentifier web application at https://www.lgbv-ufpe.net/AMPidentifier pro
 
 ### Dataset and data partitioning
 
-The training dataset contains 13,246 sequences: 6,623 experimentally confirmed AMPs and 6,623 non-AMP peptide sequences. AMP sequences were drawn from APD3,[17] CAMP,[18] and LAMP;[19] non-AMP sequences were drawn from UniProt[20] entries annotated as lacking antimicrobial activity. To limit homology-derived redundancy, sequences sharing more than 80% pairwise identity were clustered with CD-HIT,[21] and one representative sequence per cluster was retained. The dataset is balanced (1:1 AMP:non-AMP). It was partitioned 80/20 by stratified random sampling into a training set of 10,596 sequences and a held-out test set of 2,650 sequences (1,325 per class). The test set was not used during hyperparameter optimization; it served exclusively for threshold calibration and final performance evaluation. Exploratory data analysis (EDA) of the assembled dataset is provided in Supplementary Section S0, including sequence length distribution, amino acid composition, global descriptor profiles, grouped amino acid composition, and positional feature distributions.
+The training dataset contains 13,246 sequences: 6,623 experimentally confirmed AMPs and 6,623 non-AMP peptide sequences. AMP sequences were drawn from APD3,[17] CAMP,[18] and LAMP;[19] non-AMP sequences were drawn from UniProt[20] entries annotated as lacking antimicrobial activity. To limit homology-derived redundancy, sequences sharing more than 80% pairwise identity were clustered with CD-HIT,[21] and one representative sequence per cluster was retained. The dataset is balanced (1:1 AMP:non-AMP). It was partitioned 80/20 by stratified random sampling into a training set of 10,596 sequences and a held-out test set of 2,650 sequences (1,325 per class). The test set was not used during hyperparameter optimization; it served exclusively for threshold calibration and final performance evaluation. Exploratory data analysis (EDA) of the assembled dataset is provided in Supplementary Section S1, including sequence length distribution, amino acid composition, global descriptor profiles, grouped amino acid composition, and positional feature distributions.
 
 ### Feature extraction
 
@@ -74,7 +74,7 @@ Each amino acid sequence $S$ is projected to a 22-dimensional feature vector $\m
 
 Relative position features (FET and solvent accessibility) encode where in the sequence specific chemical environments first appear. This positional information is absent from global descriptors and per-residue composition features, and has been shown to discriminate AMPs from non-AMPs in sequence-based classifiers.[15]
 
-After computing the 22 candidate descriptors, a feature selection procedure confirmed all 22 as informative; results are in Supplementary Table S2.
+After computing the 22 candidate descriptors, a feature selection procedure confirmed all 22 as informative; results are in Supplementary Table S3.
 
 Because descriptors span heterogeneous numeric scales, model-specific normalization is applied before inference. RF, GB, XGB, and LGBM use a **RobustScaler** fitted on the training partition, which centers on the median and scales by the interquartile range; this choice reduces the influence of outlier sequences with extreme physicochemical values. SVM uses a **StandardScaler** (zero mean, unit variance), required for stable optimization of the margin-based objective. The voting ensemble model handles normalization internally within a scikit-learn VotingClassifier pipeline. All scaling parameters are estimated exclusively on the training partition and serialized as deployment artifacts alongside the model pickle files.
 
@@ -211,7 +211,7 @@ Table 4 lists nine additional web tools that were inaccessible at evaluation tim
 
 The performance gap between internal test results (ensemble MCC 0.859, AUC-ROC 0.977) and independent benchmark results (ensemble MCC 0.742, AUC-ROC 0.950) reflects domain shift between the training data sources (APD3, CAMP, LAMP, UniProt) and the independent benchmark. This magnitude of gap is typical for AMP predictors: tools trained and evaluated within the same database family consistently achieve higher MCC than when evaluated against independently curated sequences. Users should weight the independent benchmark numbers more heavily when assessing expected real-world performance.
 
-The 22-descriptor feature set covers three information types: global scalar properties of the peptide (7 features), the biochemical character of its composition expressed as functional group fractions (9 features), and positional information encoding where specific chemical environments first appear along the sequence (6 features). The FET positional terms, derived from Von Heijne and Blomberg (1979),[16] and the solvent accessibility positional terms, following Bhadra et al. (2018),[15] encode sequence-positional information that cannot be recovered from global descriptors or composition vectors alone. This positional information has been linked to AMP targeting function.[15] The feature selection step confirmed all 22 features as informative (Supplementary Table S2).
+The 22-descriptor feature set covers three information types: global scalar properties of the peptide (7 features), the biochemical character of its composition expressed as functional group fractions (9 features), and positional information encoding where specific chemical environments first appear along the sequence (6 features). The FET positional terms, derived from Von Heijne and Blomberg (1979),[16] and the solvent accessibility positional terms, following Bhadra et al. (2018),[15] encode sequence-positional information that cannot be recovered from global descriptors or composition vectors alone. This positional information has been linked to AMP targeting function.[15] The feature selection step confirmed all 22 features as informative (Supplementary Table S3).
 
 RobustScaler was selected for tree-based classifiers rather than StandardScaler. Decision-tree-based methods are not sensitive to feature scale in the same way that margin-based or distance-based methods are; however, RobustScaler limits the effect of extreme physicochemical values (e.g., instability indices for sequences rich in destabilizing residues) on the scaler's center estimate, which makes the normalized feature space more consistent across diverse input sequences. SVM retains StandardScaler because its optimization requires scale-standardized inputs.
 
@@ -237,7 +237,7 @@ AMPidentifier is freely available under an open-source license at https://github
 
 ### Supporting information
 
-### S0: Exploratory data analysis of the training dataset
+### S1: Exploratory data analysis of the training dataset
 
 **Figure S0a.** Sequence length distribution for AMP and non-AMP classes in the training dataset ($n$ = 13,246).
 
@@ -259,7 +259,7 @@ AMPidentifier is freely available under an open-source license at https://github
 
 ![Figure S0e: Local/positional features](../model_training/eda/fig05_local_features.png)
 
-### S1: Best hyperparameter configurations
+### S2: Best hyperparameter configurations
 
 Best configurations identified by RandomizedSearchCV (n_iter = 100, 5-fold stratified CV, AUC-ROC metric) for all five classifiers. CV AUC-ROC is reported as mean ± standard deviation across folds.
 
@@ -283,7 +283,7 @@ Best configurations identified by RandomizedSearchCV (n_iter = 100, 5-fold strat
 | γ | — | 0.10 | — | — | — |
 | **CV AUC-ROC** | **0.9695 ± 0.0018** | **0.9671 ± 0.0030** | **0.9723 ± 0.0023** | **0.9741 ± 0.0020** | **0.9740 ± 0.0016** |
 
-### S2: Feature selection and descriptor list
+### S3: Feature selection and descriptor list
 
 All 22 descriptors were retained after feature selection. The table below lists each descriptor, its group, and its source.
 
@@ -312,7 +312,7 @@ All 22 descriptors were retained after feature selection. The table below lists 
 | 21 | SA_exposed_D1 | SA positional | Bhadra et al. [15] |
 | 22 | SA_inter_D1 | SA positional | Bhadra et al. [15] |
 
-### S3: Figures from the internal held-out test set
+### S4: Figures from the internal held-out test set
 
 **Figure S3a.** ROC curves for all six AMPidentifier configurations on the internal held-out test set ($n$ = 2,650).
 
@@ -326,7 +326,7 @@ All 22 descriptors were retained after feature selection. The table below lists 
 
 ![Figure S3c: Feature importance](../model_training/tuned_model/figures/fig04_feature_importance.png)
 
-### S4: Extended metrics and confusion matrices on the independent benchmark
+### S5: Extended metrics and confusion matrices on the independent benchmark
 
 Full counts (TP, TN, FP, FN) and classification metrics for all six AMPidentifier configurations on the independent benchmark ($n$ = 4,736; 2,368 AMP, 2,368 non-AMP).
 
