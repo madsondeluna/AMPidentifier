@@ -42,6 +42,11 @@ pip install -r requirements.txt
 
 ## Usage
 
+<p align="center">
+  <img src="imgs/workflow.svg" alt="AMPidentifier 2.0 prediction workflow" width="700">
+</p>
+<p align="center"><i>Prediction workflow. FASTA sequences are parsed, 22 physicochemical descriptors are computed per sequence, and five independent classifiers (RF, SVM, GB, XGB, LGBM) each produce a P(AMP) score. The soft-voting ensemble averages these scores; sequences with P(AMP) above the optimized threshold are classified as AMP.</i></p>
+
 AMPidentifier 2.0 is invoked from the project root via `python3 main.py`.
 
 ### Command-line flags
@@ -65,6 +70,10 @@ AMPidentifier 2.0 is invoked from the project root via `python3 main.py`.
 | `voting` | Soft-voting ensemble of all five models (recommended) | 0.56 |
 
 ### Examples
+
+<p align="center">
+  <img src="imgs/cli-visuals.png" alt="AMPidentifier 2.0 CLI" width="700">
+</p>
 
 ```bash
 # Predict with the voting ensemble (default, recommended)
