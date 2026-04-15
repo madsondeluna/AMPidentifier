@@ -484,7 +484,6 @@ AMPidentifier/
 │   ├── core.py                      # main pipeline orchestrator
 │   ├── data_io.py                   # FASTA parsing
 │   ├── feature_extraction.py        # 22-feature computation
-│   ├── prediction.py
 │   └── reporting.py
 ├── benchmarking/                    # independent benchmark set and results
 │   ├── benchmark.fasta
