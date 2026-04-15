@@ -108,7 +108,7 @@ Averaging probabilities integrates each classifier's confidence rather than trea
 
 ### Internal test set performance
 
-Table 1 reports classification performance on the held-out test set (2,650 sequences: 1,325 AMP, 1,325 non-AMP) for all six configurations.
+The training dataset (13,246 sequences) was partitioned 80/20 by stratified random sampling before any model fitting. The 20% held-out partition (2,650 sequences: 1,325 AMP, 1,325 non-AMP) was not used for hyperparameter optimization or model training; it served exclusively for threshold calibration and the performance evaluation reported here. Table 1 reports classification metrics for all six AMPidentifier 2.0 configurations on this partition.
 
 **Table 1.** Classification performance on the internal held-out test set ($n$ = 2,650; 1,325 AMP, 1,325 non-AMP).
 
@@ -148,37 +148,34 @@ Among individual classifiers, LGBM achieves the highest benchmark accuracy (87.0
 
 ### Comparison with published predictors
 
-Tables 3 and 4 summarize performance of all tools evaluated on the 4,736-sequence independent benchmark. Complete per-tool confusion matrices and extended metrics are reported in Supplementary Table S4. Nine tools surveyed were inaccessible at evaluation time and are listed in Table 5.
+Table 3 consolidates performance for all 18 evaluated classifier configurations on the independent benchmark, grouped by tool with the ensemble or best-performing variant listed first within each group. Nine tools surveyed were inaccessible at evaluation time and are listed in Table 4.
 
-**Table 3.** Locally executable tools on the independent benchmark ($n$ = 4,736), sorted by MCC. AMPidentifier 2.0 rows use values from this study; all other rows are from Luna-Aragão et al. (2026).^14^
+**Table 3.** All evaluated classifiers on the independent benchmark ($n$ = 4,736 unless noted), grouped by tool. AMPidentifier 2.0 rows use values from this study; all other rows are from Luna-Aragão et al. (2026).^14^ Type: CLI = locally executable; Web = browser-based manual submission. AUC-ROC is N/A for tools with binary-only output.
 
-| Tool | Acc (%) | Sn (%) | Sp (%) | Precision (%) | F1 (%) | MCC | AUC-ROC |
-|------|---------|--------|--------|---------------|--------|-----|---------|
-| Macrel | 91.1 | 89.6 | 92.7 | 92.4 | 91.0 | 0.823 | 0.945 |
-| AMPidentifier 2.0 LGBM | 87.0 | 94.5 | 79.6 | 82.2 | 87.9 | 0.749 | 0.948 |
-| AMPidentifier 2.0 Voting | 86.6 | 94.9 | 78.4 | 81.4 | 87.6 | 0.742 | 0.950 |
-| AMPidentifier 2.0 RF | 86.4 | 94.1 | 78.7 | 81.5 | 87.4 | 0.736 | 0.948 |
-| AMPScanner v2 | 85.4 | 93.9 | 76.9 | 80.2 | 86.5 | 0.718 | 0.936 |
-| AMPidentifier 2.0 GB | 85.8 | 94.5 | 77.0 | 80.5 | 86.9 | 0.727 | 0.935 |
-| AMPidentifier 2.0 XGB | 84.6 | 94.8 | 74.4 | 78.7 | 86.0 | 0.707 | 0.930 |
-| AMPlify | 83.7 | 94.3 | 73.0 | 77.8 | 85.3 | 0.689 | 0.932 |
-| AMPidentifier 2.0 SVM | 84.1 | 93.9 | 74.2 | 78.5 | 85.5 | 0.695 | 0.943 |
-| ampir | 81.0 | 94.5 | 67.5 | 74.4 | 83.3 | 0.644 | 0.921 |
-| amPEPpy | 72.9 | 96.5 | 49.3 | 65.6 | 78.1 | 0.520 | 0.934 |
+| Tool | Type | Acc (%) | Sn (%) | Sp (%) | Precision (%) | F1 (%) | MCC | AUC-ROC |
+|------|------|---------|--------|--------|---------------|--------|-----|---------|
+| Macrel | CLI | 91.1 | 89.6 | 92.7 | 92.4 | 91.0 | 0.823 | 0.945 |
+| AMPidentifier 2.0, Voting | CLI | 86.6 | 94.9 | 78.4 | 81.4 | 87.6 | 0.742 | 0.950 |
+| AMPidentifier 2.0, LGBM | CLI | 87.0 | 94.5 | 79.6 | 82.2 | 87.9 | 0.749 | 0.948 |
+| AMPidentifier 2.0, RF | CLI | 86.4 | 94.1 | 78.7 | 81.5 | 87.4 | 0.736 | 0.948 |
+| AMPidentifier 2.0, GB | CLI | 85.8 | 94.5 | 77.0 | 80.5 | 86.9 | 0.727 | 0.935 |
+| AMPidentifier 2.0, XGB | CLI | 84.6 | 94.8 | 74.4 | 78.7 | 86.0 | 0.707 | 0.930 |
+| AMPidentifier 2.0, SVM | CLI | 84.1 | 93.9 | 74.2 | 78.5 | 85.5 | 0.695 | 0.943 |
+| AMPScanner v2 | CLI | 85.4 | 93.9 | 76.9 | 80.2 | 86.5 | 0.718 | 0.936 |
+| CAMPR3, RF | Web | 84.8 | 92.2 | 77.4 | 80.3 | 85.8 | 0.704 | 0.934 |
+| CAMPR3, SVM | Web | 84.5 | 89.5 | 79.5 | 81.4 | 85.3 | 0.694 | 0.919 |
+| CAMPR3, DA | Web | 82.4 | 87.0 | 77.9 | 79.7 | 83.2 | 0.651 | 0.909 |
+| CAMPR3, ANN | Web | 79.2 | 83.2 | 75.3 | 77.1 | 80.0 | 0.586 | N/A |
+| AMPlify | CLI | 83.7 | 94.3 | 73.0 | 77.8 | 85.3 | 0.689 | 0.932 |
+| ampir | CLI | 81.0 | 94.5 | 67.5 | 74.4 | 83.3 | 0.644 | 0.921 |
+| DBAASP | Web | 75.6 | 64.1 | 86.5 | 81.7 | 71.8 | 0.521 | N/A |
+| amPEPpy | CLI | 72.9 | 96.5 | 49.3 | 65.6 | 78.1 | 0.520 | 0.934 |
+| ClassAMP, RF | Web | 53.7^\*^ | 100.0 | 0.0 | 53.7 | 69.9 | 0.000 | 0.785 |
+| ClassAMP, SVM | Web | 50.0 | 100.0 | 0.0 | 50.0 | 66.7 | 0.000 | 0.646 |
 
-**Table 4.** Web tools evaluated by manual submission ($n$ = 4,736 unless noted). AUC-ROC is N/A for tools with binary-only output.
+^\*^ ClassAMP-RF returned results for 4,412 of 4,736 sequences; accuracy is computed over sequences with returned predictions.
 
-| Tool | Acc (%) | Sn (%) | Sp (%) | Precision (%) | F1 (%) | MCC | AUC-ROC |
-|------|---------|--------|--------|---------------|--------|-----|---------|
-| CAMPR3-RF | 84.8 | 92.2 | 77.4 | 80.3 | 85.8 | 0.704 | 0.934 |
-| CAMPR3-SVM | 84.5 | 89.5 | 79.5 | 81.4 | 85.3 | 0.694 | 0.919 |
-| CAMPR3-DA | 82.4 | 87.0 | 77.9 | 79.7 | 83.2 | 0.651 | 0.909 |
-| CAMPR3-ANN | 79.2 | 83.2 | 75.3 | 77.1 | 80.0 | 0.586 | N/A |
-| DBAASP | 75.6 | 64.1 | 86.5 | 81.7 | 71.8 | 0.521 | N/A |
-| ClassAMP-RF | 53.7 | 100.0 | 0.0 | 53.7 | 69.9 | 0.000 | 0.785 |
-| ClassAMP-SVM | 50.0 | 100.0 | 0.0 | 50.0 | 66.7 | 0.000 | 0.646 |
-
-**Table 5.** Tools surveyed but inaccessible at evaluation time (March 2026).
+**Table 4.** Tools surveyed but inaccessible at evaluation time (March 2026).
 
 | Tool | Year | Reason for exclusion |
 |------|------|----------------------|
@@ -192,11 +189,11 @@ Tables 3 and 4 summarize performance of all tools evaluated on the 4,736-sequenc
 | iAMPCN | 2023 | Source code not distributed; web server offline |
 | AMAP | 2019 | Web server unavailable at time of evaluation |
 
-Among locally executable tools, Macrel achieves the highest MCC (0.823) and the highest specificity (92.7%), though at a lower sensitivity (89.6%) than all AMPidentifier 2.0 configurations (93.9% to 94.9%). All six AMPidentifier 2.0 configurations exceed AMPScanner v2 (MCC 0.718) on this benchmark.
+Among locally executable tools, Macrel achieves the highest MCC (0.823) and specificity (92.7%), with sensitivity (89.6%) lower than all AMPidentifier 2.0 configurations (93.9% to 94.9%). The AMPidentifier 2.0 voting ensemble produces the highest AUC-ROC among all 18 configurations (0.950) and the highest recall (94.9%). Five of the six AMPidentifier 2.0 configurations exceed AMPScanner v2 (MCC 0.718); only SVM (MCC 0.695) falls below.
 
-The amPEPpy classifier illustrates a trade-off that appears in several evaluated tools: AUC-ROC = 0.934 reflects strong probability ranking, but at its default operating threshold, specificity falls to 49.3%, meaning approximately half of all true non-AMP sequences are predicted as AMPs. At genomic scale, this false-positive rate generates a large volume of spurious candidates that consume downstream validation resources. AMPidentifier 2.0 configurations maintain specificity between 74.2% and 79.6%, limiting false-positive accumulation while preserving high recall.
+The amPEPpy and ClassAMP cases illustrate the risk of evaluating AMP predictors by AUC-ROC or sensitivity alone. amPEPpy achieves AUC-ROC = 0.934 and sensitivity 96.5%, but specificity falls to 49.3% at its default threshold: approximately half of all true non-AMP sequences are predicted as AMPs. Both ClassAMP configurations assign every sequence as AMP (specificity 0.0%, MCC 0.000), providing no discriminative capability at their default thresholds. AMPidentifier 2.0 configurations maintain specificity between 74.2% and 79.6% across all six models, limiting false-positive accumulation while preserving high recall.
 
-Among web tools, both ClassAMP models assign every sequence as AMP (specificity 0.0%, MCC 0.000), providing no discrimination capability. CAMPR3-RF (MCC 0.704) and CAMPR3-SVM (MCC 0.694) are the strongest web tools, competitive with AMPidentifier 2.0 XGB (MCC 0.707) and SVM (MCC 0.695). Of nine additional web tools surveyed, all nine were inaccessible at evaluation time (Table 5), consistent with the pattern of tool obsolescence reported in the literature.^14^
+Of nine additional web tools surveyed, all nine were inaccessible at evaluation time (Table 4), consistent with the pattern of tool obsolescence reported in the literature.^14^
 
 ## Discussion
 
