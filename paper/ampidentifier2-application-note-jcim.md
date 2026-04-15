@@ -137,7 +137,7 @@ Averaging probabilities integrates each classifier's confidence rather than trea
 
 ### Internal test set performance
 
-Table 2 reports classification metrics for all six AMPidentifier configurations on the 2,650-sequence held-out test set (see Dataset and data partitioning).
+The internal evaluation uses the 2,650-sequence held-out partition (1,325 AMP, 1,325 non-AMP) drawn from the same dataset as the training data (APD3, CAMP, LAMP, UniProt). This partition was withheld from all training and hyperparameter optimization steps; it was used solely for threshold calibration and to provide a controlled estimate of performance under conditions where training and test data share the same database sources and sequence-length distribution. Because both sets originate from the same curation pipeline, internal metrics are expected to be optimistic relative to generalization performance on novel sequences. Table 2 reports classification metrics for all six AMPidentifier configurations on this partition.
 
 **Table 2.** Classification performance on the internal held-out test set ($n$ = 2,650; 1,325 AMP, 1,325 non-AMP).
 
@@ -156,7 +156,7 @@ Hyperparameter tuning improved AUC-ROC and MCC for all five models relative to t
 
 ### Comparison with published predictors
 
-The independent benchmark contains 4,736 sequences (2,368 AMP, 2,368 non-AMP) derived from Bhangu et al. (2025),[22] covering antibacterial and antifungal activities, with no sequence used in any stage of model training, threshold calibration, or feature selection. Table 3 consolidates performance for all 17 evaluated classifier configurations on this benchmark, grouped by tool; nine tools surveyed were inaccessible at evaluation time and are listed in Table 4.
+Unlike the internal test set, which shares database sources and curation methodology with the training data, the independent benchmark was assembled from a separate curation pipeline by Bhangu et al. (2025)[22] and contains 4,736 sequences (2,368 AMP, 2,368 non-AMP) covering antibacterial and antifungal activities. No sequence from this benchmark was used in any stage of AMPidentifier model training, threshold calibration, or feature selection, making it the primary estimate of generalization performance across all evaluated tools. The same benchmark was submitted to all accessible external predictors, enabling direct head-to-head comparison on identical input. Table 3 consolidates performance for all 17 evaluated classifier configurations; nine tools surveyed were inaccessible at evaluation time and are listed in Table 4.
 
 **Table 3.** All evaluated classifiers on the independent benchmark ($n$ = 4,736 unless noted), grouped by tool. AMPidentifier rows use values from this study; external tool rows were evaluated by the authors of this work using the same benchmark dataset and evaluation protocol. Type: CLI = locally executable; Web = browser-based manual submission. AUC-ROC is N/A for tools with binary-only output.
 
