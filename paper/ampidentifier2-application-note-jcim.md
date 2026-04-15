@@ -58,7 +58,7 @@ The AMPidentifier web application at https://www.lgbv-ufpe.net/AMPidentifier pro
 
 ### Dataset and data partitioning
 
-The training dataset contains 13,246 sequences: 6,623 experimentally confirmed AMPs and 6,623 non-AMP peptide sequences. AMP sequences were drawn from APD3,[17] CAMP,[18] and LAMP;[19] non-AMP sequences were drawn from UniProt[20] entries annotated as lacking antimicrobial activity. To limit homology-derived redundancy, sequences sharing more than 80% pairwise identity were clustered with CD-HIT,[21] and one representative sequence per cluster was retained. The dataset is balanced (1:1 AMP:non-AMP). It was partitioned 80/20 by stratified random sampling into a training set of 10,596 sequences and a held-out test set of 2,650 sequences (1,325 per class). The test set was not used during hyperparameter optimization; it served exclusively for threshold calibration and final performance evaluation.
+The training dataset contains 13,246 sequences: 6,623 experimentally confirmed AMPs and 6,623 non-AMP peptide sequences. AMP sequences were drawn from APD3,[17] CAMP,[18] and LAMP;[19] non-AMP sequences were drawn from UniProt[20] entries annotated as lacking antimicrobial activity. To limit homology-derived redundancy, sequences sharing more than 80% pairwise identity were clustered with CD-HIT,[21] and one representative sequence per cluster was retained. The dataset is balanced (1:1 AMP:non-AMP). It was partitioned 80/20 by stratified random sampling into a training set of 10,596 sequences and a held-out test set of 2,650 sequences (1,325 per class). The test set was not used during hyperparameter optimization; it served exclusively for threshold calibration and final performance evaluation. Exploratory data analysis (EDA) of the assembled dataset is provided in Supplementary Section S0, including sequence length distribution, amino acid composition, global descriptor profiles, grouped amino acid composition, and positional feature distributions.
 
 ### Feature extraction
 
@@ -236,6 +236,28 @@ AMPidentifier provides sequence-based AMP prediction through five independently 
 AMPidentifier is freely available under an open-source license at https://github.com/madsondeluna/AMPIdentifier. The independent benchmark dataset, evaluation scripts, and all figures are available at https://github.com/madsondeluna/AMPidentifierBenchmark. AMPidentifier is registered with the INPI, Registration No. BR-51-2025-005859-4.
 
 ### Supporting information
+
+### S0: Exploratory data analysis of the training dataset
+
+**Figure S0a.** Sequence length distribution for AMP and non-AMP classes in the training dataset ($n$ = 13,246).
+
+![Figure S0a: Length distribution](../model_training/eda/fig01_length_distribution.png)
+
+**Figure S0b.** Per-residue amino acid composition (molar fraction) for AMP and non-AMP classes.
+
+![Figure S0b: Amino acid composition](../model_training/eda/fig02_aa_composition.png)
+
+**Figure S0c.** Global physicochemical descriptor distributions (charge, pI, instability index, aliphatic index, Boman index, hydrophobic ratio, hydrophobic moment) for AMP and non-AMP classes.
+
+![Figure S0c: Global descriptors](../model_training/eda/fig03_global_descriptors.png)
+
+**Figure S0d.** Grouped amino acid composition fractions for the nine functional groups across AMP and non-AMP classes.
+
+![Figure S0d: Grouped AAC](../model_training/eda/fig04_grouped_aac.png)
+
+**Figure S0e.** Positional feature distributions (FET and solvent accessibility D1 values) for AMP and non-AMP classes.
+
+![Figure S0e: Local/positional features](../model_training/eda/fig05_local_features.png)
 
 ### S1: Best hyperparameter configurations
 
