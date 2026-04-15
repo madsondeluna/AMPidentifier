@@ -146,12 +146,6 @@ Unlike the internal test set, which shares database sources and curation methodo
 | ampir | CLI | 81.0 | 74.4 | 94.5 | 67.5 | 83.3 | 0.644 | 0.921 |
 | DBAASP | Web | 75.6 | 81.7 | 64.1 | 86.5 | 71.8 | 0.521 | N/A |
 | amPEPpy | CLI | 72.9 | 65.6 | 96.5 | 49.3 | 78.1 | 0.520 | 0.934 |
-| ClassAMP, RF | Web | 53.7<sup>a</sup> | 53.7 | 100.0<sup>b</sup> | 0.0 | 69.9 | 0.000 | 0.785 |
-| ClassAMP, SVM | Web | 50.0 | 50.0 | 100.0<sup>b</sup> | 0.0 | 66.7 | 0.000 | 0.646 |
-
-<sup>a</sup> ClassAMP-RF returned results for 4,412 of 4,736 sequences; accuracy is computed over sequences with returned predictions.
-
-<sup>b</sup> Both ClassAMP configurations assigned every input sequence as AMP at the default threshold, yielding Sn = 100% and Sp = 0.0%; MCC = 0.000 indicates no discriminative capability.
 
 **Table 4.** Web-based AMP prediction tools identified in the literature and surveyed for inclusion in the benchmark but found inaccessible at evaluation time (March 2026). Reasons include DNS resolution failure, connection timeout, and permanent service discontinuation. None of these tools could be evaluated on the independent benchmark.
 
@@ -169,7 +163,7 @@ Unlike the internal test set, which shares database sources and curation methodo
 
 Among AMPidentifier configurations, LGBM achieves the highest individual MCC (0.749) and accuracy (87.0%); the voting ensemble produces the highest sensitivity (94.9%) and AUC-ROC (0.950). Five of the six AMPidentifier configurations exceed AMPScanner v2 (MCC 0.718); only SVM (MCC 0.695) falls below.
 
-The amPEPpy and ClassAMP cases illustrate the risk of evaluating AMP predictors by AUC-ROC or sensitivity alone. amPEPpy achieves AUC-ROC = 0.934 and sensitivity 96.5%, but specificity falls to 49.3% at its default threshold: approximately half of all true non-AMP sequences are predicted as AMPs. Both ClassAMP configurations assign every sequence as AMP (specificity 0.0%, MCC 0.000), providing no discriminative capability at their default thresholds. AMPidentifier configurations maintain specificity between 74.2% and 79.6% across all six models, limiting false-positive accumulation while preserving high sensitivity.
+The amPEPpy case illustrates the risk of evaluating AMP predictors by AUC-ROC or sensitivity alone. amPEPpy achieves AUC-ROC = 0.934 and sensitivity 96.5%, but specificity falls to 49.3% at its default threshold: approximately half of all true non-AMP sequences are predicted as AMPs. AMPidentifier configurations maintain specificity between 74.2% and 79.6% across all six models, limiting false-positive accumulation while preserving high sensitivity.
 
 ## Discussion
 
