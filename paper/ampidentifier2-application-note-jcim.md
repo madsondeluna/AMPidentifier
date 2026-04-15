@@ -147,6 +147,8 @@ Unlike the internal test set, which shares database sources and curation methodo
 | DBAASP | Web | 75.6 | 81.7 | 64.1 | 86.5 | 71.8 | 0.521 | N/A |
 | amPEPpy | CLI | 72.9 | 65.6 | 96.5 | 49.3 | 78.1 | 0.520 | 0.934 |
 
+Nine of the tools identified in the literature for potential inclusion in the benchmark were inaccessible at evaluation time (March 2026), with reasons ranging from DNS resolution failure and connection timeout to absence of any open-source release. This is a persistent problem in bioinformatics: predictive tools published with web-server-only access frequently become unavailable within a few years of publication, making independent replication impossible and limiting the comparability of results across studies.[23] Table 4 lists all nine tools and the specific reason each could not be evaluated.
+
 **Table 4.** Web-based AMP prediction tools identified in the literature and surveyed for inclusion in the benchmark but found inaccessible at evaluation time (March 2026). Reasons include DNS resolution failure, connection timeout, and permanent service discontinuation. None of these tools could be evaluated on the independent benchmark.
 
 | Tool | Year | Reason for exclusion |
