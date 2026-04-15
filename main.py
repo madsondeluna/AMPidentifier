@@ -81,12 +81,12 @@ def main():
         choices=["rf", "svm", "gb", "xgb", "lgbm", "voting"],
         help=(
             "Model to use for prediction (default: voting).\n"
-            "  rf     : Random Forest\n"
-            "  svm    : Support Vector Machine (RBF kernel)\n"
-            "  gb     : Gradient Boosting\n"
-            "  xgb    : XGBoost\n"
-            "  lgbm   : LightGBM\n"
-            "  voting : Soft-voting ensemble of all five models (recommended)\n"
+            "rf     : Random Forest\n"
+            "svm    : Support Vector Machine (RBF kernel)\n"
+            "gb     : Gradient Boosting\n"
+            "xgb    : XGBoost\n"
+            "lgbm   : LightGBM\n"
+            "voting : Soft-voting ensemble of all five models (recommended)\n"
         ),
     )
     parser.add_argument(
@@ -94,16 +94,7 @@ def main():
         type=float,
         default=None,
         metavar="FLOAT",
-        help=(
-            "Decision threshold for AMP classification (0.0 to 1.0).\n"
-            "If omitted, the MCC-optimized threshold for the selected model is used.\n"
-            "  rf     : 0.56\n"
-            "  svm    : 0.47\n"
-            "  gb     : 0.55\n"
-            "  xgb    : 0.48\n"
-            "  lgbm   : 0.71\n"
-            "  voting : 0.56\n"
-        ),
+        help="Decision threshold for AMP classification (0.0 to 1.0). If omitted, the MCC-optimized threshold for the selected model is used.",
     )
 
     args = parser.parse_args()
