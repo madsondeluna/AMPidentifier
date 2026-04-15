@@ -97,11 +97,11 @@ Five machine learning architectures were trained on the 10,596-sequence training
 | num_leaves | — | — | — | — | [20, 150) |
 | min_child_weight | — | — | — | [1, 10) | — |
 | min_child_samples | — | — | — | — | [5, 50) |
-| $\alpha$ (reg_alpha) | — | — | — | log-U[$10^{-4}$, 10] | log-U[$10^{-4}$, 10] |
-| $\lambda$ (reg_lambda) | — | — | — | log-U[0.1, 10] | log-U[0.1, 10] |
+| α (reg_alpha) | — | — | — | log-U[10⁻⁴, 10] | log-U[10⁻⁴, 10] |
+| λ (reg_lambda) | — | — | — | log-U[0.1, 10] | log-U[0.1, 10] |
 | kernel | — | RBF (fixed) | — | — | — |
 | C | — | log-U[0.01, 100] | — | — | — |
-| $\gamma$ | — | {scale, $10^{-4}$, $10^{-3}$, $10^{-2}$, 0.1, 1.0} | — | — | — |
+| γ | — | {scale, 10⁻⁴, 10⁻³, 10⁻², 0.1, 1.0} | — | — | — |
 
 **Random Forest (RF)** constructs an ensemble of decision trees by bootstrap aggregation. At each split, a random subset of features (max_features = 0.30) decorrelates the trees and reduces variance. Best configuration: 229 estimators, no depth constraint, min_samples_leaf = 1, min_samples_split = 3. Cross-validation AUC-ROC = 0.9695.
 
