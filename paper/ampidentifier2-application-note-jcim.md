@@ -1,4 +1,4 @@
-# AMPidentifier: Expanded Ensemble Machine Learning for Antimicrobial Peptide Prediction with LightGBM and Revised Physicochemical Descriptors
+# AMPidentifier: multi-mode antimicrobial peptide prediction and comparative benchmark of sequence-based classifiers
 
 Madson Allan de Luna-Aragão,<sup>1,\*</sup> Rafael Lucas da Silva,<sup>2</sup> João Pacífico Bezerra Neto,<sup>3</sup> Carlos André dos Santos-Silva,<sup>5</sup> Denys Ewerton da Silva Santos,<sup>4</sup> Ana Maria Benko-Iseppon<sup>2,\*</sup>
 
