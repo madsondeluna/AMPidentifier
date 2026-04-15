@@ -33,12 +33,25 @@ AMPidentifier 2.0 addresses this through two changes: the descriptor set is expa
 **Requirements:** Python 3.10 or later.
 
 ```bash
-git clone https://github.com/your-org/AMPidentifier.git
+git clone https://github.com/madsondeluna/AMPidentifier.git
 cd AMPidentifier
 pip install -r requirements.txt
 ```
 
 **Core dependencies:** `scikit-learn`, `xgboost`, `lightgbm`, `modlamp`, `pandas`, `numpy`, `matplotlib`, `joblib`, `biopython`.
+
+### Optional: register the `ampidentifier2` command
+
+To invoke the tool as `ampidentifier2` instead of `python3 main.py`, create a shell wrapper after cloning:
+
+```bash
+mkdir -p ~/.local/bin
+echo '#!/usr/bin/env bash' > ~/.local/bin/ampidentifier2
+echo 'exec python3 '"$(pwd)"'/main.py "$@"' >> ~/.local/bin/ampidentifier2
+chmod +x ~/.local/bin/ampidentifier2
+```
+
+Make sure `~/.local/bin` is in your `PATH` (add `export PATH="$HOME/.local/bin:$PATH"` to `~/.zshrc` or `~/.bashrc` if needed). After that, `ampidentifier2 --help` works from any directory.
 
 ## Usage
 
