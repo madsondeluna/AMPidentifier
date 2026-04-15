@@ -28,7 +28,7 @@ This paper describes the AMPidentifier implementation and reports internal and i
 
 AMPidentifier accepts a FASTA file as input and executes a four-step prediction pipeline (Figure 1). In step one, sequences are parsed and validated. In step two, 22 physicochemical features are computed per sequence using the modlamp library.[14] In step three, the selected model is applied: each sequence is assigned a probability $P(\text{AMP}) \in [0, 1]$, which is thresholded at the MCC-optimized value for the selected classifier to produce binary AMP/non-AMP labels. In step four, two output files are written to the user-specified directory: `physicochemical_features.csv`, a per-sequence feature table containing all 22 descriptors, and `predictions_[model].csv`, containing sequence identifiers, AMP probabilities, and predicted labels.
 
-**Figure 1.** AMPidentifier prediction workflow: FASTA input, 22-descriptor feature extraction, model inference with five classifiers and soft-voting ensemble, probability thresholding, and output of prediction and feature tables.
+**Figure 1.** Four-step AMPidentifier prediction pipeline. (1) Sequences in FASTA format are parsed and validated. (2) Each sequence is projected to a 22-dimensional physicochemical feature vector covering global descriptors, amino acid group fractions, and positional FET and solvent accessibility features. (3) The selected model assigns $P(\text{AMP}) \in [0, 1]$; the probability is compared against the MCC-optimized threshold $\theta$ to produce an AMP or non-AMP label. (4) Two CSV files are written to the output directory: a per-sequence feature table and a prediction results file containing sequence identifiers, probabilities, and labels. All six model configurations (RF, SVM, GB, XGB, LGBM, Voting) follow the same pipeline structure.
 
 ![Figure 1: Prediction workflow](../imgs/workflow.png)
 
@@ -118,7 +118,7 @@ Averaging probabilities integrates each classifier's confidence rather than trea
 
 The 13,246-sequence dataset was split 80/20 by stratified random sampling before any model fitting: 10,596 sequences formed the training partition and 2,650 sequences (1,325 AMP, 1,325 non-AMP) were held out. The held-out partition was never exposed to training or hyperparameter optimization; it was used exclusively for MCC-optimized threshold calibration and the performance evaluation reported here. Because training and test sequences originate from the same database sources (APD3, CAMP, LAMP, UniProt) and curation pipeline, internal metrics are expected to be optimistic relative to performance on novel sequences from independent sources. Table 2 reports classification metrics for all six AMPidentifier configurations on this partition.
 
-**Table 2.** Classification performance on the internal held-out test set ($n$ = 2,650; 1,325 AMP, 1,325 non-AMP).
+**Table 2.** Classification performance on the internal held-out test set ($n$ = 2,650; 1,325 AMP, 1,325 non-AMP). Decision thresholds were MCC-optimized on this partition after training; the test set was not used during model fitting or hyperparameter search. The voting ensemble achieves the highest accuracy (92.9%), MCC (0.859), and AUC-ROC (0.977). Acc: accuracy; Sn: sensitivity (recall); Sp: specificity.
 
 | Model  | Threshold | Acc (%) | Precision (%) | Sn (%) | Sp (%) | F1 (%) | MCC   | AUC-ROC |
 |--------|-----------|---------|---------------|--------|--------|--------|-------|---------|
@@ -163,7 +163,7 @@ Unlike the internal test set, which shares database sources and curation methodo
 
 <sup>b</sup> Both ClassAMP configurations assigned every input sequence as AMP at the default threshold, yielding Sn = 100% and Sp = 0.0%; MCC = 0.000 indicates no discriminative capability.
 
-**Table 4.** Tools surveyed but inaccessible at evaluation time (March 2026).
+**Table 4.** Web-based AMP prediction tools identified in the literature and surveyed for inclusion in the benchmark but found inaccessible at evaluation time (March 2026). Reasons include DNS resolution failure, connection timeout, and permanent service discontinuation. None of these tools could be evaluated on the independent benchmark.
 
 | Tool | Year | Reason for exclusion |
 |------|------|----------------------|
@@ -211,23 +211,23 @@ AMPidentifier is freely available under an open-source license at https://github
 
 ### S1: Exploratory data analysis of the training dataset
 
-**Figure S1a.** Sequence length distribution for AMP and non-AMP classes in the training dataset ($n$ = 13,246).
+**Figure S1a.** Sequence length distribution for AMP and non-AMP classes in the training dataset ($n$ = 13,246; 6,623 per class). AMP sequences are shorter on average, with most in the 10–50 residue range; non-AMP sequences show a broader length distribution extending beyond 100 residues.
 
 ![Figure S1a: Length distribution](../model_training/eda/fig01_length_distribution.png)
 
-**Figure S1b.** Per-residue amino acid composition (molar fraction) for AMP and non-AMP classes.
+**Figure S1b.** Per-residue amino acid composition (molar fraction) for AMP and non-AMP classes. AMP sequences are enriched in cationic residues (Lys, Arg) and depleted in acidic residues (Asp, Glu), consistent with the net positive charge characteristic of membrane-active peptides.
 
 ![Figure S1b: Amino acid composition](../model_training/eda/fig02_aa_composition.png)
 
-**Figure S1c.** Global physicochemical descriptor distributions (charge, pI, instability index, aliphatic index, Boman index, hydrophobic ratio, hydrophobic moment) for AMP and non-AMP classes.
+**Figure S1c.** Distributions of the seven global physicochemical descriptors (charge, pI, instability index, aliphatic index, Boman index, hydrophobic ratio, hydrophobic moment) for AMP and non-AMP classes. AMPs show higher net charge, Boman index, and hydrophobic moment compared to non-AMPs, reflecting the cationic amphipathic profile associated with membrane disruption activity.
 
 ![Figure S1c: Global descriptors](../model_training/eda/fig03_global_descriptors.png)
 
-**Figure S1d.** Grouped amino acid composition fractions for the nine functional groups across AMP and non-AMP classes.
+**Figure S1d.** Grouped amino acid composition fractions for the nine functional groups (acidic, basic, polar, nonpolar, aliphatic, aromatic, charged, small, tiny) across AMP and non-AMP classes. AMPs are enriched in basic (Lys, Arg, His) and charged residues and depleted in acidic (Asp, Glu) residues relative to non-AMPs.
 
 ![Figure S1d: Grouped AAC](../model_training/eda/fig04_grouped_aac.png)
 
-**Figure S1e.** Positional feature distributions (FET and solvent accessibility D1 values) for AMP and non-AMP classes.
+**Figure S1e.** Positional feature distributions (D1 values) for the three FET groups and three solvent accessibility groups, for AMP and non-AMP classes. D1 is the relative position of the first residue belonging to each group, normalized by sequence length. Differences between classes indicate that AMP and non-AMP sequences differ systematically in where specific chemical environments first appear along the chain.
 
 ![Figure S1e: Local/positional features](../model_training/eda/fig05_local_features.png)
 
@@ -311,11 +311,11 @@ All 22 descriptors were retained after feature selection. The table below lists 
 
 ### S4: Figures from the internal held-out test set
 
-**Figure S4a.** ROC curves for all six AMPidentifier configurations on the internal held-out test set ($n$ = 2,650).
+**Figure S4a.** ROC curves for all six AMPidentifier configurations on the internal held-out test set ($n$ = 2,650; 1,325 AMP, 1,325 non-AMP). AUC-ROC ranges from 0.969 (SVM) to 0.977 (Voting ensemble). LGBM and XGB are the strongest individual classifiers (AUC-ROC 0.975 and 0.974, respectively).
 
 ![Figure S4a: ROC curves](../model_training/tuned_model/figures/fig01_roc_curves.png)
 
-**Figure S4b.** Calibration curves (fraction of positives vs. mean predicted probability) for all six configurations.
+**Figure S4b.** Calibration curves (reliability diagrams) for all six AMPidentifier configurations on the internal held-out test set. A perfectly calibrated model follows the diagonal. RF and GB are well-calibrated across the probability range; SVM shows slight overconfidence at high predicted probabilities; LGBM and XGB are marginally underconfident in the 0.6–0.8 range.
 
 ![Figure S4b: Calibration curves](../model_training/tuned_model/figures/fig03_calibration.png)
 
