@@ -326,7 +326,7 @@ All 22 descriptors were retained after feature selection. The table below lists 
 
 ![Figure S3b: Calibration curves](../model_training/tuned_model/figures/fig03_calibration.png)
 
-**Figure S3c.** Feature importance ranking from the Random Forest classifier, showing mean decrease in impurity for all 22 descriptors.
+**Figure S3c.** Feature importance ranking (top 20 of 22 descriptors by mean decrease in impurity) for RF, GB, XGB, and LGBM. SVM with RBF kernel does not provide a native feature importance metric and is excluded.
 
 ![Figure S3c: Feature importance](../model_training/tuned_model/figures/fig04_feature_importance.png)
 
