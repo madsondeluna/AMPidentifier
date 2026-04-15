@@ -18,7 +18,7 @@ Antimicrobial peptides (AMPs) are short bioactive polypeptides, typically 10 to 
 
 Experimental screening for novel AMPs is resource-intensive. Sequence-based machine learning classifiers operating directly on primary amino acid sequences have therefore become a central tool in computational prescreening pipelines: they require no three-dimensional structural data and can evaluate large candidate sets in seconds.[6] Published sequence-based predictors include CAMPR3,[7] AMPScanner v2,[8] AMPlify,[9] amPEPpy,[10] ampir,[11] and several web-based platforms.[12,13] These tools differ in algorithmic architecture, feature representation, training data, and operating threshold, complicating direct performance comparisons.
 
-Tool availability is a compounding limitation. Of nine web-based AMP prediction servers surveyed during benchmark evaluation, all nine were inaccessible: DNS resolution failures, connection timeouts, or discontinued services prevented any prediction from being submitted (Table 4). This outcome is consistent with the broader pattern of bioinformatics tool obsolescence, in which servers published in peer-reviewed articles become unreachable within years of publication. Beyond availability, tools distributed exclusively as web applications cannot be integrated into automated pipelines, audited for version consistency, or used in offline computational environments. These gaps motivate distributing AMP predictors through multiple deployment channels, including locally executable packages and open-source repositories with versioned model artifacts.
+Tool availability is a compounding limitation. Of nine web-based AMP prediction servers surveyed during benchmark evaluation, all nine were inaccessible: DNS resolution failures, connection timeouts, or discontinued services prevented any prediction from being submitted (Table 5). This outcome is consistent with the broader pattern of bioinformatics tool obsolescence, in which servers published in peer-reviewed articles become unreachable within years of publication. Beyond availability, tools distributed exclusively as web applications cannot be integrated into automated pipelines, audited for version consistency, or used in offline computational environments. These gaps motivate distributing AMP predictors through multiple deployment channels, including locally executable packages and open-source repositories with versioned model artifacts.
 
 AMPidentifier provides three deployment modes, a CLI entry point, a PyPI package, and a web server, all operating on identical serialized model artifacts and backed by a versioned open-source repository. Five classifiers (RF, SVM, GB, XGB, LGBM) are trained on a 13,246-sequence corpus; features are 22 physicochemical descriptors covering functional group composition and positional sequence properties; and predictions are combined in a soft-voting ensemble that averages predicted AMP probabilities.
 
@@ -27,6 +27,10 @@ This paper describes the AMPidentifier implementation and reports internal and i
 ## Application overview
 
 AMPidentifier accepts a FASTA file as input and executes a four-step prediction pipeline (Figure 1). In step one, sequences are parsed and validated. In step two, 22 physicochemical features are computed per sequence using the modlamp library.[14] In step three, the selected model is applied: each sequence is assigned a probability $P(\text{AMP}) \in [0, 1]$, which is thresholded at the MCC-optimized value for the selected classifier to produce binary AMP/non-AMP labels. In step four, two output files are written to the user-specified directory: `physicochemical_features.csv`, a per-sequence feature table containing all 22 descriptors, and `predictions_[model].csv`, containing sequence identifiers, AMP probabilities, and predicted labels.
+
+**Figure 1.** AMPidentifier prediction workflow: FASTA input, 22-descriptor feature extraction, model inference with five classifiers and soft-voting ensemble, probability thresholding, and output of prediction and feature tables.
+
+![Figure 1: Prediction workflow](../imgs/workflow.png)
 
 Users select a prediction configuration via the `--model` flag (`rf`, `svm`, `gb`, `xgb`, `lgbm`, or `voting`; default: `voting`). A custom probability threshold can be provided via `--threshold`; if omitted, the MCC-optimized threshold for the selected model is applied automatically. This design allows users to adjust the sensitivity-specificity trade-off without re-running inference. All three deployment modes below operate on the same pre-trained model artifacts and normalization parameters, producing identical predictions for any given input.
 
@@ -80,9 +84,9 @@ Because descriptors span heterogeneous numeric scales, model-specific normalizat
 
 ### Pre-trained classifiers
 
-Five machine learning architectures were trained on the 10,596-sequence training partition. Hyperparameter optimization used RandomizedSearchCV (scikit-learn; n_iter = 100, 5-fold stratified cross-validation, AUC-ROC as the optimization metric). For each model, 100 configurations were sampled from the search space defined in Table 5; integer parameters were drawn from discrete uniform distributions, continuous parameters from uniform (U) or log-uniform (log-U) distributions over the stated ranges.
+Five machine learning architectures were trained on the 10,596-sequence training partition. Hyperparameter optimization used RandomizedSearchCV (scikit-learn; n_iter = 100, 5-fold stratified cross-validation, AUC-ROC as the optimization metric). For each model, 100 configurations were sampled from the search space defined in Table 1; integer parameters were drawn from discrete uniform distributions, continuous parameters from uniform (U) or log-uniform (log-U) distributions over the stated ranges.
 
-**Table 5.** Hyperparameter search spaces used in RandomizedSearchCV. Integer ranges are half-open [a, b); continuous ranges use uniform (U) or log-uniform (log-U) distributions. A dash (—) indicates the parameter does not apply to that model.
+**Table 1.** Hyperparameter search spaces used in RandomizedSearchCV. Integer ranges are half-open [a, b); continuous ranges use uniform (U) or log-uniform (log-U) distributions. A dash (—) indicates the parameter does not apply to that model.
 
 | Hyperparameter | RF | SVM | GB | XGB | LGBM |
 |---|---|---|---|---|---|
@@ -121,9 +125,9 @@ Averaging probabilities integrates each classifier's confidence rather than trea
 
 ### Internal test set performance
 
-The training dataset (13,246 sequences) was partitioned 80/20 by stratified random sampling before any model fitting. The 20% held-out partition (2,650 sequences: 1,325 AMP, 1,325 non-AMP) was not used for hyperparameter optimization or model training; it served exclusively for threshold calibration and the performance evaluation reported here. Table 1 reports classification metrics for all six AMPidentifier configurations on this partition.
+The training dataset (13,246 sequences) was partitioned 80/20 by stratified random sampling before any model fitting. The 20% held-out partition (2,650 sequences: 1,325 AMP, 1,325 non-AMP) was not used for hyperparameter optimization or model training; it served exclusively for threshold calibration and the performance evaluation reported here. Table 2 reports classification metrics for all six AMPidentifier configurations on this partition.
 
-**Table 1.** Classification performance on the internal held-out test set ($n$ = 2,650; 1,325 AMP, 1,325 non-AMP).
+**Table 2.** Classification performance on the internal held-out test set ($n$ = 2,650; 1,325 AMP, 1,325 non-AMP).
 
 | Model  | Threshold | Acc (%) | Precision (%) | Sn (%) | Sp (%) | F1 (%) | MCC   | AUC-ROC |
 |--------|-----------|---------|---------------|--------|--------|--------|-------|---------|
@@ -138,9 +142,9 @@ The voting ensemble achieves the highest values in accuracy (92.9%), precision (
 
 ### Independent benchmark performance
 
-The independent benchmark contains 4,736 sequences (2,368 AMP, 2,368 non-AMP) not used in any stage of model training, threshold calibration, or feature selection. Table 2 reports performance for all six AMPidentifier configurations.
+The independent benchmark contains 4,736 sequences (2,368 AMP, 2,368 non-AMP) derived from Bhangu et al. (2025),[22] covering antibacterial and antifungal activities, with no sequence used in any stage of model training, threshold calibration, or feature selection. Table 3 reports performance for all six AMPidentifier configurations.
 
-**Table 2.** Classification performance on the independent benchmark ($n$ = 4,736; 2,368 AMP, 2,368 non-AMP).
+**Table 3.** Classification performance on the independent benchmark ($n$ = 4,736; 2,368 AMP, 2,368 non-AMP).
 
 | Model  | Threshold | Acc (%) | Precision (%) | Sn (%) | Sp (%) | F1 (%) | MCC   | AUC-ROC |
 |--------|-----------|---------|---------------|--------|--------|--------|-------|---------|
@@ -157,11 +161,15 @@ Sensitivity is high across all configurations (93.9% to 94.9%), indicating that 
 
 Among individual classifiers, LGBM achieves the highest benchmark accuracy (87.0%) and MCC (0.749), marginally exceeding the voting ensemble (86.6%, MCC 0.742). The voting ensemble produces the highest sensitivity (94.9%) and AUC-ROC (0.950). ROC curves for all configurations on the independent benchmark are shown in Figure 2.
 
+**Figure 2.** ROC curves for all six AMPidentifier configurations on the independent benchmark ($n$ = 4,736; 2,368 AMP, 2,368 non-AMP).
+
+![Figure 2: Benchmark ROC curves](../benchmarking/fig_bench_roc.png)
+
 ### Comparison with published predictors
 
-Table 3 consolidates performance for all 17 evaluated classifier configurations on the independent benchmark, grouped by tool with the ensemble or best-performing variant listed first within each group. Nine tools surveyed were inaccessible at evaluation time and are listed in Table 4.
+Table 4 consolidates performance for all 17 evaluated classifier configurations on the independent benchmark, grouped by tool with the ensemble or best-performing variant listed first within each group. Nine tools surveyed were inaccessible at evaluation time and are listed in Table 5.
 
-**Table 3.** All evaluated classifiers on the independent benchmark ($n$ = 4,736 unless noted), grouped by tool. AMPidentifier rows use values from this study; external tool rows use the same benchmark dataset and evaluation protocol. Type: CLI = locally executable; Web = browser-based manual submission. AUC-ROC is N/A for tools with binary-only output.
+**Table 4.** All evaluated classifiers on the independent benchmark ($n$ = 4,736 unless noted), grouped by tool. AMPidentifier rows use values from this study; external tool rows were evaluated by the authors of this work using the same benchmark dataset and evaluation protocol. Type: CLI = locally executable; Web = browser-based manual submission. AUC-ROC is N/A for tools with binary-only output.
 
 | Tool | Type | Acc (%) | Precision (%) | Sn (%) | Sp (%) | F1 (%) | MCC | AUC-ROC |
 |------|------|---------|---------------|--------|--------|--------|-----|---------|
@@ -174,7 +182,7 @@ Table 3 consolidates performance for all 17 evaluated classifier configurations 
 | AMPScanner v2 | CLI | 85.4 | 80.2 | 93.9 | 76.9 | 86.5 | 0.718 | 0.936 |
 | CAMPR3, RF | Web | 84.8 | 80.3 | 92.2 | 77.4 | 85.8 | 0.704 | 0.934 |
 | CAMPR3, SVM | Web | 84.5 | 81.4 | 89.5 | 79.5 | 85.3 | 0.694 | 0.919 |
-| CAMPR3, DA | Web | 82.4 | 79.7 | 87.0 | 77.9 | 83.2 | 0.651 | 0.909 |
+| CAMPR3, DA (Discriminant Analysis) | Web | 82.4 | 79.7 | 87.0 | 77.9 | 83.2 | 0.651 | 0.909 |
 | CAMPR3, ANN | Web | 79.2 | 77.1 | 83.2 | 75.3 | 80.0 | 0.586 | N/A |
 | AMPlify | CLI | 83.7 | 77.8 | 94.3 | 73.0 | 85.3 | 0.689 | 0.932 |
 | ampir | CLI | 81.0 | 74.4 | 94.5 | 67.5 | 83.3 | 0.644 | 0.921 |
@@ -187,7 +195,7 @@ Table 3 consolidates performance for all 17 evaluated classifier configurations 
 
 <sup>b</sup> Both ClassAMP configurations assigned every input sequence as AMP at the default threshold, yielding Sn = 100% and Sp = 0.0%; MCC = 0.000 indicates no discriminative capability.
 
-**Table 4.** Tools surveyed but inaccessible at evaluation time (March 2026).
+**Table 5.** Tools surveyed but inaccessible at evaluation time (March 2026).
 
 | Tool | Year | Reason for exclusion |
 |------|------|----------------------|
@@ -205,7 +213,7 @@ The AMPidentifier voting ensemble produces the highest AUC-ROC among all 17 eval
 
 The amPEPpy and ClassAMP cases illustrate the risk of evaluating AMP predictors by AUC-ROC or sensitivity alone. amPEPpy achieves AUC-ROC = 0.934 and sensitivity 96.5%, but specificity falls to 49.3% at its default threshold: approximately half of all true non-AMP sequences are predicted as AMPs. Both ClassAMP configurations assign every sequence as AMP (specificity 0.0%, MCC 0.000), providing no discriminative capability at their default thresholds. AMPidentifier configurations maintain specificity between 74.2% and 79.6% across all six models, limiting false-positive accumulation while preserving high sensitivity.
 
-Table 4 lists nine additional web tools that were inaccessible at evaluation time, consistent with the pattern of tool obsolescence observed across computational biology server databases.
+Table 5 lists nine web tools that were inaccessible at evaluation time, consistent with the pattern of tool obsolescence observed across computational biology server databases.
 
 ## Discussion
 
@@ -219,7 +227,7 @@ The inclusion of LightGBM as a fifth classifier is motivated by two properties. 
 
 The physicochemical descriptor export remains a practical differentiator from comparable tools. Each run produces a per-sequence table of all 22 descriptors, which users can apply for downstream candidate ranking by biophysical criteria (e.g., filtering by Boman index above a threshold or requiring net charge within a specified range) without invoking a separate characterization tool.
 
-The three deployment modes (CLI, PyPI, web server) operate on identical serialized model artifacts. This architecture limits the reproducibility risk associated with web-server-only distribution, given the high offline rate documented for published AMP prediction servers (Table 4). Distributing pre-trained model artifacts within the repository and supporting `pip install ampidentifier` keeps the tool available independently of server infrastructure. The registration of AMPidentifier with INPI (Registration No. BR-51-2025-005859-4) provides an additional layer of version provenance.
+The three deployment modes (CLI, PyPI, web server) operate on identical serialized model artifacts. This architecture limits the reproducibility risk associated with web-server-only distribution, given the high offline rate documented for published AMP prediction servers (Table 5). Distributing pre-trained model artifacts within the repository and supporting `pip install ampidentifier` keeps the tool available independently of server infrastructure. The registration of AMPidentifier with INPI (Registration No. BR-51-2025-005859-4) provides an additional layer of version provenance.
 
 The specificity values observed on the independent benchmark (74.2% to 79.6%) indicate that a fraction of sequences annotated as non-AMP receive AMP predictions. Two factors contribute to this pattern beyond classifier error. First, the 22-descriptor feature vector summarizes physicochemical properties over the full sequence length; a protein whose primary function is unrelated to antimicrobial activity may nonetheless carry a segment with the cationic charge density and hydrophobic moment characteristic of membrane-active peptides, and the global descriptors will reflect that segment's contribution. Second, non-AMP annotations in curated databases record primary biological function, not exhaustive assay-based exclusion of antimicrobial activity. A well-documented example of this ambiguity is the class of encrypted antimicrobial peptides: short sequences embedded within larger precursor proteins, such as lactoferrin, casein, and hemoglobin, that are latent in the full-length form but release antimicrobial activity upon proteolytic cleavage. When full-length precursor sequences are presented to the classifier, the physicochemical signature of the embedded cryptic fragment can shift global descriptors toward the AMP region of feature space, producing a prediction that, while inconsistent with the protein's primary annotation, is not without biological basis. Sequences predicted as AMP at high probability despite a non-AMP annotation should therefore be treated as candidates for regional experimental evaluation rather than as classifier errors.
 
@@ -318,17 +326,17 @@ All 22 descriptors were retained after feature selection. The table below lists 
 
 ### S4: Figures from the internal held-out test set
 
-**Figure S3a.** ROC curves for all six AMPidentifier configurations on the internal held-out test set ($n$ = 2,650).
+**Figure S4a.** ROC curves for all six AMPidentifier configurations on the internal held-out test set ($n$ = 2,650).
 
-![Figure S3a: ROC curves](../model_training/tuned_model/figures/fig01_roc_curves.png)
+![Figure S4a: ROC curves](../model_training/tuned_model/figures/fig01_roc_curves.png)
 
-**Figure S3b.** Calibration curves (fraction of positives vs. mean predicted probability) for all six configurations.
+**Figure S4b.** Calibration curves (fraction of positives vs. mean predicted probability) for all six configurations.
 
-![Figure S3b: Calibration curves](../model_training/tuned_model/figures/fig03_calibration.png)
+![Figure S4b: Calibration curves](../model_training/tuned_model/figures/fig03_calibration.png)
 
-**Figure S3c.** Feature importance ranking (top 20 of 22 descriptors by mean decrease in impurity) for RF, GB, XGB, and LGBM. SVM with RBF kernel does not provide a native feature importance metric and is excluded.
+**Figure S4c.** Feature importance ranking (top 20 of 22 descriptors by mean decrease in impurity) for RF, GB, XGB, and LGBM. SVM with RBF kernel does not provide a native feature importance metric and is excluded.
 
-![Figure S3c: Feature importance](../model_training/tuned_model/figures/fig04_feature_importance.png)
+![Figure S4c: Feature importance](../model_training/tuned_model/figures/fig04_feature_importance.png)
 
 ### S5: Extended metrics and confusion matrices on the independent benchmark
 
@@ -406,3 +414,5 @@ Acc, Accuracy; AMP, Antimicrobial Peptide; AUC-ROC, Area Under the Receiver Oper
 (20) UniProt Consortium. UniProt: the universal protein knowledgebase in 2023. *Nucleic Acids Res.* **2023**, *51*, D523-D531.
 
 (21) Fu, L.; Niu, B.; Zhu, Z.; Wu, S.; Li, W. CD-HIT: accelerated for clustering the next-generation sequencing data. *Bioinformatics* **2012**, *28*, 3150-3152.
+
+(22) Bhangu, K. S. et al. Independent benchmark dataset for sequence-based antimicrobial peptide prediction tools. **2025**, in press.
