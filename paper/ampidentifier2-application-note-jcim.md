@@ -237,13 +237,79 @@ AMPidentifier is freely available under an open-source license at https://github
 
 ### Supporting information
 
-S1: Best hyperparameter configurations for all five classifiers as selected by RandomizedSearchCV, with complete parameter values and cross-validation AUC-ROC.
+### S1: Best hyperparameter configurations
 
-S2: Feature selection procedure and discriminative contribution of all 22 descriptors.
+Best configurations identified by RandomizedSearchCV (n_iter = 100, 5-fold stratified CV, AUC-ROC metric) for all five classifiers. CV AUC-ROC is reported as mean ± standard deviation across folds.
 
-S3: ROC curves, calibration curves, and feature importance plots from the internal held-out test set.
+| Parameter | RF | SVM | GB | XGB | LGBM |
+|---|---|---|---|---|---|
+| n_estimators | 229 | — | 293 | 448 | 383 |
+| max_depth | None | — | 6 | 6 | 7 |
+| learning_rate | — | — | 0.062 | 0.059 | 0.323 |
+| subsample | — | — | 0.846 | 0.678 | 0.942 |
+| colsample_bytree | — | — | — | 0.758 | 0.581 |
+| min_samples_split | 3 | — | 3 | — | — |
+| min_samples_leaf | 1 | — | 2 | — | — |
+| max_features | 0.30 | — | — | — | — |
+| num_leaves | — | — | — | — | 47 |
+| min_child_weight | — | — | — | 6 | — |
+| min_child_samples | — | — | — | — | 10 |
+| α (reg_alpha) | — | — | — | 0.0125 | 0.0012 |
+| λ (reg_lambda) | — | — | — | 0.313 | 0.681 |
+| kernel | — | RBF | — | — | — |
+| C | — | 2.796 | — | — | — |
+| γ | — | 0.10 | — | — | — |
+| **CV AUC-ROC** | **0.9695 ± 0.0018** | **0.9671 ± 0.0030** | **0.9723 ± 0.0023** | **0.9741 ± 0.0020** | **0.9740 ± 0.0016** |
 
-S4: Full confusion matrices and extended metrics for all evaluated classifiers on the independent benchmark.
+### S2: Feature selection and descriptor list
+
+All 22 descriptors were retained after feature selection. The table below lists each descriptor, its group, and its source.
+
+| # | Descriptor | Group | Source |
+|---|---|---|---|
+| 1 | Charge | Global | modlamp [14] |
+| 2 | pI | Global | modlamp [14] |
+| 3 | Instability index | Global | modlamp [14] |
+| 4 | Aliphatic index | Global | modlamp [14] |
+| 5 | Boman index | Global | modlamp [14] |
+| 6 | Hydrophobic ratio | Global | modlamp [14] |
+| 7 | Hydrophobic moment | Global | modlamp [14] |
+| 8 | f_acidic | AAC group | Jhong et al. [12], Nagarajan et al. [6] |
+| 9 | f_basic | AAC group | Jhong et al. [12], Nagarajan et al. [6] |
+| 10 | f_polar | AAC group | Jhong et al. [12], Nagarajan et al. [6] |
+| 11 | f_nonpolar | AAC group | Jhong et al. [12], Nagarajan et al. [6] |
+| 12 | f_aliphatic | AAC group | Jhong et al. [12], Nagarajan et al. [6] |
+| 13 | f_aromatic | AAC group | Jhong et al. [12], Nagarajan et al. [6] |
+| 14 | f_charged | AAC group | Jhong et al. [12], Nagarajan et al. [6] |
+| 15 | f_small | AAC group | Jhong et al. [12], Nagarajan et al. [6] |
+| 16 | f_tiny | AAC group | Jhong et al. [12], Nagarajan et al. [6] |
+| 17 | FET_low_D1 | FET positional | Von Heijne & Blomberg [16] |
+| 18 | FET_mid_D1 | FET positional | Von Heijne & Blomberg [16] |
+| 19 | FET_high_D1 | FET positional | Von Heijne & Blomberg [16] |
+| 20 | SA_buried_D1 | SA positional | Bhadra et al. [15] |
+| 21 | SA_exposed_D1 | SA positional | Bhadra et al. [15] |
+| 22 | SA_inter_D1 | SA positional | Bhadra et al. [15] |
+
+### S3: Figures from the internal held-out test set
+
+Figure S3a: ROC curves for all six AMPidentifier configurations on the internal held-out test set ($n$ = 2,650).
+
+Figure S3b: Calibration curves (fraction of positives vs. mean predicted probability) for all six configurations.
+
+Figure S3c: Feature importance ranking from the Random Forest classifier, showing mean decrease in impurity for all 22 descriptors.
+
+### S4: Extended metrics and confusion matrices on the independent benchmark
+
+Full counts (TP, TN, FP, FN) and classification metrics for all six AMPidentifier configurations on the independent benchmark ($n$ = 4,736; 2,368 AMP, 2,368 non-AMP).
+
+| Model | Threshold | TP | TN | FP | FN | Acc (%) | Precision (%) | Sn (%) | Sp (%) | F1 (%) | MCC | AUC-ROC |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| RF | 0.56 | 2228 | 1863 | 505 | 140 | 86.4 | 81.5 | 94.1 | 78.7 | 87.4 | 0.736 | 0.948 |
+| SVM | 0.47 | 2223 | 1758 | 610 | 145 | 84.1 | 78.5 | 93.9 | 74.2 | 85.5 | 0.695 | 0.943 |
+| GB | 0.55 | 2238 | 1824 | 544 | 130 | 85.8 | 80.5 | 94.5 | 77.0 | 86.9 | 0.727 | 0.935 |
+| XGB | 0.48 | 2245 | 1762 | 606 | 123 | 84.6 | 78.7 | 94.8 | 74.4 | 86.0 | 0.707 | 0.930 |
+| LGBM | 0.71 | 2238 | 1884 | 484 | 130 | 87.0 | 82.2 | 94.5 | 79.6 | 87.9 | 0.749 | 0.948 |
+| Voting | 0.56 | 2246 | 1856 | 512 | 122 | 86.6 | 81.4 | 94.9 | 78.4 | 87.6 | 0.742 | 0.950 |
 
 ## Author contributions
 
