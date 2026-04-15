@@ -10,37 +10,44 @@ _TTY = sys.stdout.isatty()
 def _c(code, text):
     return f"\033[{code}m{text}\033[0m" if _TTY else text
 
+# ASCII art for "AMPidentifier" in figlet "small" font.
+# "AMP" occupies the first 18 columns; "identifier" occupies the rest.
+# Split point is used to apply two-tone coloring.
+_AMP_COLS = 18
+_ART = [
+    r"   _   __  __ ___ _    _         _   _  __ _",
+    r"  /_\ |  \/  | _ (_)__| |___ _ _| |_(_)/ _(_)___ _ _",
+    r" / _ \| |\/| |  _/ / _` / -_) ' \  _| |  _| / -_) '_|",
+    r"/_/ \_\_|  |_|_| |_\__,_\___|_||_\__|_|_| |_\___|_|",
+]
+_SUBTITLE = "antimicrobial peptide classifier  |  v2.0"
+
+
 def _banner():
-    # Box dimensions match the result box in core.py (BOX_W=72, INNER=70)
-    inner = BOX_W - 2
+    inner  = BOX_W - 2   # 70
+    indent = 2
+    top    = "\u2554" + "\u2550" * inner + "\u2557"
+    bot    = "\u255a" + "\u2550" * inner + "\u255d"
+    empty  = "\u2551" + " " * inner + "\u2551"
 
-    # Visible text (raw, for padding calculation)
-    title_raw    = "AMP" + "identifier" + " 2.0"       # 17 chars
-    subtitle_raw = "physicochemical feature engineering | ensemble ML"  # 49 chars
+    def _art_row(raw):
+        amp_raw  = raw[:_AMP_COLS]
+        rest_raw = raw[_AMP_COLS:]
+        colored  = _c("1;32", amp_raw) + _c("1;36", rest_raw)
+        pad      = inner - indent - len(raw)
+        return "\u2551" + " " * indent + colored + " " * max(0, pad) + "\u2551"
 
-    # Colored versions (ANSI codes invisible)
-    title_col = (
-        _c("1;32", "AMP")
-        + _c("1;36", "identifier")
-        + _c("2",    " 2.0")
-    )
-    subtitle_col = _c("2", subtitle_raw)
-
-    top = "\u2554" + "\u2550" * inner + "\u2557"
-    bot = "\u255a" + "\u2550" * inner + "\u255d"
-    empty = "\u2551" + " " * inner + "\u2551"
-
-    indent = 4
-    def _row(raw, colored):
-        pad = inner - indent - len(raw)
-        return "\u2551" + " " * indent + colored + " " * pad + "\u2551"
+    def _sub_row(raw):
+        colored = _c("2", raw)
+        pad     = inner - indent - len(raw)
+        return "\u2551" + " " * indent + colored + " " * max(0, pad) + "\u2551"
 
     print()
     print(top)
+    for line in _ART:
+        print(_art_row(line))
     print(empty)
-    print(_row(title_raw,    title_col))
-    print(_row(subtitle_raw, subtitle_col))
-    print(empty)
+    print(_sub_row(_SUBTITLE))
     print(bot)
     print()
 
