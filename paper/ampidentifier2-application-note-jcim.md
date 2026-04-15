@@ -100,7 +100,7 @@ $$P_{\text{voting}}(\text{AMP}) = \frac{1}{5} \sum_{k=1}^{5} P_k(\text{AMP})$$
 
 where $k$ indexes RF, SVM, GB, XGB, and LGBM. A scikit-learn VotingClassifier object with `voting='soft'` encapsulates all five classifiers and their respective scalers into a single pipeline. At inference time, the raw 22-feature matrix is passed directly to the ensemble, which dispatches scaling internally before calling each sub-classifier. The ensemble threshold (0.56) was optimized on the held-out test set by the same MCC criterion applied to individual models.
 
-Averaging probabilities integrates each classifier's confidence rather than treating all votes as equal, which is more informative when component classifiers assign markedly different probability values to borderline sequences.
+Averaging probabilities integrates each classifier's confidence rather than counting votes, which is more informative when component classifiers assign markedly different probability values to borderline sequences. Because the five models differ in inductive bias, from the variance-reducing bagging of RF to the margin-based geometry of SVM, the sequential residual fitting of GB and XGB, and the histogram-based leaf-wise growth of LGBM, their individual probability estimates are partly independent, and the average tends to be better calibrated than any single model.
 
 ## Results
 
