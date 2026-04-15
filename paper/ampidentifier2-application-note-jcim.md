@@ -42,7 +42,11 @@ The CLI is the primary deployment mode for users working in Unix-based environme
 ampidentifier2 -i sequences.fasta -o results/ --model voting
 ```
 
-Required arguments are `-i` (input FASTA path) and `-o` (output directory). The terminal output includes a per-run summary box reporting total sequences, AMP and non-AMP counts with percentages, the decision threshold applied, and the output file path. The CLI is compatible with macOS, Linux, and Windows Subsystem for Linux (WSL). A full list of arguments and defaults is available via `ampidentifier2 --help`.
+Required arguments are `-i` (input FASTA path) and `-o` (output directory). The terminal output includes a per-run summary box reporting total sequences, AMP and non-AMP counts with percentages, the decision threshold applied, and the output file path. The CLI is compatible with macOS, Linux, and Windows Subsystem for Linux (WSL). A full list of arguments and defaults is available via `ampidentifier2 --help` (Figure 2).
+
+**Figure 2.** AMPidentifier command-line interface (`ampidentifier2 --help`). The ASCII banner identifies the tool and version. The help output lists the required arguments (`-i`, `-o`), the `--model` flag with per-model performance benchmarks (Accuracy, AUC-ROC, MCC on the internal test set), and the optional `--threshold` flag for overriding the MCC-optimized default.
+
+![Figure 2: CLI interface](../imgs/cli-visuals.png)
 
 ### Python package
 
@@ -56,7 +60,11 @@ After installation, the same `ampidentifier2` entry point is available from the 
 
 ### Web application
 
-The AMPidentifier web application at https://www.lgbv-ufpe.net/AMPidentifier provides a browser-based interface that does not require local software installation. Users paste or upload sequences in FASTA format, select a model, and download the two output CSV files. The web server runs the same pre-trained models as the CLI and PyPI package and produces byte-identical output files. The interface is accessible from any device with a browser and an internet connection, including mobile devices, making it suitable for exploratory use and for users without programming experience.
+The AMPidentifier web application at https://www.lgbv-ufpe.net/AMPidentifier provides a browser-based interface that does not require local software installation. Users paste or upload sequences in FASTA format, select a model, and download the two output CSV files. The web server runs the same pre-trained models as the CLI and PyPI package, producing identical predictions for any given input. The interface is accessible from any device with a browser and an internet connection, including mobile devices, making it suitable for exploratory use and for users without programming experience (Figure 3).
+
+**Figure 3.** AMPidentifier web application interface. (A) Input panel for FASTA sequence submission and model selection. (B) Sequence preview after upload. (C) Prediction results table displaying per-sequence AMP probability and color-coded AMP/non-AMP labels. (D) Detailed output view with interpretation guidance and download links for the prediction and feature CSV files.
+
+![Figure 3: Web application](../imgs/web-interface.png)
 
 ## Implementation
 
@@ -165,11 +173,11 @@ Benchmark accuracy (84.1% to 87.0%) is lower than internal test accuracy (91.9% 
 
 Sensitivity is high across all configurations (93.9% to 94.9%), indicating that each classifier recovers the large majority of true AMPs. Specificity is lower (74.2% to 79.6%): the classifiers accept a proportion of true non-AMP sequences as predicted AMPs. This asymmetry is common in AMP predictors trained on curated database sequences and evaluated against more diverse independent sets, where the marginal non-AMP sequences may share local compositional features with AMPs.
 
-Among individual classifiers, LGBM achieves the highest benchmark accuracy (87.0%) and MCC (0.749), marginally exceeding the voting ensemble (86.6%, MCC 0.742). The voting ensemble produces the highest sensitivity (94.9%) and AUC-ROC (0.950). ROC curves for all configurations on the independent benchmark are shown in Figure 2. Extended counts (TP, TN, FP, FN) for all six configurations are provided in Supplementary Section S5.
+Among individual classifiers, LGBM achieves the highest benchmark accuracy (87.0%) and MCC (0.749), marginally exceeding the voting ensemble (86.6%, MCC 0.742). The voting ensemble produces the highest sensitivity (94.9%) and AUC-ROC (0.950). ROC curves for all configurations on the independent benchmark are shown in Figure 4. Extended counts (TP, TN, FP, FN) for all six configurations are provided in Supplementary Section S5.
 
-**Figure 2.** ROC curves for all six AMPidentifier configurations on the independent benchmark ($n$ = 4,736; 2,368 AMP, 2,368 non-AMP).
+**Figure 4.** ROC curves for all six AMPidentifier configurations on the independent benchmark ($n$ = 4,736; 2,368 AMP, 2,368 non-AMP).
 
-![Figure 2: Benchmark ROC curves](../benchmarking/fig_bench_roc.png)
+![Figure 4: Benchmark ROC curves](../benchmarking/fig_bench_roc.png)
 
 ### Comparison with published predictors
 
