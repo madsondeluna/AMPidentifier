@@ -127,16 +127,16 @@ Hyperparameter tuning improved AUC-ROC and MCC for all five models relative to t
 
 Unlike the internal test set, which shares database sources and curation methodology with the training data, the independent benchmark was assembled from a separate curation pipeline by Bhangu et al. (2025)[22] and contains 4,736 sequences (2,368 AMP, 2,368 non-AMP) covering antibacterial and antifungal activities. No sequence from this benchmark was used in any stage of AMPidentifier model training, threshold calibration, or feature selection, making it the primary estimate of generalization performance across all evaluated tools. The same benchmark was submitted to all accessible external predictors, enabling direct head-to-head comparison on identical input. Table 3 consolidates performance for all 15 evaluated classifier configurations; nine tools surveyed were inaccessible at evaluation time and are listed in Table 4.
 
-**Table 3.** All evaluated classifiers on the independent benchmark ($n$ = 4,736 unless noted), grouped by tool. AMPidentifier rows use values from this study; external tool rows were evaluated by the authors of this work using the same benchmark dataset and evaluation protocol. Type: CLI = locally executable; Web = browser-based manual submission. AUC-ROC is N/A for tools with binary-only output.
+**Table 3.** All evaluated classifiers on the independent benchmark ($n$ = 4,736 unless noted), grouped by tool. AMPidentifier rows use values from this study; external tool rows were evaluated by the authors of this work using the same benchmark dataset and evaluation protocol. Type: CLI = locally executable; Web = browser-based manual submission; pip = Python package (PyPI). AMPidentifier runs all three modes on the same serialized model artifacts. AUC-ROC is N/A for tools with binary-only output.
 
 | Tool | Type | Acc (%) | Precision (%) | Sn (%) | Sp (%) | F1 (%) | MCC | AUC-ROC |
 |------|------|---------|---------------|--------|--------|--------|-----|---------|
-| AMPidentifier, Voting | CLI | 86.6 | 81.4 | 94.9 | 78.4 | 87.6 | 0.742 | 0.950 |
-| AMPidentifier, LGBM | CLI | 87.0 | 82.2 | 94.5 | 79.6 | 87.9 | 0.749 | 0.948 |
-| AMPidentifier, RF | CLI | 86.4 | 81.5 | 94.1 | 78.7 | 87.4 | 0.736 | 0.948 |
-| AMPidentifier, GB | CLI | 85.8 | 80.5 | 94.5 | 77.0 | 86.9 | 0.727 | 0.935 |
-| AMPidentifier, XGB | CLI | 84.6 | 78.7 | 94.8 | 74.4 | 86.0 | 0.707 | 0.930 |
-| AMPidentifier, SVM | CLI | 84.1 | 78.5 | 93.9 | 74.2 | 85.5 | 0.695 | 0.943 |
+| AMPidentifier, Voting | CLI, Web, pip | 86.6 | 81.4 | 94.9 | 78.4 | 87.6 | 0.742 | 0.950 |
+| AMPidentifier, LGBM | CLI, Web, pip | 87.0 | 82.2 | 94.5 | 79.6 | 87.9 | 0.749 | 0.948 |
+| AMPidentifier, RF | CLI, Web, pip | 86.4 | 81.5 | 94.1 | 78.7 | 87.4 | 0.736 | 0.948 |
+| AMPidentifier, GB | CLI, Web, pip | 85.8 | 80.5 | 94.5 | 77.0 | 86.9 | 0.727 | 0.935 |
+| AMPidentifier, XGB | CLI, Web, pip | 84.6 | 78.7 | 94.8 | 74.4 | 86.0 | 0.707 | 0.930 |
+| AMPidentifier, SVM | CLI, Web, pip | 84.1 | 78.5 | 93.9 | 74.2 | 85.5 | 0.695 | 0.943 |
 | AMPScanner v2 | CLI | 85.4 | 80.2 | 93.9 | 76.9 | 86.5 | 0.718 | 0.936 |
 | CAMPR3, RF | Web | 84.8 | 80.3 | 92.2 | 77.4 | 85.8 | 0.704 | 0.934 |
 | CAMPR3, SVM | Web | 84.5 | 81.4 | 89.5 | 79.5 | 85.3 | 0.694 | 0.919 |
