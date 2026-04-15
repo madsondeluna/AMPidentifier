@@ -104,6 +104,14 @@ def _box_dim(text: str):
     print(f"\u2551{_dim(raw)}\u2551")
 
 
+def _box_wrap(text: str):
+    """Word-wrap text into box-width lines and print each with _box_dim."""
+    import textwrap
+    width = INNER - 2  # 68
+    for line in textwrap.wrap(text, width=width):
+        _box_dim(line)
+
+
 # ---------------------------------------------------------------------------
 # Step / log helpers
 # ---------------------------------------------------------------------------
@@ -248,6 +256,18 @@ def run_prediction_pipeline(
     _box_bar("non-AMP", n_non_amp, pct_non)
     _box_div()
     _box_info("Output", pred_path)
+    _box_div()
+    _box_wrap(
+        "Interpretation note: Predictions are computed from physicochemical "
+        "and compositional descriptors derived from the primary amino acid "
+        "sequence. For higher predictive power, use Voting Ensemble mode "
+        "(RF + SVM + GB + XGB + LGBM), which combines five independent "
+        "classifiers and achieves Accuracy: 92.9%, Sensitivity: 91.4%, "
+        "Specificity: 94.4% on the validation set. Bear in mind that "
+        "proteins whose primary function is not antimicrobial activity may "
+        "still harbour potential antimicrobial features in specific "
+        "sequence regions."
+    )
     _box_div()
     _box_dim("Luna-Aragao, M.A. et al. (2026). AMPidentifier 1.0.")
     _box_dim("Luna-Aragao, M.A. et al. (2026). AMPidentifier 2.0.")
