@@ -149,7 +149,6 @@ def run_prediction_pipeline(
     threshold_override=None,
 ):
     print()
-    print(f"  {_bold(_cyan('AMPidentifier 2.0'))}  {_dim('prediction pipeline')}")
     print(f"  {_gray('-' * (BOX_W - 4))}")
     print()
 

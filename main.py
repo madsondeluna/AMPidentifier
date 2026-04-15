@@ -3,22 +3,50 @@
 import argparse
 import os
 import sys
-from amp_identifier.core import run_prediction_pipeline
+from amp_identifier.core import run_prediction_pipeline, BOX_W
 
-_USE_COLOR = sys.stdout.isatty()
+_TTY = sys.stdout.isatty()
 
 def _c(code, text):
-    return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
+    return f"\033[{code}m{text}\033[0m" if _TTY else text
 
-BANNER = (
-    "\n"
-    + _c("1;36", "  AMPidentifier 2.0") + "\n"
-    + _c("2",    "  physicochemical feature engineering | ensemble ML") + "\n"
-)
+def _banner():
+    # Box dimensions match the result box in core.py (BOX_W=72, INNER=70)
+    inner = BOX_W - 2
+
+    # Visible text (raw, for padding calculation)
+    title_raw    = "AMP" + "identifier" + " 2.0"       # 17 chars
+    subtitle_raw = "physicochemical feature engineering | ensemble ML"  # 49 chars
+
+    # Colored versions (ANSI codes invisible)
+    title_col = (
+        _c("1;32", "AMP")
+        + _c("1;36", "identifier")
+        + _c("2",    " 2.0")
+    )
+    subtitle_col = _c("2", subtitle_raw)
+
+    top = "\u2554" + "\u2550" * inner + "\u2557"
+    bot = "\u255a" + "\u2550" * inner + "\u255d"
+    empty = "\u2551" + " " * inner + "\u2551"
+
+    indent = 4
+    def _row(raw, colored):
+        pad = inner - indent - len(raw)
+        return "\u2551" + " " * indent + colored + " " * pad + "\u2551"
+
+    print()
+    print(top)
+    print(empty)
+    print(_row(title_raw,    title_col))
+    print(_row(subtitle_raw, subtitle_col))
+    print(empty)
+    print(bot)
+    print()
 
 
 def main():
-    print(BANNER)
+    _banner()
 
     parser = argparse.ArgumentParser(
         description="AMPidentifier 2.0: antimicrobial peptide classification from FASTA input.",
