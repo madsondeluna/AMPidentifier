@@ -1,4 +1,4 @@
-# AMPidentifier 2.0: Expanded Ensemble Machine Learning for Antimicrobial Peptide Prediction with LightGBM and Revised Physicochemical Descriptors
+# AMPidentifier: Expanded Ensemble Machine Learning for Antimicrobial Peptide Prediction with LightGBM and Revised Physicochemical Descriptors
 
 Madson Allan de Luna-Aragão,<sup>1,\*</sup> Rafael Lucas da Silva,<sup>2</sup> João Pacífico Bezerra Neto,<sup>3</sup> Carlos André dos Santos-Silva,<sup>5</sup> Denys Ewerton da Silva Santos,<sup>4</sup> Ana Maria Benko-Iseppon<sup>2,\*</sup>
 
@@ -10,7 +10,7 @@ Madson Allan de Luna-Aragão,<sup>1,\*</sup> Rafael Lucas da Silva,<sup>2</sup> 
 
 ## Abstract
 
-Web server availability and long-term reproducibility are recurring limitations of published antimicrobial peptide (AMP) prediction tools: of 17 configurations evaluated on an independent benchmark, 9 web-based tools were inaccessible at evaluation time, precluding direct comparison. AMPidentifier 2.0 is a sequence-based AMP prediction toolkit designed for stable, multi-mode deployment. It provides five independently accessible classifiers, Random Forest (RF), Support Vector Machine (SVM), Gradient Boosting (GB), XGBoost (XGB), and LightGBM (LGBM), combined in a soft-voting ensemble that averages predicted AMP probabilities. The training corpus contains 13,246 balanced sequences (6,623 AMP and 6,623 non-AMP) drawn from APD3, CAMP, LAMP, and UniProt, with homology reduction applied to limit redundancy. Feature extraction produces a 22-descriptor vector per sequence, covering global peptide properties, amino acid functional group fractions, and positional free-energy-of-transition and solvent accessibility distributions. On an internal held-out test set of 2,650 sequences, the soft-voting ensemble achieves accuracy 92.9%, Matthews correlation coefficient (MCC) 0.859, and AUC-ROC 0.977. On an independent 4,736-sequence benchmark shared with all evaluated external tools, the ensemble achieves MCC 0.742 and AUC-ROC 0.950, exceeding AMPScanner v2 (MCC 0.718, AUC-ROC 0.936) and CAMPR3-RF (MCC 0.704), the two strongest accessible comparators. All configurations are accessible through three deployment modes with identical predictive behavior: a command-line interface (CLI), a Python package via PyPI (`pip install ampidentifier`), and a web application at https://www.lgbv-ufpe.net/AMPidentifier. Source code, pre-trained model artifacts, and the full benchmark evaluation are freely available at https://github.com/madsondeluna/AMPIdentifier under the MIT License.
+Web server availability and long-term reproducibility are recurring limitations of published antimicrobial peptide (AMP) prediction tools: of 17 configurations evaluated on an independent benchmark, 9 web-based tools were inaccessible at evaluation time, precluding direct comparison. AMPidentifier is a sequence-based AMP prediction toolkit designed for stable, multi-mode deployment. It provides five independently accessible classifiers, Random Forest (RF), Support Vector Machine (SVM), Gradient Boosting (GB), XGBoost (XGB), and LightGBM (LGBM), combined in a soft-voting ensemble that averages predicted AMP probabilities. The training corpus contains 13,246 balanced sequences (6,623 AMP and 6,623 non-AMP) drawn from APD3, CAMP, LAMP, and UniProt, with homology reduction applied to limit redundancy. Feature extraction produces a 22-descriptor vector per sequence, covering global peptide properties, amino acid functional group fractions, and positional free-energy-of-transition and solvent accessibility distributions. On an internal held-out test set of 2,650 sequences, the soft-voting ensemble achieves accuracy 92.9%, Matthews correlation coefficient (MCC) 0.859, and AUC-ROC 0.977. On an independent 4,736-sequence benchmark shared with all evaluated external tools, the ensemble achieves MCC 0.742 and AUC-ROC 0.950, exceeding AMPScanner v2 (MCC 0.718, AUC-ROC 0.936) and CAMPR3-RF (MCC 0.704), the two strongest accessible comparators. All configurations are accessible through three deployment modes with identical predictive behavior: a command-line interface (CLI), a Python package via PyPI (`pip install ampidentifier`), and a web application at https://www.lgbv-ufpe.net/AMPidentifier. Source code, pre-trained model artifacts, and the full benchmark evaluation are freely available at https://github.com/madsondeluna/AMPIdentifier under the MIT License.
 
 ## Introduction
 
@@ -20,13 +20,13 @@ Experimental screening for novel AMPs is resource-intensive. Sequence-based mach
 
 Tool availability is a compounding limitation. Of nine web-based AMP prediction servers surveyed during benchmark evaluation, all nine were inaccessible: DNS resolution failures, connection timeouts, or discontinued services prevented any prediction from being submitted (Table 4). This outcome is consistent with the broader pattern of bioinformatics tool obsolescence, in which servers published in peer-reviewed articles become unreachable within years of publication. Beyond availability, tools distributed exclusively as web applications cannot be integrated into automated pipelines, audited for version consistency, or used in offline computational environments. These gaps motivate distributing AMP predictors through multiple deployment channels, including locally executable packages and open-source repositories with versioned model artifacts.
 
-AMPidentifier 2.0 addresses this by providing four deployment artifacts: the source code repository, a PyPI package, a CLI entry point, and a web server, all operating on identical serialized model files. The training corpus was expanded to 13,246 sequences, the feature set was redesigned to 22 descriptors covering functional group composition and positional sequence properties, LightGBM was added as a fifth classifier, and the majority-vote ensemble was replaced with a soft-voting ensemble that averages predicted probabilities.
+AMPidentifier addresses this by providing four deployment artifacts: the source code repository, a PyPI package, a CLI entry point, and a web server, all operating on identical serialized model files. The training corpus was expanded to 13,246 sequences, the feature set was redesigned to 22 descriptors covering functional group composition and positional sequence properties, LightGBM was added as a fifth classifier, and the majority-vote ensemble was replaced with a soft-voting ensemble that averages predicted probabilities.
 
-This paper describes the AMPidentifier 2.0 implementation and reports internal and independent benchmark performance for all six prediction configurations.
+This paper describes the AMPidentifier implementation and reports internal and independent benchmark performance for all six prediction configurations.
 
 ## Application overview
 
-AMPidentifier 2.0 accepts a FASTA file as input and executes a four-step prediction pipeline (Figure 1). In step one, sequences are parsed and validated. In step two, 22 physicochemical features are computed per sequence using the modlamp library.[14] In step three, the selected model is applied: each sequence is assigned a probability $P(\text{AMP}) \in [0, 1]$, which is thresholded at the MCC-optimized value for the selected classifier to produce binary AMP/non-AMP labels. In step four, two output files are written to the user-specified directory: `physicochemical_features.csv`, a per-sequence feature table containing all 22 descriptors, and `predictions_[model].csv`, containing sequence identifiers, AMP probabilities, and predicted labels.
+AMPidentifier accepts a FASTA file as input and executes a four-step prediction pipeline (Figure 1). In step one, sequences are parsed and validated. In step two, 22 physicochemical features are computed per sequence using the modlamp library.[14] In step three, the selected model is applied: each sequence is assigned a probability $P(\text{AMP}) \in [0, 1]$, which is thresholded at the MCC-optimized value for the selected classifier to produce binary AMP/non-AMP labels. In step four, two output files are written to the user-specified directory: `physicochemical_features.csv`, a per-sequence feature table containing all 22 descriptors, and `predictions_[model].csv`, containing sequence identifiers, AMP probabilities, and predicted labels.
 
 Users select a prediction configuration via the `--model` flag (`rf`, `svm`, `gb`, `xgb`, `lgbm`, or `voting`; default: `voting`). A custom probability threshold can be provided via `--threshold`; if omitted, the MCC-optimized threshold for the selected model is applied automatically. This design allows users to adjust the sensitivity-specificity trade-off without re-running inference. All three deployment modes below operate on the same pre-trained model artifacts and normalization parameters, producing identical predictions for any given input.
 
@@ -42,7 +42,7 @@ Required arguments are `-i` (input FASTA path) and `-o` (output directory). The 
 
 ### Python package
 
-AMPidentifier 2.0 is installable as a Python package via the Python Package Index:
+AMPidentifier is installable as a Python package via the Python Package Index:
 
 ```
 pip install ampidentifier
@@ -108,7 +108,7 @@ Averaging probabilities integrates each classifier's confidence rather than trea
 
 ### Internal test set performance
 
-The training dataset (13,246 sequences) was partitioned 80/20 by stratified random sampling before any model fitting. The 20% held-out partition (2,650 sequences: 1,325 AMP, 1,325 non-AMP) was not used for hyperparameter optimization or model training; it served exclusively for threshold calibration and the performance evaluation reported here. Table 1 reports classification metrics for all six AMPidentifier 2.0 configurations on this partition.
+The training dataset (13,246 sequences) was partitioned 80/20 by stratified random sampling before any model fitting. The 20% held-out partition (2,650 sequences: 1,325 AMP, 1,325 non-AMP) was not used for hyperparameter optimization or model training; it served exclusively for threshold calibration and the performance evaluation reported here. Table 1 reports classification metrics for all six AMPidentifier configurations on this partition.
 
 **Table 1.** Classification performance on the internal held-out test set ($n$ = 2,650; 1,325 AMP, 1,325 non-AMP).
 
@@ -125,7 +125,7 @@ The voting ensemble achieves the highest values in accuracy (92.9%), precision (
 
 ### Independent benchmark performance
 
-The independent benchmark contains 4,736 sequences (2,368 AMP, 2,368 non-AMP) not used in any stage of model training, threshold calibration, or feature selection. Table 2 reports performance for all six AMPidentifier 2.0 configurations.
+The independent benchmark contains 4,736 sequences (2,368 AMP, 2,368 non-AMP) not used in any stage of model training, threshold calibration, or feature selection. Table 2 reports performance for all six AMPidentifier configurations.
 
 **Table 2.** Classification performance on the independent benchmark ($n$ = 4,736; 2,368 AMP, 2,368 non-AMP).
 
@@ -148,16 +148,16 @@ Among individual classifiers, LGBM achieves the highest benchmark accuracy (87.0
 
 Table 3 consolidates performance for all 17 evaluated classifier configurations on the independent benchmark, grouped by tool with the ensemble or best-performing variant listed first within each group. Nine tools surveyed were inaccessible at evaluation time and are listed in Table 4.
 
-**Table 3.** All evaluated classifiers on the independent benchmark ($n$ = 4,736 unless noted), grouped by tool. AMPidentifier 2.0 rows use values from this study; external tool rows use the same benchmark dataset and evaluation protocol. Type: CLI = locally executable; Web = browser-based manual submission. AUC-ROC is N/A for tools with binary-only output.
+**Table 3.** All evaluated classifiers on the independent benchmark ($n$ = 4,736 unless noted), grouped by tool. AMPidentifier rows use values from this study; external tool rows use the same benchmark dataset and evaluation protocol. Type: CLI = locally executable; Web = browser-based manual submission. AUC-ROC is N/A for tools with binary-only output.
 
 | Tool | Type | Acc (%) | Sn (%) | Sp (%) | Precision (%) | F1 (%) | MCC | AUC-ROC |
 |------|------|---------|--------|--------|---------------|--------|-----|---------|
-| AMPidentifier 2.0, Voting | CLI | 86.6 | 94.9 | 78.4 | 81.4 | 87.6 | 0.742 | 0.950 |
-| AMPidentifier 2.0, LGBM | CLI | 87.0 | 94.5 | 79.6 | 82.2 | 87.9 | 0.749 | 0.948 |
-| AMPidentifier 2.0, RF | CLI | 86.4 | 94.1 | 78.7 | 81.5 | 87.4 | 0.736 | 0.948 |
-| AMPidentifier 2.0, GB | CLI | 85.8 | 94.5 | 77.0 | 80.5 | 86.9 | 0.727 | 0.935 |
-| AMPidentifier 2.0, XGB | CLI | 84.6 | 94.8 | 74.4 | 78.7 | 86.0 | 0.707 | 0.930 |
-| AMPidentifier 2.0, SVM | CLI | 84.1 | 93.9 | 74.2 | 78.5 | 85.5 | 0.695 | 0.943 |
+| AMPidentifier, Voting | CLI | 86.6 | 94.9 | 78.4 | 81.4 | 87.6 | 0.742 | 0.950 |
+| AMPidentifier, LGBM | CLI | 87.0 | 94.5 | 79.6 | 82.2 | 87.9 | 0.749 | 0.948 |
+| AMPidentifier, RF | CLI | 86.4 | 94.1 | 78.7 | 81.5 | 87.4 | 0.736 | 0.948 |
+| AMPidentifier, GB | CLI | 85.8 | 94.5 | 77.0 | 80.5 | 86.9 | 0.727 | 0.935 |
+| AMPidentifier, XGB | CLI | 84.6 | 94.8 | 74.4 | 78.7 | 86.0 | 0.707 | 0.930 |
+| AMPidentifier, SVM | CLI | 84.1 | 93.9 | 74.2 | 78.5 | 85.5 | 0.695 | 0.943 |
 | AMPScanner v2 | CLI | 85.4 | 93.9 | 76.9 | 80.2 | 86.5 | 0.718 | 0.936 |
 | CAMPR3, RF | Web | 84.8 | 92.2 | 77.4 | 80.3 | 85.8 | 0.704 | 0.934 |
 | CAMPR3, SVM | Web | 84.5 | 89.5 | 79.5 | 81.4 | 85.3 | 0.694 | 0.919 |
@@ -186,9 +186,9 @@ Table 3 consolidates performance for all 17 evaluated classifier configurations 
 | iAMPCN | 2023 | Source code not distributed; web server offline |
 | AMAP | 2019 | Web server unavailable at time of evaluation |
 
-The AMPidentifier 2.0 voting ensemble produces the highest AUC-ROC among all 17 evaluated configurations (0.950) and the highest sensitivity (94.9%). Five of the six AMPidentifier 2.0 configurations exceed AMPScanner v2 (MCC 0.718); only SVM (MCC 0.695) falls below.
+The AMPidentifier voting ensemble produces the highest AUC-ROC among all 17 evaluated configurations (0.950) and the highest sensitivity (94.9%). Five of the six AMPidentifier configurations exceed AMPScanner v2 (MCC 0.718); only SVM (MCC 0.695) falls below.
 
-The amPEPpy and ClassAMP cases illustrate the risk of evaluating AMP predictors by AUC-ROC or sensitivity alone. amPEPpy achieves AUC-ROC = 0.934 and sensitivity 96.5%, but specificity falls to 49.3% at its default threshold: approximately half of all true non-AMP sequences are predicted as AMPs. Both ClassAMP configurations assign every sequence as AMP (specificity 0.0%, MCC 0.000), providing no discriminative capability at their default thresholds. AMPidentifier 2.0 configurations maintain specificity between 74.2% and 79.6% across all six models, limiting false-positive accumulation while preserving high sensitivity.
+The amPEPpy and ClassAMP cases illustrate the risk of evaluating AMP predictors by AUC-ROC or sensitivity alone. amPEPpy achieves AUC-ROC = 0.934 and sensitivity 96.5%, but specificity falls to 49.3% at its default threshold: approximately half of all true non-AMP sequences are predicted as AMPs. Both ClassAMP configurations assign every sequence as AMP (specificity 0.0%, MCC 0.000), providing no discriminative capability at their default thresholds. AMPidentifier configurations maintain specificity between 74.2% and 79.6% across all six models, limiting false-positive accumulation while preserving high sensitivity.
 
 Table 4 lists nine additional web tools that were inaccessible at evaluation time, consistent with the pattern of tool obsolescence observed across computational biology server databases.
 
@@ -208,17 +208,17 @@ The three deployment modes (CLI, PyPI, web server) operate on identical serializ
 
 The specificity values observed on the independent benchmark (74.2% to 79.6%) indicate that a fraction of sequences annotated as non-AMP receive AMP predictions. Two factors contribute to this pattern beyond classifier error. First, the 22-descriptor feature vector summarizes physicochemical properties over the full sequence length; a protein whose primary function is unrelated to antimicrobial activity may nonetheless carry a segment with the cationic charge density and hydrophobic moment characteristic of membrane-active peptides, and the global descriptors will reflect that segment's contribution. Second, non-AMP annotations in curated databases record primary biological function, not exhaustive assay-based exclusion of antimicrobial activity. A well-documented example of this ambiguity is the class of encrypted antimicrobial peptides: short sequences embedded within larger precursor proteins, such as lactoferrin, casein, and hemoglobin, that are latent in the full-length form but release antimicrobial activity upon proteolytic cleavage. When full-length precursor sequences are presented to the classifier, the physicochemical signature of the embedded cryptic fragment can shift global descriptors toward the AMP region of feature space, producing a prediction that, while inconsistent with the protein's primary annotation, is not without biological basis. Sequences predicted as AMP at high probability despite a non-AMP annotation should therefore be treated as candidates for regional experimental evaluation rather than as classifier errors.
 
-The principal limitation of AMPidentifier 2.0, shared with sequence-based AMP classifiers trained on database sequences, is that training data over-represents well-characterized AMP families from specific organisms and activity classes. Performance on AMPs with non-canonical structures, atypical amino acid compositions, or activities outside the training distribution may differ from the benchmark estimates reported here. For such sequences, AMP probability values should be treated as a screening score, and experimental validation remains the definitive confirmation step.
+The principal limitation of AMPidentifier, shared with sequence-based AMP classifiers trained on database sequences, is that training data over-represents well-characterized AMP families from specific organisms and activity classes. Performance on AMPs with non-canonical structures, atypical amino acid compositions, or activities outside the training distribution may differ from the benchmark estimates reported here. For such sequences, AMP probability values should be treated as a screening score, and experimental validation remains the definitive confirmation step.
 
 ## Summary and conclusions
 
-AMPidentifier 2.0 provides sequence-based AMP prediction through five independently accessible machine learning classifiers and a soft-voting ensemble. The training dataset contains 13,246 balanced sequences; features are a 22-descriptor set covering global peptide properties, functional group fractions, and positional FET and solvent accessibility distributions; LightGBM is included as a fifth classifier. On an internal test set of 2,650 sequences, the voting ensemble achieves accuracy 92.9%, MCC 0.859, and AUC-ROC 0.977. On an independent benchmark of 4,736 sequences, the ensemble achieves MCC 0.742 and AUC-ROC 0.950, exceeding AMPScanner v2 (MCC 0.718) and all other accessible comparators. Nine of nine web-only tools surveyed were inaccessible at evaluation time; AMPidentifier 2.0 is distributed through three deployment modes operating on identical model artifacts to ensure long-term availability. Per-sequence physicochemical descriptor tables are produced alongside binary predictions in all deployment modes. AMPidentifier 2.0 is available as a command-line tool (`ampidentifier2`), a PyPI package (`pip install ampidentifier`, Python >= 3.10), and a web application at https://www.lgbv-ufpe.net/AMPidentifier.
+AMPidentifier provides sequence-based AMP prediction through five independently accessible machine learning classifiers and a soft-voting ensemble. The training dataset contains 13,246 balanced sequences; features are a 22-descriptor set covering global peptide properties, functional group fractions, and positional FET and solvent accessibility distributions; LightGBM is included as a fifth classifier. On an internal test set of 2,650 sequences, the voting ensemble achieves accuracy 92.9%, MCC 0.859, and AUC-ROC 0.977. On an independent benchmark of 4,736 sequences, the ensemble achieves MCC 0.742 and AUC-ROC 0.950, exceeding AMPScanner v2 (MCC 0.718) and all other accessible comparators. Nine of nine web-only tools surveyed were inaccessible at evaluation time; AMPidentifier is distributed through three deployment modes operating on identical model artifacts to ensure long-term availability. Per-sequence physicochemical descriptor tables are produced alongside binary predictions in all deployment modes. AMPidentifier is available as a command-line tool (`ampidentifier2`), a PyPI package (`pip install ampidentifier`, Python >= 3.10), and a web application at https://www.lgbv-ufpe.net/AMPidentifier.
 
 ## Associated content
 
 ### Data availability statement
 
-AMPidentifier 2.0 is freely available under the MIT License at https://github.com/madsondeluna/AMPIdentifier. The independent benchmark dataset, evaluation scripts, and all figures are available at https://github.com/madsondeluna/AMPidentifierBenchmark. AMPidentifier is registered with the INPI, Registration No. BR-51-2025-005859-4.
+AMPidentifier is freely available under the MIT License at https://github.com/madsondeluna/AMPIdentifier. The independent benchmark dataset, evaluation scripts, and all figures are available at https://github.com/madsondeluna/AMPidentifierBenchmark. AMPidentifier is registered with the INPI, Registration No. BR-51-2025-005859-4.
 
 ### Supporting information
 
