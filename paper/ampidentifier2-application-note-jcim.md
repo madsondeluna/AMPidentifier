@@ -92,30 +92,9 @@ Because descriptors span heterogeneous numeric scales, model-specific normalizat
 
 ### Pre-trained classifiers
 
-Five machine learning architectures were trained on the 10,596-sequence training partition. Hyperparameter optimization used RandomizedSearchCV (scikit-learn; n_iter = 100, 5-fold stratified cross-validation, AUC-ROC as the optimization metric). For each model, 100 configurations were sampled from the search space defined in Table 1; integer parameters were drawn from discrete uniform distributions, continuous parameters from uniform (U) or log-uniform (log-U) distributions over the stated ranges.
+Five machine learning architectures were trained on the 10,596-sequence training partition. Hyperparameter optimization used RandomizedSearchCV (scikit-learn; n_iter = 100, 5-fold stratified cross-validation, AUC-ROC as the optimization metric). For each model, 100 configurations were sampled from the search space defined in Supplementary Table S2a; integer parameters were drawn from discrete uniform distributions, continuous parameters from uniform (U) or log-uniform (log-U) distributions over the stated ranges.
 
-**Table 1.** Hyperparameter search spaces used in RandomizedSearchCV. Integer ranges are half-open [a, b); continuous ranges use uniform (U) or log-uniform (log-U) distributions. A dash (—) indicates the parameter does not apply to that model.
-
-| Hyperparameter | RF | SVM | GB | XGB | LGBM |
-|---|---|---|---|---|---|
-| n_estimators | [100, 600) | — | [100, 500) | [100, 500) | [100, 600) |
-| max_depth | {None,10,20,30,40} | — | [2, 8) | [2, 8) | [3, 10) |
-| learning_rate | — | — | log-U[0.001, 0.5] | log-U[0.001, 0.5] | log-U[0.001, 0.5] |
-| subsample | — | — | U[0.5, 1.0) | U[0.5, 1.0) | U[0.5, 1.0) |
-| colsample_bytree | — | — | — | U[0.5, 1.0) | U[0.5, 1.0) |
-| min_samples_split | [2, 15) | — | [2, 15) | — | — |
-| min_samples_leaf | [1, 8) | — | [1, 8) | — | — |
-| max_features | {sqrt, log2, 0.3, 0.5} | — | — | — | — |
-| num_leaves | — | — | — | — | [20, 150) |
-| min_child_weight | — | — | — | [1, 10) | — |
-| min_child_samples | — | — | — | — | [5, 50) |
-| α (reg_alpha) | — | — | — | log-U[10⁻⁴, 10] | log-U[10⁻⁴, 10] |
-| λ (reg_lambda) | — | — | — | log-U[0.1, 10] | log-U[0.1, 10] |
-| kernel | — | RBF (fixed) | — | — | — |
-| C | — | log-U[0.01, 100] | — | — | — |
-| γ | — | {scale, 10⁻⁴, 10⁻³, 10⁻², 0.1, 1.0} | — | — | — |
-
-Random Forest (RF) constructs an ensemble of decision trees by bootstrap aggregation; at each split, a random subset of features (max_features = 0.30) decorrelates the trees and reduces variance. The best configuration used 229 estimators with no depth constraint, min_samples_leaf = 1, and min_samples_split = 3 (CV AUC-ROC = 0.9695). The Support Vector Machine (SVM) maximizes the margin between class hyperplanes in an RBF-projected feature space, with regularization parameter C and kernel width γ controlling the bias-variance trade-off; the best configuration was C = 2.80 and γ = 0.10 (CV AUC-ROC = 0.9671). Gradient Boosting (GB) is a sequential additive model that minimizes log-loss by fitting each successive tree to the pseudo-residuals of the current ensemble; the best configuration used 293 estimators, learning rate 0.062, max depth 6, and subsample 0.846 (CV AUC-ROC = 0.9723). XGBoost (XGB) extends GB with explicit L1 (α) and L2 (λ) regularization on leaf weights and second-order Taylor approximation for split finding; the best configuration used 448 estimators, learning rate 0.059, max depth 6, α = 0.013, λ = 0.313, subsample 0.678, and colsample_bytree 0.758 (CV AUC-ROC = 0.9741). LightGBM (LGBM) builds gradient-boosted trees using histogram-based split finding and leaf-wise (best-first) growth, which reduces training time on larger datasets relative to level-wise GB while allowing finer control of tree shape via the num_leaves parameter; the best configuration used 383 estimators, 47 leaves, max depth 7, learning rate 0.323, subsample 0.942, colsample_bytree 0.581, α = 0.001, and λ = 0.681 (CV AUC-ROC = 0.9740). Complete best-configuration tables for all five models are in Supplementary Section S2; CV AUC-ROC score distributions across all 100 search iterations are shown in Supplementary Figure S2.
+Random Forest (RF) constructs an ensemble of decision trees by bootstrap aggregation; at each split, a random subset of features (max_features = 0.30) decorrelates the trees and reduces variance. The best configuration used 229 estimators with no depth constraint, min_samples_leaf = 1, and min_samples_split = 3 (CV AUC-ROC = 0.9695). The Support Vector Machine (SVM) maximizes the margin between class hyperplanes in an RBF-projected feature space, with regularization parameter C and kernel width γ controlling the bias-variance trade-off; the best configuration was C = 2.80 and γ = 0.10 (CV AUC-ROC = 0.9671). Gradient Boosting (GB) is a sequential additive model that minimizes log-loss by fitting each successive tree to the pseudo-residuals of the current ensemble; the best configuration used 293 estimators, learning rate 0.062, max depth 6, and subsample 0.846 (CV AUC-ROC = 0.9723). XGBoost (XGB) extends GB with explicit L1 (α) and L2 (λ) regularization on leaf weights and second-order Taylor approximation for split finding; the best configuration used 448 estimators, learning rate 0.059, max depth 6, α = 0.013, λ = 0.313, subsample 0.678, and colsample_bytree 0.758 (CV AUC-ROC = 0.9741). LightGBM (LGBM) builds gradient-boosted trees using histogram-based split finding and leaf-wise (best-first) growth, which reduces training time on larger datasets relative to level-wise GB while allowing finer control of tree shape via the num_leaves parameter; the best configuration used 383 estimators, 47 leaves, max depth 7, learning rate 0.323, subsample 0.942, colsample_bytree 0.581, α = 0.001, and λ = 0.681 (CV AUC-ROC = 0.9740). Complete best-configuration values for all five models are in Supplementary Table S2b; CV AUC-ROC score distributions across all 100 search iterations are shown in Supplementary Figure S2.
 
 After hyperparameter optimization, each model was retrained on the full training partition and serialized. MCC-optimized decision thresholds were determined on the held-out test set by sweeping predicted probabilities over 81 equally spaced values from 0.10 to 0.90 and selecting the value that maximizes MCC:
 
@@ -252,9 +231,30 @@ AMPidentifier is freely available under an open-source license at https://github
 
 ![Figure S1e: Local/positional features](../model_training/eda/fig05_local_features.png)
 
-### S2: Best hyperparameter configurations
+### S2: Hyperparameter search spaces and best configurations
 
-Best configurations identified by RandomizedSearchCV (n_iter = 100, 5-fold stratified CV, AUC-ROC metric) for all five classifiers. CV AUC-ROC is reported as mean ± standard deviation across folds.
+**Table S2a.** Hyperparameter search spaces used in RandomizedSearchCV. Integer ranges are half-open [a, b); continuous ranges use uniform (U) or log-uniform (log-U) distributions. A dash (—) indicates the parameter does not apply to that model.
+
+| Hyperparameter | RF | SVM | GB | XGB | LGBM |
+|---|---|---|---|---|---|
+| n_estimators | [100, 600) | — | [100, 500) | [100, 500) | [100, 600) |
+| max_depth | {None,10,20,30,40} | — | [2, 8) | [2, 8) | [3, 10) |
+| learning_rate | — | — | log-U[0.001, 0.5] | log-U[0.001, 0.5] | log-U[0.001, 0.5] |
+| subsample | — | — | U[0.5, 1.0) | U[0.5, 1.0) | U[0.5, 1.0) |
+| colsample_bytree | — | — | — | U[0.5, 1.0) | U[0.5, 1.0) |
+| min_samples_split | [2, 15) | — | [2, 15) | — | — |
+| min_samples_leaf | [1, 8) | — | [1, 8) | — | — |
+| max_features | {sqrt, log2, 0.3, 0.5} | — | — | — | — |
+| num_leaves | — | — | — | — | [20, 150) |
+| min_child_weight | — | — | — | [1, 10) | — |
+| min_child_samples | — | — | — | — | [5, 50) |
+| α (reg_alpha) | — | — | — | log-U[10⁻⁴, 10] | log-U[10⁻⁴, 10] |
+| λ (reg_lambda) | — | — | — | log-U[0.1, 10] | log-U[0.1, 10] |
+| kernel | — | RBF (fixed) | — | — | — |
+| C | — | log-U[0.01, 100] | — | — | — |
+| γ | — | {scale, 10⁻⁴, 10⁻³, 10⁻², 0.1, 1.0} | — | — | — |
+
+**Table S2b.** Best configurations identified by RandomizedSearchCV (n_iter = 100, 5-fold stratified CV, AUC-ROC metric) for all five classifiers. CV AUC-ROC is reported as mean ± standard deviation across folds.
 
 | Parameter | RF | SVM | GB | XGB | LGBM |
 |---|---|---|---|---|---|
