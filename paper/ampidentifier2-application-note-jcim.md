@@ -42,7 +42,7 @@ The CLI is the primary deployment mode for users working in Unix-based environme
 ampidentifier2 -i sequences.fasta -o results/ --model voting
 ```
 
-Required arguments are `-i` (input FASTA path) and `-o` (output directory). The `--model` flag accepts `rf`, `svm`, `gb`, `xgb`, `lgbm`, or `voting`. An optional `--threshold` argument overrides the default MCC-optimized threshold for the selected model. The terminal output includes a per-run summary box reporting total sequences, AMP and non-AMP counts with percentages, the decision threshold applied, and the output file path. The CLI is compatible with macOS, Linux, and Windows Subsystem for Linux (WSL). A full list of arguments and defaults is available via `ampidentifier2 --help`.
+Required arguments are `-i` (input FASTA path) and `-o` (output directory). The terminal output includes a per-run summary box reporting total sequences, AMP and non-AMP counts with percentages, the decision threshold applied, and the output file path. The CLI is compatible with macOS, Linux, and Windows Subsystem for Linux (WSL). A full list of arguments and defaults is available via `ampidentifier2 --help`.
 
 ### Python package
 
@@ -78,7 +78,7 @@ Each amino acid sequence $S$ is projected to a 22-dimensional feature vector $\m
 
 Relative position features (FET and solvent accessibility) encode where in the sequence specific chemical environments first appear. This positional information is absent from global descriptors and per-residue composition features, and has been shown to discriminate AMPs from non-AMPs in sequence-based classifiers.[15]
 
-After computing the 22 candidate descriptors, a feature selection procedure confirmed all 22 as informative; results are in Supplementary Table S3.
+The 22 descriptors were selected a priori based on established literature (references [6], [12], [14], [15], [16]) and cover complementary information types: global biophysical properties, compositional biochemistry, and positional sequence organization. The full descriptor list with groups and sources is in Supplementary Table S3.
 
 Because descriptors span heterogeneous numeric scales, model-specific normalization is applied before inference. RF, GB, XGB, and LGBM use a **RobustScaler** fitted on the training partition, which centers on the median and scales by the interquartile range; this choice reduces the influence of outlier sequences with extreme physicochemical values. SVM uses a **StandardScaler** (zero mean, unit variance), required for stable optimization of the margin-based objective. The voting ensemble model handles normalization internally within a scikit-learn VotingClassifier pipeline. All scaling parameters are estimated exclusively on the training partition and serialized as deployment artifacts alongside the model pickle files.
 
@@ -129,7 +129,7 @@ Averaging probabilities integrates each classifier's confidence rather than trea
 
 ### Internal test set performance
 
-The training dataset (13,246 sequences) was partitioned 80/20 by stratified random sampling before any model fitting. The 20% held-out partition (2,650 sequences: 1,325 AMP, 1,325 non-AMP) was not used for hyperparameter optimization or model training; it served exclusively for threshold calibration and the performance evaluation reported here. Table 2 reports classification metrics for all six AMPidentifier configurations on this partition.
+Table 2 reports classification metrics for all six AMPidentifier configurations on the 2,650-sequence held-out test set (see Dataset and data partitioning).
 
 **Table 2.** Classification performance on the internal held-out test set ($n$ = 2,650; 1,325 AMP, 1,325 non-AMP).
 
@@ -219,15 +219,11 @@ The AMPidentifier voting ensemble produces the highest AUC-ROC among all 17 eval
 
 The amPEPpy and ClassAMP cases illustrate the risk of evaluating AMP predictors by AUC-ROC or sensitivity alone. amPEPpy achieves AUC-ROC = 0.934 and sensitivity 96.5%, but specificity falls to 49.3% at its default threshold: approximately half of all true non-AMP sequences are predicted as AMPs. Both ClassAMP configurations assign every sequence as AMP (specificity 0.0%, MCC 0.000), providing no discriminative capability at their default thresholds. AMPidentifier configurations maintain specificity between 74.2% and 79.6% across all six models, limiting false-positive accumulation while preserving high sensitivity.
 
-Table 5 lists nine web tools that were inaccessible at evaluation time, consistent with the pattern of tool obsolescence observed across computational biology server databases.
-
 ## Discussion
 
 The performance gap between internal test results (ensemble MCC 0.859, AUC-ROC 0.977) and independent benchmark results (ensemble MCC 0.742, AUC-ROC 0.950) reflects domain shift between the training data sources (APD3, CAMP, LAMP, UniProt) and the independent benchmark. This magnitude of gap is typical for AMP predictors: tools trained and evaluated within the same database family consistently achieve higher MCC than when evaluated against independently curated sequences. Users should weight the independent benchmark numbers more heavily when assessing expected real-world performance.
 
-The 22-descriptor feature set covers three information types: global scalar properties of the peptide (7 features), the biochemical character of its composition expressed as functional group fractions (9 features), and positional information encoding where specific chemical environments first appear along the sequence (6 features). The FET positional terms, derived from Von Heijne and Blomberg (1979),[16] and the solvent accessibility positional terms, following Bhadra et al. (2018),[15] encode sequence-positional information that cannot be recovered from global descriptors or composition vectors alone. This positional information has been linked to AMP targeting function.[15] The feature selection step confirmed all 22 features as informative (Supplementary Table S3).
-
-RobustScaler was selected for tree-based classifiers rather than StandardScaler. Decision-tree-based methods are not sensitive to feature scale in the same way that margin-based or distance-based methods are; however, RobustScaler limits the effect of extreme physicochemical values (e.g., instability indices for sequences rich in destabilizing residues) on the scaler's center estimate, which makes the normalized feature space more consistent across diverse input sequences. SVM retains StandardScaler because its optimization requires scale-standardized inputs.
+The 22-descriptor feature set integrates three complementary information types that no single descriptor class provides alone. Global descriptors capture bulk physicochemical properties (charge, hydrophobicity, pI) that distinguish the average AMP from the average non-AMP; grouped amino acid composition resolves functional biochemical character at residue level; and the FET and solvent accessibility positional terms encode where specific chemical environments first appear along the chain. Feature importance analysis (Supplementary Figure S4c) places charge, Boman index, and hydrophobic moment consistently in the top-ranked positions across all tree-based classifiers, consistent with the known role of cationic amphipathicity in membrane disruption.[1,2] The positional FET and SA terms, though lower-ranked than global descriptors on average, contribute non-redundant positional information that global scalars cannot provide.
 
 The inclusion of LightGBM as a fifth classifier is motivated by two properties. Its leaf-wise growth strategy, combined with histogram-based split finding, trained faster than XGB or GB on the 10,596-sequence training partition without sacrificing CV AUC-ROC (LGBM: 0.9740 vs. XGB: 0.9741 vs. GB: 0.9723). On the independent benchmark, LGBM achieves the highest individual MCC (0.749), outperforming RF (0.736), GB (0.727), XGB (0.707), and SVM (0.695). Its inclusion in the voting ensemble broadens the ensemble's decision basis and contributes the highest-performing individual classifier by benchmark MCC.
 
@@ -253,25 +249,25 @@ AMPidentifier is freely available under an open-source license at https://github
 
 ### S1: Exploratory data analysis of the training dataset
 
-**Figure S0a.** Sequence length distribution for AMP and non-AMP classes in the training dataset ($n$ = 13,246).
+**Figure S1a.** Sequence length distribution for AMP and non-AMP classes in the training dataset ($n$ = 13,246).
 
-![Figure S0a: Length distribution](../model_training/eda/fig01_length_distribution.png)
+![Figure S1a: Length distribution](../model_training/eda/fig01_length_distribution.png)
 
-**Figure S0b.** Per-residue amino acid composition (molar fraction) for AMP and non-AMP classes.
+**Figure S1b.** Per-residue amino acid composition (molar fraction) for AMP and non-AMP classes.
 
-![Figure S0b: Amino acid composition](../model_training/eda/fig02_aa_composition.png)
+![Figure S1b: Amino acid composition](../model_training/eda/fig02_aa_composition.png)
 
-**Figure S0c.** Global physicochemical descriptor distributions (charge, pI, instability index, aliphatic index, Boman index, hydrophobic ratio, hydrophobic moment) for AMP and non-AMP classes.
+**Figure S1c.** Global physicochemical descriptor distributions (charge, pI, instability index, aliphatic index, Boman index, hydrophobic ratio, hydrophobic moment) for AMP and non-AMP classes.
 
-![Figure S0c: Global descriptors](../model_training/eda/fig03_global_descriptors.png)
+![Figure S1c: Global descriptors](../model_training/eda/fig03_global_descriptors.png)
 
-**Figure S0d.** Grouped amino acid composition fractions for the nine functional groups across AMP and non-AMP classes.
+**Figure S1d.** Grouped amino acid composition fractions for the nine functional groups across AMP and non-AMP classes.
 
-![Figure S0d: Grouped AAC](../model_training/eda/fig04_grouped_aac.png)
+![Figure S1d: Grouped AAC](../model_training/eda/fig04_grouped_aac.png)
 
-**Figure S0e.** Positional feature distributions (FET and solvent accessibility D1 values) for AMP and non-AMP classes.
+**Figure S1e.** Positional feature distributions (FET and solvent accessibility D1 values) for AMP and non-AMP classes.
 
-![Figure S0e: Local/positional features](../model_training/eda/fig05_local_features.png)
+![Figure S1e: Local/positional features](../model_training/eda/fig05_local_features.png)
 
 ### S2: Best hyperparameter configurations
 
