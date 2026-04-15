@@ -137,7 +137,7 @@ Averaging probabilities integrates each classifier's confidence rather than trea
 
 ### Internal test set performance
 
-The internal evaluation uses the 2,650-sequence held-out partition (1,325 AMP, 1,325 non-AMP) drawn from the same dataset as the training data (APD3, CAMP, LAMP, UniProt). This partition was withheld from all training and hyperparameter optimization steps; it was used solely for threshold calibration and to provide a controlled estimate of performance under conditions where training and test data share the same database sources and sequence-length distribution. Because both sets originate from the same curation pipeline, internal metrics are expected to be optimistic relative to generalization performance on novel sequences. Table 2 reports classification metrics for all six AMPidentifier configurations on this partition.
+The 13,246-sequence dataset was split 80/20 by stratified random sampling before any model fitting: 10,596 sequences formed the training partition and 2,650 sequences (1,325 AMP, 1,325 non-AMP) were held out. The held-out partition was never exposed to training or hyperparameter optimization; it was used exclusively for MCC-optimized threshold calibration and the performance evaluation reported here. Because training and test sequences originate from the same database sources (APD3, CAMP, LAMP, UniProt) and curation pipeline, internal metrics are expected to be optimistic relative to performance on novel sequences from independent sources. Table 2 reports classification metrics for all six AMPidentifier configurations on this partition.
 
 **Table 2.** Classification performance on the internal held-out test set ($n$ = 2,650; 1,325 AMP, 1,325 non-AMP).
 
