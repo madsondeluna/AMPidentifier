@@ -177,7 +177,7 @@ Unlike the internal test set, which shares database sources and curation methodo
 | iAMPCN | 2023 | Source code not distributed; web server offline |
 | AMAP | 2019 | Web server unavailable at time of evaluation |
 
-Among AMPidentifier configurations, LGBM achieves the highest individual MCC (0.749) and accuracy (87.0%); the voting ensemble produces the highest sensitivity (94.9%) and AUC-ROC (0.950). Five of the six AMPidentifier configurations exceed AMPScanner v2 (MCC 0.718); only SVM (MCC 0.695) falls below. Extended counts (TP, TN, FP, FN) for all six AMPidentifier configurations are provided in Supplementary Section S5; ROC curves are shown in Supplementary Figure S5a.
+Among AMPidentifier configurations, LGBM achieves the highest individual MCC (0.749) and accuracy (87.0%); the voting ensemble produces the highest sensitivity (94.9%) and AUC-ROC (0.950). Five of the six AMPidentifier configurations exceed AMPScanner v2 (MCC 0.718); only SVM (MCC 0.695) falls below.
 
 The amPEPpy and ClassAMP cases illustrate the risk of evaluating AMP predictors by AUC-ROC or sensitivity alone. amPEPpy achieves AUC-ROC = 0.934 and sensitivity 96.5%, but specificity falls to 49.3% at its default threshold: approximately half of all true non-AMP sequences are predicted as AMPs. Both ClassAMP configurations assign every sequence as AMP (specificity 0.0%, MCC 0.000), providing no discriminative capability at their default thresholds. AMPidentifier configurations maintain specificity between 74.2% and 79.6% across all six models, limiting false-positive accumulation while preserving high sensitivity.
 
@@ -342,23 +342,6 @@ All 22 descriptors were retained after feature selection. The table below lists 
 **Figure S4h.** Threshold sensitivity for all five base models: MCC, F1, Precision, and Recall as a function of decision threshold. The vertical dashed line marks the MCC-optimized threshold for each model; the star marks the MCC value at that threshold. The voting ensemble applies the threshold shown in Table 2.
 
 ![Figure S4h: Threshold sensitivity](../model_training/tuned_model/figures/fig15_threshold_sensitivity.png)
-
-### S5: Extended metrics and confusion matrices on the independent benchmark
-
-Full counts (TP, TN, FP, FN) and classification metrics for all six AMPidentifier configurations on the independent benchmark ($n$ = 4,736; 2,368 AMP, 2,368 non-AMP).
-
-| Model | Threshold | TP | TN | FP | FN | Acc (%) | Precision (%) | Sn (%) | Sp (%) | F1 (%) | MCC | AUC-ROC |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| RF | 0.56 | 2228 | 1863 | 505 | 140 | 86.4 | 81.5 | 94.1 | 78.7 | 87.4 | 0.736 | 0.948 |
-| SVM | 0.47 | 2223 | 1758 | 610 | 145 | 84.1 | 78.5 | 93.9 | 74.2 | 85.5 | 0.695 | 0.943 |
-| GB | 0.55 | 2238 | 1824 | 544 | 130 | 85.8 | 80.5 | 94.5 | 77.0 | 86.9 | 0.727 | 0.935 |
-| XGB | 0.48 | 2245 | 1762 | 606 | 123 | 84.6 | 78.7 | 94.8 | 74.4 | 86.0 | 0.707 | 0.930 |
-| LGBM | 0.71 | 2238 | 1884 | 484 | 130 | 87.0 | 82.2 | 94.5 | 79.6 | 87.9 | 0.749 | 0.948 |
-| Voting | 0.56 | 2246 | 1856 | 512 | 122 | 86.6 | 81.4 | 94.9 | 78.4 | 87.6 | 0.742 | 0.950 |
-
-**Figure S5a.** ROC curves for all six AMPidentifier configurations on the independent benchmark ($n$ = 4,736; 2,368 AMP, 2,368 non-AMP).
-
-![Figure S5a: Benchmark ROC curves](../benchmarking/fig_bench_roc.png)
 
 ## Author contributions
 
