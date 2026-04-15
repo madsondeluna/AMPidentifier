@@ -38,23 +38,26 @@ _SUBTITLE = "antimicrobial peptide classifier  |  v2.0"
 
 
 def _banner():
-    inner  = BOX_W - 2   # 70
-    indent = 2
-    top    = "\u2554" + "\u2550" * inner + "\u2557"
-    bot    = "\u255a" + "\u2550" * inner + "\u255d"
-    empty  = "\u2551" + " " * inner + "\u2551"
+    inner   = BOX_W - 2   # 70
+    art_w   = max(len(l) for l in _ART)   # 53 — widest art line
+    left_pad = (inner - art_w) // 2       # centering offset
+
+    top   = "\u2554" + "\u2550" * inner + "\u2557"
+    bot   = "\u255a" + "\u2550" * inner + "\u255d"
+    empty = "\u2551" + " " * inner + "\u2551"
 
     def _art_row(raw):
         amp_raw  = raw[:_AMP_COLS]
         rest_raw = raw[_AMP_COLS:]
         colored  = _c("1;32", amp_raw) + _c("1;36", rest_raw)
-        pad      = inner - indent - len(raw)
-        return "\u2551" + " " * indent + colored + " " * max(0, pad) + "\u2551"
+        right_pad = inner - left_pad - len(raw)
+        return "\u2551" + " " * left_pad + colored + " " * max(0, right_pad) + "\u2551"
 
     def _sub_row(raw):
-        colored = _c("2", raw)
-        pad     = inner - indent - len(raw)
-        return "\u2551" + " " * indent + colored + " " * max(0, pad) + "\u2551"
+        sub_left = (inner - len(raw)) // 2
+        colored  = _c("2", raw)
+        right_pad = inner - sub_left - len(raw)
+        return "\u2551" + " " * sub_left + colored + " " * max(0, right_pad) + "\u2551"
 
     print()
     print(top)
