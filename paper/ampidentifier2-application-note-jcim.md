@@ -18,7 +18,7 @@ Antimicrobial peptides (AMPs) are short bioactive polypeptides, typically 10 to 
 
 Experimental screening for novel AMPs is resource-intensive. Sequence-based machine learning classifiers operating directly on primary amino acid sequences have therefore become a central tool in computational prescreening pipelines: they require no three-dimensional structural data and can evaluate large candidate sets in seconds.[6] Published sequence-based predictors include CAMPR3,[7] AMPScanner v2,[8] AMPlify,[9] amPEPpy,[10] ampir,[11] and several web-based platforms.[12,13] These tools differ in algorithmic architecture, feature representation, training data, and operating threshold, complicating direct performance comparisons.
 
-Tool availability is a compounding limitation. Of nine web-based AMP prediction servers surveyed during benchmark evaluation, all nine were inaccessible: DNS resolution failures, connection timeouts, or discontinued services prevented any prediction from being submitted (Table 4). This outcome is consistent with the broader pattern of bioinformatics tool obsolescence, in which servers published in peer-reviewed articles become unreachable within years of publication. Beyond availability, tools distributed exclusively as web applications cannot be integrated into automated pipelines, audited for version consistency, or used in offline computational environments. These gaps motivate distributing AMP predictors through multiple deployment channels, including locally executable packages and open-source repositories with versioned model artifacts.
+Tool availability is a compounding limitation. Of nine web-based AMP prediction servers surveyed during benchmark evaluation, all nine were inaccessible: DNS resolution failures, connection timeouts, or discontinued services prevented any prediction from being submitted (Supplementary Table S5). This outcome is consistent with the broader pattern of bioinformatics tool obsolescence, in which servers published in peer-reviewed articles become unreachable within years of publication. Beyond availability, tools distributed exclusively as web applications cannot be integrated into automated pipelines, audited for version consistency, or used in offline computational environments. These gaps motivate distributing AMP predictors through multiple deployment channels, including locally executable packages and open-source repositories with versioned model artifacts.
 
 AMPidentifier provides three deployment modes, a CLI entry point, a PyPI package, and a web server, all operating on identical serialized model artifacts and backed by a versioned open-source repository. Five classifiers (RF, SVM, GB, XGB, LGBM) are trained on a 13,246-sequence corpus; features are 22 physicochemical descriptors covering functional group composition and positional sequence properties; and predictions are combined in a soft-voting ensemble that averages predicted AMP probabilities.
 
@@ -125,7 +125,7 @@ Hyperparameter tuning improved AUC-ROC and MCC for all five models relative to t
 
 ### Comparison with published predictors
 
-Unlike the internal test set, which shares database sources and curation methodology with the training data, the independent benchmark was assembled from a separate curation pipeline by Bhangu et al. (2025)[22] and contains 4,736 sequences (2,368 AMP, 2,368 non-AMP) covering antibacterial and antifungal activities. No sequence from this benchmark was used in any stage of AMPidentifier model training, threshold calibration, or feature selection, making it the primary estimate of generalization performance across all evaluated tools. The same benchmark was submitted to all accessible external predictors, enabling direct head-to-head comparison on identical input. Table 3 consolidates performance for all 15 evaluated classifier configurations; nine tools surveyed were inaccessible at evaluation time and are listed in Table 4.
+Unlike the internal test set, which shares database sources and curation methodology with the training data, the independent benchmark was assembled from a separate curation pipeline by Bhangu et al. (2025)[22] and contains 4,736 sequences (2,368 AMP, 2,368 non-AMP) covering antibacterial and antifungal activities. No sequence from this benchmark was used in any stage of AMPidentifier model training, threshold calibration, or feature selection, making it the primary estimate of generalization performance across all evaluated tools. The same benchmark was submitted to all accessible external predictors, enabling direct head-to-head comparison on identical input. Table 3 consolidates performance for all 15 evaluated classifier configurations; nine tools surveyed were inaccessible at evaluation time and are listed in Supplementary Table S5.
 
 **Table 3.** All evaluated classifiers on the independent benchmark ($n$ = 4,736 unless noted), grouped by tool. AMPidentifier rows use values from this study; external tool rows were evaluated by the authors of this work using the same benchmark dataset and evaluation protocol. Type: CLI = locally executable; Web = browser-based manual submission; pip = Python package (PyPI). AMPidentifier runs all three modes on the same serialized model artifacts. AUC-ROC is N/A for tools with binary-only output.
 
@@ -147,21 +147,7 @@ Unlike the internal test set, which shares database sources and curation methodo
 | DBAASP | Web | 75.6 | 81.7 | 64.1 | 86.5 | 71.8 | 0.521 | N/A |
 | amPEPpy | CLI | 72.9 | 65.6 | 96.5 | 49.3 | 78.1 | 0.520 | 0.934 |
 
-Nine of the tools identified in the literature for potential inclusion in the benchmark were inaccessible at evaluation time (March 2026), with reasons ranging from DNS resolution failure and connection timeout to absence of any open-source release. This is a persistent problem in bioinformatics: predictive tools published with web-server-only access frequently become unavailable within a few years of publication, making independent replication impossible and limiting the comparability of results across studies.[23] Table 4 lists all nine tools and the specific reason each could not be evaluated.
-
-**Table 4.** Web-based AMP prediction tools identified in the literature and surveyed for inclusion in the benchmark but found inaccessible at evaluation time (March 2026). Reasons include DNS resolution failure, connection timeout, and permanent service discontinuation. None of these tools could be evaluated on the independent benchmark.
-
-| Tool | Year | Reason for exclusion |
-|------|------|----------------------|
-| iAMP-2L | 2013 | Web server unreachable; DNS resolution failure |
-| Deep-AmPEP30 | 2020 | Web server unreachable at time of evaluation |
-| AI4AMP | 2021 | No open-source release; permanently inaccessible |
-| iAMPpred | 2017 | DNS failure; server unreachable |
-| PEPred-Suite | 2019 | Connection timeout; server unreachable |
-| CS-AMPPred | 2012 | Server unreachable; scope limited to cysteine-stabilised AMPs |
-| MLAMP | 2016 | Shared infrastructure with iAMP-2L; server offline |
-| iAMPCN | 2023 | Source code not distributed; web server offline |
-| AMAP | 2019 | Web server unavailable at time of evaluation |
+Nine of the tools identified in the literature for potential inclusion in the benchmark were inaccessible at evaluation time (March 2026), with reasons ranging from DNS resolution failure and connection timeout to absence of any open-source release. This is a persistent problem in bioinformatics: predictive tools published with web-server-only access frequently become unavailable within a few years of publication, making independent replication impossible and limiting the comparability of results across studies.[23] The full list of excluded tools and the specific reason each could not be evaluated is provided in Supplementary Table S5.
 
 Among AMPidentifier configurations, LGBM achieves the highest individual MCC (0.749) and accuracy (87.0%); the voting ensemble produces the highest sensitivity (94.9%) and AUC-ROC (0.950). Five of the six AMPidentifier configurations exceed AMPScanner v2 (MCC 0.718); only SVM (MCC 0.695) falls below.
 
@@ -177,7 +163,7 @@ The inclusion of LightGBM as a fifth classifier is motivated by two properties. 
 
 The physicochemical descriptor export remains a practical differentiator from comparable tools. Each run produces a per-sequence table of all 22 descriptors, which users can apply for downstream candidate ranking by biophysical criteria (e.g., filtering by Boman index above a threshold or requiring net charge within a specified range) without invoking a separate characterization tool.
 
-The three deployment modes (CLI, PyPI, web server) operate on identical serialized model artifacts. This architecture limits the reproducibility risk associated with web-server-only distribution, given the high offline rate documented for published AMP prediction servers (Table 4). Distributing pre-trained model artifacts within the repository and supporting `pip install ampidentifier` keeps the tool available independently of server infrastructure. The registration of AMPidentifier with INPI (Registration No. BR-51-2025-005859-4) provides an additional layer of version provenance.
+The three deployment modes (CLI, PyPI, web server) operate on identical serialized model artifacts. This architecture limits the reproducibility risk associated with web-server-only distribution, given the high offline rate documented for published AMP prediction servers (Supplementary Table S5). Distributing pre-trained model artifacts within the repository and supporting `pip install ampidentifier` keeps the tool available independently of server infrastructure. The registration of AMPidentifier with INPI (Registration No. BR-51-2025-005859-4) provides an additional layer of version provenance.
 
 The specificity values observed on the independent benchmark (74.2% to 79.6%) indicate that a fraction of sequences annotated as non-AMP receive AMP predictions. Two factors contribute to this pattern beyond classifier error. First, the 22-descriptor feature vector summarizes physicochemical properties over the full sequence length; a protein whose primary function is unrelated to antimicrobial activity may nonetheless carry a segment with the cationic charge density and hydrophobic moment characteristic of membrane-active peptides, and the global descriptors will reflect that segment's contribution. Second, non-AMP annotations in curated databases record primary biological function, not exhaustive assay-based exclusion of antimicrobial activity. A well-documented example of this ambiguity is the class of encrypted antimicrobial peptides: short sequences embedded within larger precursor proteins, such as lactoferrin, casein, and hemoglobin, that are latent in the full-length form but release antimicrobial activity upon proteolytic cleavage. When full-length precursor sequences are presented to the classifier, the physicochemical signature of the embedded cryptic fragment can shift global descriptors toward the AMP region of feature space, producing a prediction that, while inconsistent with the protein's primary annotation, is not without biological basis. Sequences predicted as AMP at high probability despite a non-AMP annotation should therefore be treated as candidates for regional experimental evaluation rather than as classifier errors.
 
@@ -328,6 +314,22 @@ All 22 descriptors were retained after feature selection. The table below lists 
 **Figure S4h.** Threshold sensitivity for all five base models: MCC, F1, Precision, and Recall as a function of decision threshold. The vertical dashed line marks the MCC-optimized threshold for each model; the star marks the MCC value at that threshold. The voting ensemble applies the threshold shown in Table 2.
 
 ![Figure S4h: Threshold sensitivity](../model_training/tuned_model/figures/fig15_threshold_sensitivity.png)
+
+### S5: Inaccessible tools surveyed for the benchmark
+
+**Table S5.** Web-based AMP prediction tools identified in the literature and surveyed for inclusion in the independent benchmark but found inaccessible at evaluation time (March 2026). Reasons include DNS resolution failure, connection timeout, and permanent service discontinuation. None of these tools could be evaluated on the benchmark dataset.
+
+| Tool | Year | Reason for exclusion |
+|------|------|----------------------|
+| iAMP-2L | 2013 | Web server unreachable; DNS resolution failure |
+| Deep-AmPEP30 | 2020 | Web server unreachable at time of evaluation |
+| AI4AMP | 2021 | No open-source release; permanently inaccessible |
+| iAMPpred | 2017 | DNS failure; server unreachable |
+| PEPred-Suite | 2019 | Connection timeout; server unreachable |
+| CS-AMPPred | 2012 | Server unreachable; scope limited to cysteine-stabilised AMPs |
+| MLAMP | 2016 | Shared infrastructure with iAMP-2L; server offline |
+| iAMPCN | 2023 | Source code not distributed; web server offline |
+| AMAP | 2019 | Web server unavailable at time of evaluation |
 
 ## Author contributions
 
