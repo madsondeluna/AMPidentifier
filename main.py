@@ -99,13 +99,13 @@ def main():
         help=(
             "Model to use for prediction (default: voting).\n"
             "\n"
-            "         AUC-ROC   MCC    F1\n"
-            "rf     : 0.9719   0.839  0.917  Random Forest\n"
-            "svm    : 0.9692   0.839  0.919  Support Vector Machine (RBF kernel)\n"
-            "gb     : 0.9741   0.839  0.919  Gradient Boosting\n"
-            "xgb    : 0.9744   0.843  0.922  XGBoost\n"
-            "lgbm   : 0.9752   0.855  0.926  LightGBM\n"
-            "voting : 0.9771   0.859  0.928  Soft-voting ensemble (recommended)\n"
+            "         Accuracy  AUC-ROC  MCC\n"
+            "rf     : 91.9%%    0.972    0.839  Random Forest\n"
+            "svm    : 91.9%%    0.969    0.839  Support Vector Machine (RBF kernel)\n"
+            "gb     : 92.0%%    0.974    0.839  Gradient Boosting\n"
+            "xgb    : 92.2%%    0.974    0.843  XGBoost\n"
+            "lgbm   : 92.7%%    0.975    0.855  LightGBM\n"
+            "voting : 92.9%%    0.977    0.859  Soft-voting ensemble (recommended)\n"
         ),
     )
     parser.add_argument(
