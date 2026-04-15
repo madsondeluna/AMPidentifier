@@ -51,7 +51,6 @@ AMPidentifier 2.0 is invoked from the project root via `python3 main.py`.
 | `--input` | `-i` | `str` | required | Path to input FASTA file |
 | `--output_dir` | `-o` | `str` | required | Output directory (created if absent) |
 | `--model` | `-m` | `str` | `voting` | Model to use (see below) |
-| `--external_models` | `-e` | `str+` | none | Paths to external `.pkl` models for comparison |
 | `--threshold` | | `float` | model default | Decision threshold (0.0 to 1.0) |
 
 ### Model options (`-m`)
@@ -76,9 +75,6 @@ python3 main.py -i sequences.fasta -o results/ -m xgb
 
 # Predict with a custom threshold
 python3 main.py -i sequences.fasta -o results/ -m voting --threshold 0.40
-
-# Include external models for comparison
-python3 main.py -i sequences.fasta -o results/ -e /path/to/custom_model.pkl
 ```
 
 ### Output files

@@ -52,7 +52,6 @@ def run_prediction_pipeline(
     output_dir: str,
     internal_model_type: str,
     use_ensemble: bool,
-    external_model_paths: list,
     threshold_override=None,
 ):
     print("\n" + "=" * 72)
@@ -132,25 +131,6 @@ def run_prediction_pipeline(
     pred_path = os.path.join(output_dir, f"predictions_{model_type}.csv")
     results_df.to_csv(pred_path, index=False)
     print(f"  Predictions saved to {pred_path}\n")
-
-    # External models
-    if external_model_paths:
-        print(f"  Running {len(external_model_paths)} external model(s)...")
-        for ext_path in external_model_paths:
-            ext_name = os.path.splitext(os.path.basename(ext_path))[0]
-            try:
-                ext_model = joblib.load(ext_path)
-                ext_proba = ext_model.predict_proba(X_raw)[:, 1]
-                ext_pred  = (ext_proba >= 0.5).astype(int)
-                ext_df    = results_df[["ID", "sequence"]].copy()
-                ext_df["probability_AMP"] = np.round(ext_proba, 4)
-                ext_df["prediction"]      = ext_pred
-                ext_df["label"]           = ext_df["prediction"].map({1: "AMP", 0: "non-AMP"})
-                ext_out = os.path.join(output_dir, f"predictions_{ext_name}.csv")
-                ext_df.to_csv(ext_out, index=False)
-                print(f"    {ext_name}: saved to {ext_out}")
-            except Exception as e:
-                print(f"    {ext_name}: failed — {e}")
 
     # Step 4: Summary
     print("Step 4/4: Summary")

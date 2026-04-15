@@ -53,18 +53,6 @@ def main():
         ),
     )
     parser.add_argument(
-        "-e", "--external_models",
-        nargs="*",
-        type=str,
-        default=[],
-        metavar="PKL",
-        help=(
-            "Paths to external .pkl model files for side-by-side comparison.\n"
-            "Each model must have been trained on the same 22-feature set.\n"
-            "Example: -e /path/to/model_a.pkl /path/to/model_b.pkl"
-        ),
-    )
-    parser.add_argument(
         "--threshold",
         type=float,
         default=None,
@@ -92,7 +80,6 @@ def main():
         output_dir=args.output_dir,
         internal_model_type=args.model,
         use_ensemble=(args.model == "voting"),
-        external_model_paths=args.external_models,
     )
 
 
