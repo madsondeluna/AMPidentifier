@@ -17,7 +17,7 @@ Branch: `feature/expanded-features-deeplearning`
   - [Threshold optimization](#threshold-optimization)
 - [Independent benchmark](#independent-benchmark)
 - [Results](#results)
-- [Roadmap](#roadmap)
+- [Repository structure](#repository-structure)
 - [References](#references)
 
 ## Background
@@ -475,13 +475,50 @@ The gain from beta to v2.0 (MCC +0.079 for the voting ensemble) is primarily att
 
 ![Confusion matrices benchmark](benchmarking/fig_bench_confusion.png)
 
-## Roadmap
+## Repository structure
 
-The following tasks are planned for future development.
-
-- [ ] **Repository cleanup**: remove stale artefacts, enforce directory conventions, and verify reproducibility from a clean clone. Prompt for Claude Code session:
-
-  > Review and clean the AMPidentifier 2.0 repository. Specifically: (1) list all files that are not referenced by any script and flag candidates for deletion; (2) confirm that `model_training/saved_model/` is obsolete (all production models are now in `model_training/tuned_model/`) and remove it if so; (3) verify that `__pycache__` directories and `*.pyc` files are covered by `.gitignore`; (4) check that `requirements.txt` lists every import found in the source files and remove any unused dependency; (5) confirm that the benchmark FASTA at `benchmarking/benchmark.fasta` and all figures under `model_training/tuned_model/figures/` and `benchmarking/` are either tracked by git or explicitly excluded; (6) report any broken relative paths in README.md. Do not delete anything without listing it first and waiting for confirmation.
+```
+AMPidentifier/
+├── amp_identifier/                  # prediction package
+│   ├── __init__.py
+│   ├── core.py                      # main pipeline orchestrator
+│   ├── data_io.py                   # FASTA parsing
+│   ├── feature_extraction.py        # 22-feature computation
+│   ├── prediction.py
+│   └── reporting.py
+├── benchmarking/                    # independent benchmark set and results
+│   ├── benchmark.fasta
+│   ├── benchmark_results.csv
+│   ├── fig_bench_confusion.png
+│   ├── fig_bench_metrics.png
+│   └── fig_bench_roc.png
+├── imgs/                            # logos and workflow diagram
+├── model_training/
+│   ├── data/                        # training sequences and feature list
+│   │   ├── positive_sequences.fasta
+│   │   ├── negative_sequences.fasta
+│   │   └── selected_features.txt
+│   ├── eda/                         # EDA figures (fig01–fig05)
+│   ├── tuned_model/                 # trained models, scalers, thresholds, figures
+│   │   ├── amp_model_{rf,svm,gb,xgb,lgbm,voting}_tuned.pkl
+│   │   ├── scaler_{robust,std}.pkl
+│   │   ├── threshold_{rf,svm,gb,xgb,lgbm,voting}.txt
+│   │   ├── cv_results_{rf,svm,gb,xgb,lgbm}.csv
+│   │   ├── result_{rf,svm,gb,xgb,lgbm,voting}.csv
+│   │   ├── tuning_report.{csv,txt}
+│   │   ├── figures/                 # post-tuning diagnostic figures (fig01–fig15)
+│   │   └── outputs/                 # cached .npz arrays for plot_tuning
+│   ├── benchmark.py                 # independent benchmark evaluation
+│   ├── collect_outputs.py           # generates .npz caches for plot_tuning
+│   ├── eda.py                       # exploratory data analysis figures
+│   ├── plot_tuning.py               # post-tuning diagnostic figures
+│   ├── train.py                     # baseline training
+│   ├── tune.py                      # hyperparameter tuning + voting ensemble
+│   └── voting.py                    # VotingEnsemble class
+├── main.py                          # CLI entry point
+├── requirements.txt
+└── README.md
+```
 
 ## References
 
