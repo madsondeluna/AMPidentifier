@@ -283,6 +283,10 @@ Best configurations identified by RandomizedSearchCV (n_iter = 100, 5-fold strat
 | γ | — | 0.10 | — | — | — |
 | **CV AUC-ROC** | **0.9695 ± 0.0018** | **0.9671 ± 0.0030** | **0.9723 ± 0.0023** | **0.9741 ± 0.0020** | **0.9740 ± 0.0016** |
 
+**Figure S2.** Cross-validation AUC-ROC score distributions across 100 RandomizedSearchCV iterations per model. LGBM and XGB reach the highest median CV AUC-ROC, followed by GB and RF. SVM shows a narrower distribution, reflecting fewer degrees of freedom in the search space.
+
+![Figure S2: CV score distributions](../model_training/tuned_model/figures/fig05_cv_score_distribution.png)
+
 ### S3: Feature selection and descriptor list
 
 All 22 descriptors were retained after feature selection. The table below lists each descriptor, its group, and its source.
