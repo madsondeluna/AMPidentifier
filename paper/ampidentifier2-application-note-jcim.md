@@ -1,8 +1,8 @@
 # AMPidentifier 2.0: Expanded Ensemble Machine Learning for Antimicrobial Peptide Prediction with LightGBM and Revised Physicochemical Descriptors
 
-Madson Allan de Luna-Aragão,^1\*^ Rafael Lucas da Silva,^2^ João Pacífico Bezerra Neto,^3^ Carlos André dos Santos-Silva,^5^ Denys Ewerton da Silva Santos,^4^ Ana Maria Benko-Iseppon^2\*^
+Madson Allan de Luna-Aragão,<sup>1,\*</sup> Rafael Lucas da Silva,<sup>2</sup> João Pacífico Bezerra Neto,<sup>3</sup> Carlos André dos Santos-Silva,<sup>5</sup> Denys Ewerton da Silva Santos,<sup>4</sup> Ana Maria Benko-Iseppon<sup>2,\*</sup>
 
-^1^ Institute of Biological Sciences, Universidade Federal de Minas Gerais (UFMG), Belo Horizonte, MG, Brazil; ^2^ Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife, PE, Brazil; ^3^ Universidade de Pernambuco (UPE), Petrolina, PE, Brazil; ^4^ Department of Fundamental Chemistry, Universidade Federal de Pernambuco (UFPE), Recife, PE, Brazil; ^5^ Centro Universitário CESMAC, Maceió, AL, Brazil
+<sup>1</sup> Institute of Biological Sciences, Universidade Federal de Minas Gerais (UFMG), Belo Horizonte, MG, Brazil; <sup>2</sup> Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife, PE, Brazil; <sup>3</sup> Universidade de Pernambuco (UPE), Petrolina, PE, Brazil; <sup>4</sup> Department of Fundamental Chemistry, Universidade Federal de Pernambuco (UFPE), Recife, PE, Brazil; <sup>5</sup> Centro Universitário CESMAC, Maceió, AL, Brazil
 
 \*Corresponding authors: madsondeluna@gmail.com (M.A.L.A.); ana.benko@ufpe.br (A.M.B.I.)
 
