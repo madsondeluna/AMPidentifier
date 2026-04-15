@@ -109,7 +109,11 @@ Five machine learning architectures were trained on the 10,596-sequence training
 
 Random Forest (RF) constructs an ensemble of decision trees by bootstrap aggregation; at each split, a random subset of features (max_features = 0.30) decorrelates the trees and reduces variance. The best configuration used 229 estimators with no depth constraint, min_samples_leaf = 1, and min_samples_split = 3 (CV AUC-ROC = 0.9695). The Support Vector Machine (SVM) maximizes the margin between class hyperplanes in an RBF-projected feature space, with regularization parameter C and kernel width γ controlling the bias-variance trade-off; the best configuration was C = 2.80 and γ = 0.10 (CV AUC-ROC = 0.9671). Gradient Boosting (GB) is a sequential additive model that minimizes log-loss by fitting each successive tree to the pseudo-residuals of the current ensemble; the best configuration used 293 estimators, learning rate 0.062, max depth 6, and subsample 0.846 (CV AUC-ROC = 0.9723). XGBoost (XGB) extends GB with explicit L1 (α) and L2 (λ) regularization on leaf weights and second-order Taylor approximation for split finding; the best configuration used 448 estimators, learning rate 0.059, max depth 6, α = 0.013, λ = 0.313, subsample 0.678, and colsample_bytree 0.758 (CV AUC-ROC = 0.9741). LightGBM (LGBM) builds gradient-boosted trees using histogram-based split finding and leaf-wise (best-first) growth, which reduces training time on larger datasets relative to level-wise GB while allowing finer control of tree shape via the num_leaves parameter; the best configuration used 383 estimators, 47 leaves, max depth 7, learning rate 0.323, subsample 0.942, colsample_bytree 0.581, α = 0.001, and λ = 0.681 (CV AUC-ROC = 0.9740).
 
-After hyperparameter optimization, each model was retrained on the full training partition and serialized. MCC-optimized decision thresholds were determined on the held-out test set by scanning predicted probabilities and selecting the threshold that maximizes MCC.
+After hyperparameter optimization, each model was retrained on the full training partition and serialized. MCC-optimized decision thresholds were determined on the held-out test set by sweeping predicted probabilities over 81 equally spaced values from 0.10 to 0.90 and selecting the value that maximizes MCC:
+
+$$\text{MCC} = \frac{TP \cdot TN - FP \cdot FN}{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)}}$$
+
+MCC is sensitive to all four entries of the confusion matrix and provides a balanced criterion for binary classification on class-balanced datasets, avoiding the optimistic bias of accuracy and F1 toward the majority class. The `--threshold` flag allows overriding the MCC-optimized default at inference time for applications requiring a different sensitivity-specificity trade-off.
 
 ### Soft-voting ensemble
 
@@ -139,6 +143,8 @@ The training dataset (13,246 sequences) was partitioned 80/20 by stratified rand
 | Voting | 0.56      | 92.9    | 94.2          | 91.4   | 94.4   | 92.8   | 0.859 | 0.977   |
 
 The voting ensemble achieves the highest values in accuracy (92.9%), precision (94.2%), specificity (94.4%), F1 (92.8%), MCC (0.859), and AUC-ROC (0.977); sensitivity is highest in XGB (92.4%). LGBM is the strongest individual classifier (MCC 0.855, AUC-ROC 0.975), followed by XGB (MCC 0.843). RF, SVM, and GB each reach MCC 0.839.
+
+Hyperparameter tuning improved AUC-ROC and MCC for all five models relative to their default configurations. The largest gains were observed in GB (MCC +0.028, AUC-ROC +0.012), SVM (MCC +0.025, AUC-ROC +0.008), and LGBM (MCC +0.021). RF and XGB changed marginally, indicating their default hyperparameters were already near-optimal for this feature set and dataset size. Additional evaluation figures for the internal test set, including confusion matrices, per-model metric comparisons, precision-recall curves, detection error tradeoff curves, and threshold sensitivity analysis, are provided in Supplementary Section S4.
 
 ### Independent benchmark performance
 
@@ -337,6 +343,26 @@ All 22 descriptors were retained after feature selection. The table below lists 
 **Figure S4c.** Feature importance ranking (top 20 of 22 descriptors by mean decrease in impurity) for RF, GB, XGB, and LGBM. SVM with RBF kernel does not provide a native feature importance metric and is excluded.
 
 ![Figure S4c: Feature importance](../model_training/tuned_model/figures/fig04_feature_importance.png)
+
+**Figure S4d.** Confusion matrices for all six AMPidentifier configurations on the internal held-out test set ($n$ = 2,650). All models correctly classify over 91% of sequences. LGBM achieves the fewest false negatives; RF achieves the fewest false positives.
+
+![Figure S4d: Confusion matrices](../model_training/tuned_model/figures/fig02_confusion_matrices.png)
+
+**Figure S4e.** Per-model comparison of all evaluation metrics on the internal held-out test set. LGBM leads in MCC (0.855), precision (94.2%), and specificity (94.3%). The voting ensemble leads in F1 (92.8%) and AUC-ROC (0.977).
+
+![Figure S4e: Metrics comparison](../model_training/tuned_model/figures/fig12_metrics_comparison.png)
+
+**Figure S4f.** Precision-recall curves for all six AMPidentifier configurations on the internal held-out test set. All models maintain precision above 0.87 at recall 0.90.
+
+![Figure S4f: Precision-recall curves](../model_training/tuned_model/figures/fig13_precision_recall.png)
+
+**Figure S4g.** Detection error tradeoff (DET) curves for all six AMPidentifier configurations on the internal held-out test set. LGBM achieves the lowest combined false positive and false negative rates.
+
+![Figure S4g: DET curves](../model_training/tuned_model/figures/fig14_det_curves.png)
+
+**Figure S4h.** Threshold sensitivity for all five base models: MCC, F1, Precision, and Recall as a function of decision threshold. The vertical dashed line marks the MCC-optimized threshold for each model; the star marks the MCC value at that threshold. The voting ensemble applies the threshold shown in Table 2.
+
+![Figure S4h: Threshold sensitivity](../model_training/tuned_model/figures/fig15_threshold_sensitivity.png)
 
 ### S5: Extended metrics and confusion matrices on the independent benchmark
 
