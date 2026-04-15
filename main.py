@@ -2,17 +2,19 @@
 
 import argparse
 import os
+import sys
 from amp_identifier.core import run_prediction_pipeline
 
-BANNER = r"""
- ___  __  __ ____  _     _            _   _  __ _
-/ _ \|  \/  |  _ \(_) __| | ___ _ __ | |_(_)/ _(_) ___ _ __
-/ /_\ | |\/| | |_) | |/ _` |/ _ \ '_ \| __| | |_| |/ _ \ '__|
-/ ___ | |  | |  __/| | (_| |  __/ | | | |_| |  _| |  __/ |
-/_/   \_|  |_|_|   |_|\__,_|\___|_| |_|\__|_|_| |_|\___|_|
+_USE_COLOR = sys.stdout.isatty()
 
-  version 2.0 — physicochemical feature engineering and ensemble ML
-"""
+def _c(code, text):
+    return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
+
+BANNER = (
+    "\n"
+    + _c("1;36", "  AMPidentifier 2.0") + "\n"
+    + _c("2",    "  physicochemical feature engineering | ensemble ML") + "\n"
+)
 
 
 def main():
