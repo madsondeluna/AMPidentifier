@@ -198,7 +198,7 @@ Unlike the internal test set, which shares database sources and curation methodo
 | iAMPCN | 2023 | Source code not distributed; web server offline |
 | AMAP | 2019 | Web server unavailable at time of evaluation |
 
-Among AMPidentifier configurations, LGBM achieves the highest individual MCC (0.749) and accuracy (87.0%); the voting ensemble produces the highest sensitivity (94.9%) and AUC-ROC (0.950). Five of the six AMPidentifier configurations exceed AMPScanner v2 (MCC 0.718); only SVM (MCC 0.695) falls below. Extended counts (TP, TN, FP, FN) and ROC curves for all six AMPidentifier configurations on the benchmark are provided in Supplementary Section S5.
+Among AMPidentifier configurations, LGBM achieves the highest individual MCC (0.749) and accuracy (87.0%); the voting ensemble produces the highest sensitivity (94.9%) and AUC-ROC (0.950). Five of the six AMPidentifier configurations exceed AMPScanner v2 (MCC 0.718); only SVM (MCC 0.695) falls below. Extended counts (TP, TN, FP, FN) for all six AMPidentifier configurations are provided in Supplementary Section S5; ROC curves are shown in Supplementary Figure S5a.
 
 The amPEPpy and ClassAMP cases illustrate the risk of evaluating AMP predictors by AUC-ROC or sensitivity alone. amPEPpy achieves AUC-ROC = 0.934 and sensitivity 96.5%, but specificity falls to 49.3% at its default threshold: approximately half of all true non-AMP sequences are predicted as AMPs. Both ClassAMP configurations assign every sequence as AMP (specificity 0.0%, MCC 0.000), providing no discriminative capability at their default thresholds. AMPidentifier configurations maintain specificity between 74.2% and 79.6% across all six models, limiting false-positive accumulation while preserving high sensitivity.
 
