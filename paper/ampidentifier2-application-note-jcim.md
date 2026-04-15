@@ -168,7 +168,7 @@ Table 3 consolidates performance for all 17 evaluated classifier configurations 
 | DBAASP | Web | 75.6 | 64.1 | 86.5 | 81.7 | 71.8 | 0.521 | N/A |
 | amPEPpy | CLI | 72.9 | 96.5 | 49.3 | 65.6 | 78.1 | 0.520 | 0.934 |
 | ClassAMP, RF | Web | 53.7<sup>a</sup> | 100.0<sup>b</sup> | 0.0 | 53.7 | 69.9 | 0.000 | 0.785 |
-| ClassAMP, SVM | Web | 50.0<sup>a</sup> | 100.0<sup>b</sup> | 0.0 | 50.0 | 66.7 | 0.000 | 0.646 |
+| ClassAMP, SVM | Web | 50.0 | 100.0<sup>b</sup> | 0.0 | 50.0 | 66.7 | 0.000 | 0.646 |
 
 <sup>a</sup> ClassAMP-RF returned results for 4,412 of 4,736 sequences; accuracy is computed over sequences with returned predictions.
 
