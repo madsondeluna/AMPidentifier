@@ -5,6 +5,20 @@ import os
 import sys
 from amp_identifier.core import run_prediction_pipeline, BOX_W
 
+
+class _Fmt(argparse.RawTextHelpFormatter):
+    """Left-aligns all help text at the same 2-space indent as the flags."""
+
+    def _format_action(self, action):
+        invocation = self._format_action_invocation(action)
+        lines = [f"  {invocation}"]
+        if action.help:
+            help_text = self._expand_help(action)
+            for line in help_text.splitlines():
+                lines.append(f"  {line}" if line.strip() else "")
+        lines.append("")
+        return "\n".join(lines) + "\n"
+
 _TTY = sys.stdout.isatty()
 
 def _c(code, text):
@@ -57,7 +71,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         description="AMPidentifier 2.0: antimicrobial peptide classification from FASTA input.",
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=_Fmt,
     )
 
     parser.add_argument(
