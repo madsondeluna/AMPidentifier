@@ -90,7 +90,7 @@ After hyperparameter optimization, each model was retrained on the full training
 
 $$\text{MCC} = \frac{TP \cdot TN - FP \cdot FN}{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)}}$$
 
-MCC is sensitive to all four entries of the confusion matrix and provides a balanced criterion for binary classification on class-balanced datasets, avoiding the optimistic bias of accuracy and F1 toward the majority class. The `--threshold` flag allows overriding the MCC-optimized default at inference time for applications requiring a different sensitivity-specificity trade-off.
+where TP, TN, FP, and FN are true positives, true negatives, false positives, and false negatives, respectively. MCC is sensitive to all four entries of the confusion matrix and provides a balanced criterion for binary classification on class-balanced datasets, avoiding the optimistic bias of accuracy and F1 toward the majority class. The `--threshold` flag allows overriding the MCC-optimized default at inference time for applications requiring a different sensitivity-specificity trade-off.
 
 ### Soft-voting ensemble
 
