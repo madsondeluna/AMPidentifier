@@ -3,21 +3,19 @@
 # Baseline training pipeline for all classifiers.
 #
 # Models trained:
-#   rf    - Random Forest
-#   svm   - Support Vector Machine
-#   gb    - Gradient Boosting
-#   xgb   - XGBoost
-#   mlp   - Multi-Layer Perceptron (sklearn)
-#   stack - Stacking ensemble (RF + XGB + SVM -> Logistic Regression)
+#   rf   - Random Forest
+#   svm  - Support Vector Machine
+#   gb   - Gradient Boosting
+#   xgb  - XGBoost
+#   lgbm - LightGBM
 #
 # Scaling strategy:
-#   RobustScaler              -> rf, svm, gb, xgb, stack
-#   QuantileTransformer(normal) -> mlp
+#   RobustScaler -> all models
 #
-# Features: 159 selected features from feature_analysis.py (selected_features.txt).
+# Features: 22 physicochemical features (selected_features.txt).
 #
 # Run from project root:
-#   python -m model_training.train
+#   python3 -m model_training.train
 
 import os
 import pandas as pd
@@ -41,12 +39,10 @@ from amp_identifier.data_io import load_fasta_sequences
 # Configuration
 # ---------------------------------------------------------------------------
 DATA_DIR   = "model_training/data"
-OUTPUT_DIR = "model_training/saved_model"
+OUTPUT_DIR = "model_training/baseline_model"
 POSITIVE_FILE          = os.path.join(DATA_DIR, "positive_sequences.fasta")
 NEGATIVE_FILE          = os.path.join(DATA_DIR, "negative_sequences.fasta")
 SELECTED_FEATURES_PATH = os.path.join(DATA_DIR, "selected_features.txt")
-TEST_FEATURES_PATH     = os.path.join(DATA_DIR, "test_features.csv")
-TEST_LABELS_PATH       = os.path.join(DATA_DIR, "test_labels.csv")
 
 RANDOM_STATE = 42
 TEST_SIZE    = 0.2
@@ -134,10 +130,6 @@ def main():
 
     joblib.dump(robust_scaler, os.path.join(OUTPUT_DIR, "scaler_robust.pkl"))
     print("  Scaler saved.")
-
-    # Save test set (robust-scaled, for evaluate.py compatibility)
-    X_test_robust.to_csv(TEST_FEATURES_PATH, index=False)
-    y_test.to_frame().to_csv(TEST_LABELS_PATH, index=False)
 
     # --- Model definitions ---
     # (model_name, model, X_train_scaled, X_test_scaled)
