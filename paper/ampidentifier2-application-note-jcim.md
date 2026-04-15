@@ -292,11 +292,17 @@ All 22 descriptors were retained after feature selection. The table below lists 
 
 ### S3: Figures from the internal held-out test set
 
-Figure S3a: ROC curves for all six AMPidentifier configurations on the internal held-out test set ($n$ = 2,650).
+**Figure S3a.** ROC curves for all six AMPidentifier configurations on the internal held-out test set ($n$ = 2,650).
 
-Figure S3b: Calibration curves (fraction of positives vs. mean predicted probability) for all six configurations.
+![Figure S3a: ROC curves](../model_training/tuned_model/figures/fig01_roc_curves.png)
 
-Figure S3c: Feature importance ranking from the Random Forest classifier, showing mean decrease in impurity for all 22 descriptors.
+**Figure S3b.** Calibration curves (fraction of positives vs. mean predicted probability) for all six configurations.
+
+![Figure S3b: Calibration curves](../model_training/tuned_model/figures/fig03_calibration.png)
+
+**Figure S3c.** Feature importance ranking from the Random Forest classifier, showing mean decrease in impurity for all 22 descriptors.
+
+![Figure S3c: Feature importance](../model_training/tuned_model/figures/fig04_feature_importance.png)
 
 ### S4: Extended metrics and confusion matrices on the independent benchmark
 
