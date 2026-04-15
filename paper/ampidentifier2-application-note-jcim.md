@@ -148,22 +148,55 @@ Among individual classifiers, LGBM achieves the highest benchmark accuracy (87.0
 
 ### Comparison with published predictors
 
-Table 3 summarizes the performance of AMPidentifier 2.0 configurations against published AMP predictors evaluated on the same 4,736-sequence independent benchmark. Complete per-tool metrics for all 16 evaluated classifiers are reported in Supplementary Table S4.
+Tables 3 and 4 summarize performance of all tools evaluated on the 4,736-sequence independent benchmark. Complete per-tool confusion matrices and extended metrics are reported in Supplementary Table S4. Nine tools surveyed were inaccessible at evaluation time and are listed in Table 5.
 
-**Table 3.** Selected classifier performance on the independent benchmark ($n$ = 4,736). External tool values are carried from Luna-Aragão et al. (2026).^14^ MCC and AUC-ROC are threshold-dependent and threshold-independent discriminative metrics, respectively.
+**Table 3.** Locally executable tools on the independent benchmark ($n$ = 4,736), sorted by MCC. AMPidentifier 2.0 rows use values from this study; all other rows are from Luna-Aragão et al. (2026).^14^
 
-| Tool                    | MCC   | AUC-ROC | Sensitivity | Specificity |
-|-------------------------|-------|---------|-------------|-------------|
-| AMPidentifier 2.0 LGBM  | 0.749 | 0.948   | 94.5%       | 79.6%       |
-| AMPidentifier 2.0 Voting| 0.742 | 0.950   | 94.9%       | 78.4%       |
-| AMPidentifier 2.0 RF    | 0.736 | 0.948   | 94.1%       | 78.7%       |
-| AMPScanner v2           | 0.718 | 0.936   | --          | --          |
-| AMPlify                 | --    | 0.932   | --          | --          |
-| amPEPpy                 | --    | 0.934   | 96.5%       | 49.3%       |
+| Tool | Acc (%) | Sn (%) | Sp (%) | Precision (%) | F1 (%) | MCC | AUC-ROC |
+|------|---------|--------|--------|---------------|--------|-----|---------|
+| Macrel | 91.1 | 89.6 | 92.7 | 92.4 | 91.0 | 0.823 | 0.945 |
+| AMPidentifier 2.0 LGBM | 87.0 | 94.5 | 79.6 | 82.2 | 87.9 | 0.749 | 0.948 |
+| AMPidentifier 2.0 Voting | 86.6 | 94.9 | 78.4 | 81.4 | 87.6 | 0.742 | 0.950 |
+| AMPidentifier 2.0 RF | 86.4 | 94.1 | 78.7 | 81.5 | 87.4 | 0.736 | 0.948 |
+| AMPScanner v2 | 85.4 | 93.9 | 76.9 | 80.2 | 86.5 | 0.718 | 0.936 |
+| AMPidentifier 2.0 GB | 85.8 | 94.5 | 77.0 | 80.5 | 86.9 | 0.727 | 0.935 |
+| AMPidentifier 2.0 XGB | 84.6 | 94.8 | 74.4 | 78.7 | 86.0 | 0.707 | 0.930 |
+| AMPlify | 83.7 | 94.3 | 73.0 | 77.8 | 85.3 | 0.689 | 0.932 |
+| AMPidentifier 2.0 SVM | 84.1 | 93.9 | 74.2 | 78.5 | 85.5 | 0.695 | 0.943 |
+| ampir | 81.0 | 94.5 | 67.5 | 74.4 | 83.3 | 0.644 | 0.921 |
+| amPEPpy | 72.9 | 96.5 | 49.3 | 65.6 | 78.1 | 0.520 | 0.934 |
 
-All three AMPidentifier 2.0 configurations with MCC reported exceed the AMPScanner v2 reference (MCC 0.718) on this benchmark.
+**Table 4.** Web tools evaluated by manual submission ($n$ = 4,736 unless noted). AUC-ROC is N/A for tools with binary-only output.
 
-The amPEPpy classifier illustrates a trade-off that appears repeatedly in the benchmark: AUC-ROC = 0.934 reflects good probability ranking, but at its default operating threshold, specificity falls to 49.3%, meaning the tool predicts approximately half of all true non-AMP sequences as AMPs. At genomic scale, this false-positive rate generates a large volume of spurious candidates. AMPidentifier 2.0 configurations maintain specificity between 74.2% and 79.6% across all six configurations, limiting false-positive inflation while preserving high recall (93.9% to 94.9%).
+| Tool | Acc (%) | Sn (%) | Sp (%) | Precision (%) | F1 (%) | MCC | AUC-ROC |
+|------|---------|--------|--------|---------------|--------|-----|---------|
+| CAMPR3-RF | 84.8 | 92.2 | 77.4 | 80.3 | 85.8 | 0.704 | 0.934 |
+| CAMPR3-SVM | 84.5 | 89.5 | 79.5 | 81.4 | 85.3 | 0.694 | 0.919 |
+| CAMPR3-DA | 82.4 | 87.0 | 77.9 | 79.7 | 83.2 | 0.651 | 0.909 |
+| CAMPR3-ANN | 79.2 | 83.2 | 75.3 | 77.1 | 80.0 | 0.586 | N/A |
+| DBAASP | 75.6 | 64.1 | 86.5 | 81.7 | 71.8 | 0.521 | N/A |
+| ClassAMP-RF | 53.7 | 100.0 | 0.0 | 53.7 | 69.9 | 0.000 | 0.785 |
+| ClassAMP-SVM | 50.0 | 100.0 | 0.0 | 50.0 | 66.7 | 0.000 | 0.646 |
+
+**Table 5.** Tools surveyed but inaccessible at evaluation time (March 2026).
+
+| Tool | Year | Reason for exclusion |
+|------|------|----------------------|
+| iAMP-2L | 2013 | Web server unreachable; DNS resolution failure |
+| Deep-AmPEP30 | 2020 | Web server unreachable at time of evaluation |
+| AI4AMP | 2021 | No open-source release; permanently inaccessible |
+| iAMPpred | 2017 | DNS failure; server unreachable |
+| PEPred-Suite | 2019 | Connection timeout; server unreachable |
+| CS-AMPPred | 2012 | Server unreachable; scope limited to cysteine-stabilised AMPs |
+| MLAMP | 2016 | Shared infrastructure with iAMP-2L; server offline |
+| iAMPCN | 2023 | Source code not distributed; web server offline |
+| AMAP | 2019 | Web server unavailable at time of evaluation |
+
+Among locally executable tools, Macrel achieves the highest MCC (0.823) and the highest specificity (92.7%), though at a lower sensitivity (89.6%) than all AMPidentifier 2.0 configurations (93.9% to 94.9%). All six AMPidentifier 2.0 configurations exceed AMPScanner v2 (MCC 0.718) on this benchmark.
+
+The amPEPpy classifier illustrates a trade-off that appears in several evaluated tools: AUC-ROC = 0.934 reflects strong probability ranking, but at its default operating threshold, specificity falls to 49.3%, meaning approximately half of all true non-AMP sequences are predicted as AMPs. At genomic scale, this false-positive rate generates a large volume of spurious candidates that consume downstream validation resources. AMPidentifier 2.0 configurations maintain specificity between 74.2% and 79.6%, limiting false-positive accumulation while preserving high recall.
+
+Among web tools, both ClassAMP models assign every sequence as AMP (specificity 0.0%, MCC 0.000), providing no discrimination capability. CAMPR3-RF (MCC 0.704) and CAMPR3-SVM (MCC 0.694) are the strongest web tools, competitive with AMPidentifier 2.0 XGB (MCC 0.707) and SVM (MCC 0.695). Of nine additional web tools surveyed, all nine were inaccessible at evaluation time (Table 5), consistent with the pattern of tool obsolescence reported in the literature.^14^
 
 ## Discussion
 
