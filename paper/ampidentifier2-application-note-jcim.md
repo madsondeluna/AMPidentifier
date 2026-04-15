@@ -80,7 +80,28 @@ Because descriptors span heterogeneous numeric scales, model-specific normalizat
 
 ### Pre-trained classifiers
 
-Five machine learning architectures were trained on the 10,596-sequence training partition. Hyperparameter optimization used RandomizedSearchCV (n_iter = 100, 5-fold stratified cross-validation, AUC-ROC as the optimization metric). Complete hyperparameter search spaces and best configurations are reported in Supplementary Table S1.
+Five machine learning architectures were trained on the 10,596-sequence training partition. Hyperparameter optimization used RandomizedSearchCV (scikit-learn; n_iter = 100, 5-fold stratified cross-validation, AUC-ROC as the optimization metric). For each model, 100 configurations were sampled from the search space defined in Table 5; integer parameters were drawn from discrete uniform distributions, continuous parameters from uniform (U) or log-uniform (log-U) distributions over the stated ranges.
+
+**Table 5.** Hyperparameter search spaces used in RandomizedSearchCV. Integer ranges are half-open [a, b); continuous ranges use uniform (U) or log-uniform (log-U) distributions. A dash (—) indicates the parameter does not apply to that model.
+
+| Hyperparameter | RF | SVM | GB | XGB | LGBM |
+|---|---|---|---|---|---|
+| n_estimators | [100, 600) | — | [100, 500) | [100, 500) | [100, 600) |
+| max_depth | {None,10,20,30,40} | — | [2, 8) | [2, 8) | [3, 10) |
+| learning_rate | — | — | log-U[0.001, 0.5] | log-U[0.001, 0.5] | log-U[0.001, 0.5] |
+| subsample | — | — | U[0.5, 1.0) | U[0.5, 1.0) | U[0.5, 1.0) |
+| colsample_bytree | — | — | — | U[0.5, 1.0) | U[0.5, 1.0) |
+| min_samples_split | [2, 15) | — | [2, 15) | — | — |
+| min_samples_leaf | [1, 8) | — | [1, 8) | — | — |
+| max_features | {sqrt, log2, 0.3, 0.5} | — | — | — | — |
+| num_leaves | — | — | — | — | [20, 150) |
+| min_child_weight | — | — | — | [1, 10) | — |
+| min_child_samples | — | — | — | — | [5, 50) |
+| $\alpha$ (reg_alpha) | — | — | — | log-U[$10^{-4}$, 10] | log-U[$10^{-4}$, 10] |
+| $\lambda$ (reg_lambda) | — | — | — | log-U[0.1, 10] | log-U[0.1, 10] |
+| kernel | — | RBF (fixed) | — | — | — |
+| C | — | log-U[0.01, 100] | — | — | — |
+| $\gamma$ | — | {scale, $10^{-4}$, $10^{-3}$, $10^{-2}$, 0.1, 1.0} | — | — | — |
 
 **Random Forest (RF)** constructs an ensemble of decision trees by bootstrap aggregation. At each split, a random subset of features (max_features = 0.30) decorrelates the trees and reduces variance. Best configuration: 229 estimators, no depth constraint, min_samples_leaf = 1, min_samples_split = 3. Cross-validation AUC-ROC = 0.9695.
 
