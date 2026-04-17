@@ -68,9 +68,11 @@ _BAR_ROW_FIXED = 2 + 9 + 6 + 3 + 5 + 2 + 2 + BAR_W   # = 61
 _BAR_TRAIL     = INNER - _BAR_ROW_FIXED                # = 9
 
 
-def _bar(ratio: float) -> str:
+def _bar(ratio: float, color_fn=None) -> str:
+    if color_fn is None:
+        color_fn = _green
     filled = round(max(0.0, min(1.0, ratio)) * BAR_W)
-    return _green("\u2588" * filled) + _gray("\u2591" * (BAR_W - filled))
+    return color_fn("\u2588" * filled) + _gray("\u2591" * (BAR_W - filled))
 
 
 def _box_top():  print("\u2554" + "\u2550" * INNER + "\u2557")
@@ -88,11 +90,11 @@ def _box_info(label: str, value: str):
     print(f"\u2551{row}\u2551")
 
 
-def _box_bar(label: str, count: int, pct: float):
+def _box_bar(label: str, count: int, pct: float, color_fn=None):
     # visible layout: "  {label:<9}{count:>6}  ({pct:5.1f}%)  {bar}{pad}"
     # = 2+9+6+3+5+3+2+BAR_W+_BAR_TRAIL = INNER
     left = f"  {label:<9}{count:>6}  ({pct:5.1f}%)  "
-    bar  = _bar(pct / 100.0)
+    bar  = _bar(pct / 100.0, color_fn=color_fn)
     pad  = " " * _BAR_TRAIL
     print(f"\u2551{left}{bar}{pad}\u2551")
 
@@ -250,8 +252,8 @@ def run_prediction_pipeline(
     _box_info("Threshold",        f"{threshold:.2f}")
     _box_info("Total sequences",  str(n_total))
     _box_div()
-    _box_bar("AMP",     n_amp,     pct_amp)
-    _box_bar("non-AMP", n_non_amp, pct_non)
+    _box_bar("AMP",     n_amp,     pct_amp,  color_fn=_green)
+    _box_bar("non-AMP", n_non_amp, pct_non, color_fn=_red)
     _box_div()
     _box_info("Output", pred_path)
     _box_div()
