@@ -16,7 +16,6 @@
   - [Threshold optimization](#threshold-optimization)
 - [External benchmark](#external-benchmark)
 - [Repository structure](#repository-structure)
-- [References](#references)
 
 ## Background
 
@@ -494,28 +493,4 @@ AMPidentifier/
 ├── requirements.txt
 └── README.md
 ```
-
-## References
-
-Bhadra, P., Yan, J., Li, J., Fong, S., and Siu, S.W.I. (2018). AmPEP: sequence-based prediction of antimicrobial peptides using distribution patterns of amino acid properties and random forest. *Scientific Reports*, 8(1), 1697.
-
-Boman, H.G. (2003). Antibacterial peptides: basic facts and emerging concepts. *Journal of Internal Medicine*, 254(3), 197-215.
-
-Chou, K.-C. and Shen, H.-B. (2007). MemType-2L: a web server for predicting membrane proteins and their types by incorporating evolution information through Pse-PSSM. *Biochemical and Biophysical Research Communications*, 360(2), 339-345.
-
-Dubchak, I., Muchnik, I., Holbrook, S.R., and Kim, S.-H. (1995). Prediction of protein folding class using global description of amino acid sequence. *Proceedings of the National Academy of Sciences*, 92(19), 8700-8704.
-
-Eisenberg, D., Weiss, R.M., and Terwilliger, T.C. (1982). The helical hydrophobic moment: a measure of the amphiphilicity of a helix. *Nature*, 299(5881), 371-374.
-
-Guruprasad, K., Reddy, B.V.B., and Pandit, M.W. (1990). Correlation between stability of a protein and its dipeptide composition: a novel approach for predicting in vivo stability of a protein from its primary sequence. *Protein Engineering*, 4(2), 155-161.
-
-Jhong, J.-H., Chi, Y.-H., Li, W.-C., Lin, T.-H., Hung, C.-K., and Lee, T.-Y. (2019). dbAMP: an integrated resource for exploring antimicrobial peptides with functional activities and physicochemical properties on transcriptome and proteome data. *Nucleic Acids Research*, 47(D1), D285-D297.
-
-Müller, A.T., Gabernet, G., Hiss, J.A., and Schneider, G. (2017). modlAMP: Python for antimicrobial peptides. *Bioinformatics*, 33(17), 2753-2755.
-
-Nagarajan, D., Nagarajan, T., Roy, N., Kulkarni, O., Ravichandran, S., Mishra, M., Bhattacharyya, S., and Chandra, N. (2019). Computational antimicrobial peptide design and evaluation against multidrug-resistant clinical isolates of bacteria. *Journal of Biological Chemistry*, 294(10), 3687-3702.
-
-Santos-Júnior, C.D., Pan, S., Zhao, X.-M., and Coelho, L.P. (2020). Macrel: antimicrobial peptide screening in genomes and metagenomes. *PeerJ*, 8, e10555.
-
-Von Heijne, G. and Blomberg, C. (1979). Trans-membrane translocation of proteins. The direct transfer model. *European Journal of Biochemistry*, 97(1), 175-181.
 
