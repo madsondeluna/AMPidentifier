@@ -1,4 +1,4 @@
-# AMPidentifier
+# AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction
 
 
 ## Contents
