@@ -235,7 +235,7 @@ PAGE = """<!DOCTYPE html>
       </div>
       <div class="stats-item">
         <span class="stats-val">3</span>
-        <span class="stats-lbl">groups using as main tool</span>
+        <span class="stats-lbl">research groups using as main tool</span>
       </div>
     </div>
   </div>
