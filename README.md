@@ -47,9 +47,25 @@ To install directly from PyPI without cloning the repository:
 pip install ampidentifier
 ```
 
-This registers the `ampidentifier` command globally. Note that the trained model files are not bundled in the pip package; clone the repository to use the CLI or Python API with the full model suite. See [COLAB_GUIDE.md](COLAB_GUIDE.md) for setup instructions in Google Colab and Jupyter.
+This registers the `ampidentifier` command globally:
+
+```bash
+ampidentifier -i sequences.fasta -o results/
+ampidentifier -i sequences.fasta -o results/ -m lgbm
+ampidentifier -i sequences.fasta -o results/ -m voting --threshold 0.40
+```
+
+For step-by-step setup in Google Colab or Jupyter, see [COLAB_GUIDE.md](COLAB_GUIDE.md) and the interactive notebook [AMPidentifier_Colab_Guide.ipynb](AMPidentifier_Colab_Guide.ipynb).
 
 ## Usage
+
+AMPidentifier is available as a web application, a pip package, and a cloneable repository.
+
+### Web application
+
+The easiest way to run predictions is through the web interface at [ampidentifier.com](https://ampidentifier.com). No installation is required. Paste or upload FASTA sequences, select a model, and download the results as CSV.
+
+### Command-line interface
 
 <img src="imgs/workflow.svg" alt="AMPidentifier prediction workflow" width="700">
 
