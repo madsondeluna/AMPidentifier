@@ -445,12 +445,28 @@ AMPidentifier/
 │   ├── data_io.py                   # FASTA parsing
 │   ├── feature_extraction.py        # 22-feature computation
 │   └── reporting.py
-├── benchmarking/                    # independent benchmark set and results
+├── benchmarking/                    # benchmark data and results
 │   ├── benchmark.fasta
 │   ├── benchmark_results.csv
 │   ├── fig_bench_confusion.png
 │   ├── fig_bench_metrics.png
-│   └── fig_bench_roc.png
+│   ├── fig_bench_roc.png
+│   └── external_benchmark/          # comparative analysis against published tools
+│       ├── excluded_tools.md        # tools excluded and reasons
+│       ├── sequences/               # benchmark.fasta (Bhangu et al., 2025; n=4,736)
+│       ├── ampidentifier_results/   # AMPidentifier predictions and metrics
+│       └── tools/                   # per-tool predictions and metrics
+│           ├── ampscanner_v2/
+│           ├── amplify/
+│           ├── ampeppy/
+│           ├── ampir/
+│           ├── campr3-svm/
+│           ├── campr3-rf/
+│           ├── campr3-ann/
+│           ├── campr3-da/
+│           ├── dbaasp/
+│           ├── classamp-svm/
+│           └── classamp-rf/
 ├── imgs/                            # logos and workflow diagram
 ├── model_training/
 │   ├── data/                        # training sequences and feature list
