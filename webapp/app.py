@@ -4,10 +4,13 @@ AMPidentifier Web Portal — v2.0
 import contextlib
 import io
 import os
+import sqlite3
 import sys
 import tempfile
+import threading
+import uuid
 
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, make_response, request, jsonify, render_template_string
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,8 +19,48 @@ from amp_identifier.data_io import load_fasta_sequences
 
 VERSION = "2.0.0"
 
+_db_lock = threading.Lock()
+
+def _db_path():
+    default = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'stats.db')
+    return os.environ.get('STATS_DB', default)
+
+def _conn():
+    c = sqlite3.connect(_db_path(), check_same_thread=False)
+    c.execute('PRAGMA journal_mode=WAL')
+    return c
+
+def init_db():
+    with _db_lock:
+        c = _conn()
+        c.execute('CREATE TABLE IF NOT EXISTS stats (key TEXT PRIMARY KEY, value INTEGER DEFAULT 0)')
+        c.execute('CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY)')
+        for k in ('total_sequences', 'total_runs', 'unique_sessions'):
+            c.execute('INSERT OR IGNORE INTO stats VALUES (?, 0)', (k,))
+        c.commit()
+        c.close()
+
+def increment_stats(seq_count, session_id):
+    with _db_lock:
+        c = _conn()
+        c.execute('UPDATE stats SET value = value + ? WHERE key = ?', (seq_count, 'total_sequences'))
+        c.execute('UPDATE stats SET value = value + 1 WHERE key = ?', ('total_runs',))
+        if not c.execute('SELECT 1 FROM sessions WHERE id = ?', (session_id,)).fetchone():
+            c.execute('INSERT OR IGNORE INTO sessions VALUES (?)', (session_id,))
+            c.execute('UPDATE stats SET value = value + 1 WHERE key = ?', ('unique_sessions',))
+        c.commit()
+        c.close()
+
+def get_stats():
+    with _db_lock:
+        c = _conn()
+        rows = c.execute('SELECT key, value FROM stats').fetchall()
+        c.close()
+        return {k: v for k, v in rows}
+
 app = Flask(__name__, static_folder='img', static_url_path='/img')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+init_db()
 
 PAGE = """<!DOCTYPE html>
 <html lang="en">
@@ -38,11 +81,12 @@ PAGE = """<!DOCTYPE html>
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; flex-shrink: 0; transition: background 0.4s; cursor: default; }
   .status-dot.online  { background: #059669; }
   .status-dot.offline { background: #dc2626; }
-  .sub { font-size: 0.78rem; color: #888; margin-bottom: 16px; }
+  .sub { font-size: 0.78rem; color: #888; margin-bottom: 6px; }
+  .usage-stats { font-size: 0.70rem; color: #bbb; margin-bottom: 16px; letter-spacing: 0.02em; min-height: 1em; }
   .notice { font-size: 0.75rem; color: #999; border-left: 2px solid #ddd; padding: 8px 12px; margin-bottom: 32px; line-height: 1.6; }
   .notice a { color: #555; text-decoration: underline; }
   .notice a:hover { color: #111; }
-  footer { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e8e8e8; font-size: 0.63rem; color: #aaa; line-height: 1.8; }
+  footer { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e8e8e8; font-size: 0.63rem; color: #aaa; line-height: 1.8; text-align: justify; }
   footer a { color: #999; text-decoration: underline; }
   footer a:hover { color: #333; }
   .label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -63,11 +107,11 @@ PAGE = """<!DOCTYPE html>
   }
   .upload-btn:hover { background: #444444; }
   #fileInput { display: none; }
-  .row { display: flex; gap: 12px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
+  .row { display: flex; gap: 12px; margin-top: 12px; align-items: center; flex-wrap: nowrap; }
   select {
     background: #f7f7f7; border: 1px solid #e0e0e0; color: #1a1a1a;
-    font-family: 'Roboto Mono', monospace; font-size: 0.82rem; padding: 10px 14px;
-    border-radius: 4px; outline: none;
+    font-family: 'Roboto Mono', monospace; font-size: 0.72rem; padding: 10px 14px;
+    border-radius: 4px; outline: none; min-width: 0; flex-shrink: 1;
   }
   button {
     background: #1a1a1a; color: #ffffff; border: none; padding: 10px 28px;
@@ -103,11 +147,11 @@ PAGE = """<!DOCTYPE html>
   .dl { margin-top: 16px; display: flex; gap: 8px; }
   .dl button { background: #059669; color: #ffffff; border: none; font-size: 0.82rem; padding: 10px 28px; font-weight: normal; }
   .dl button:hover { background: #047857; }
-  .result-note { margin-top: 20px; font-size: 0.72rem; color: #999; border-left: 2px solid #e0e0e0; padding: 10px 14px; line-height: 1.7; }
+  .result-note { margin-top: 20px; font-size: 0.72rem; color: #999; border-left: 2px solid #e0e0e0; padding: 10px 14px; line-height: 1.7; text-align: justify; }
   .err { color: #dc2626; font-size: 0.8rem; }
-  .example-btn { background: #2563eb; color: #ffffff; border: none; font-size: 0.82rem; padding: 10px 28px; margin-left: auto; font-weight: normal; }
+  .example-btn { background: #2563eb; color: #ffffff; border: none; font-size: 0.82rem; padding: 10px 28px; font-weight: normal; white-space: nowrap; }
   .example-btn:hover { background: #1d4ed8; }
-  .clear-btn { background: #dc2626; color: #ffffff; border: none; font-size: 0.82rem; padding: 10px 28px; font-weight: normal; }
+  .clear-btn { background: #dc2626; color: #ffffff; border: none; font-size: 0.82rem; padding: 10px 28px; font-weight: normal; white-space: nowrap; }
   .clear-btn:hover { background: #b91c1c; }
   .modal-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -134,7 +178,7 @@ PAGE = """<!DOCTYPE html>
   .modal-submit:hover { background: #333; }
   .feedback-link { color: #999; text-decoration: underline; cursor: pointer; background: none; border: none; font-family: inherit; font-size: inherit; font-weight: normal; padding: 0; }
   .feedback-link:hover { color: #333; background: none; }
-  .logo-strip { margin-top: 20px; padding-top: 16px; border-top: 1px solid #f0f0f0; display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: center; gap: 10px; overflow-x: auto; }
+  .logo-strip { margin-top: 20px; padding-top: 16px; border-top: 1px solid #f0f0f0; display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: center; gap: 40px; overflow-x: auto; }
   .logo-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .logo-group-label { font-size: 0.58rem; letter-spacing: 0.10em; text-transform: uppercase; color: #b0b8c8; }
   .logo-row { display: flex; align-items: flex-start; gap: 6px; }
@@ -149,6 +193,7 @@ PAGE = """<!DOCTYPE html>
     <span class="status-dot" id="statusDot" title="Checking server..."></span>
   </div>
   <p class="sub">A Python-based toolkit for predicting antimicrobial peptides using ensemble machine learning and physicochemical descriptors.</p>
+  <p class="usage-stats" id="usageStats"></p>
   <p class="notice">For advanced parameter control use the <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a> or install via <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>: <code style="background:#f0f0f0;color:#444;padding:2px 8px;border-radius:4px;font-size:0.85em;">pip install ampidentifier</code></p>
 
   <div class="label-row">
@@ -183,7 +228,7 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
 
   <footer>
     <p>Luna-Aragão, M. A., da Silva, R. L., Bezerra Neto, J. P., dos Santos-Silva, C. A., da Silva Santos, D. E. &amp; Benko&#8209;Iseppon, A. M. (2026).
-    AMPidentifier 2.0: physicochemical feature engineering and ensemble classification of antimicrobial peptides.
+    AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction.
     GitHub repository: <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">https://github.com/madsondeluna/AMPIdentifier</a></p>
     <p style="margin-top:8px;">This tool is officially registered with the <strong style="color:#555;">INPI &ndash; Instituto Nacional da Propriedade Industrial</strong> (Brazilian National Institute of Industrial Property), Registration No. <strong style="color:#555;">BR 51 2025 005859-4</strong>. It is a property of the <strong style="color:#555;">Universidade Federal de Pernambuco (UFPE)</strong> and the <strong style="color:#555;">Laboratório de Genética e Biotecnologia Vegetal (LGBV)</strong>.</p>
     <p style="margin-top:8px;">Developer: <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a> &nbsp;·&nbsp; <a href="https://madsondeluna.com" target="_blank">madsondeluna.com</a> &nbsp;·&nbsp; <button class="feedback-link" onclick="openFeedback()">Report issue / Suggest improvement</button> &nbsp;·&nbsp; <span style="color:#bbb;">v{{ version }}</span></p>
@@ -272,6 +317,18 @@ async function checkServerStatus() {
   }
 }
 checkServerStatus();
+
+async function loadStats() {
+  try {
+    const r = await fetch('/stats', { cache: 'no-cache' });
+    const d = await r.json();
+    const el = document.getElementById('usageStats');
+    if (el && d.total_sequences > 0) {
+      el.textContent = d.total_sequences.toLocaleString() + ' sequences classified · ' + d.total_runs.toLocaleString() + ' runs since launch';
+    }
+  } catch(e) {}
+}
+loadStats();
 
 function updateCounter() {
   const n = (document.getElementById('fasta').value.match(/^>/gm) || []).length;
@@ -365,6 +422,7 @@ async function runPrediction() {
       lastData = data.predictions;
       status.textContent = '';
       renderResults(data);
+      loadStats();
     }
   } catch (e) {
     status.innerHTML = '<span class="err">Request failed: ' + e.message + '</span>';
@@ -434,8 +492,8 @@ function renderResults(data) {
     '<div class="result-note">' +
       '<strong>Interpretation note:</strong> Predictions are computed from 22 physicochemical and compositional descriptors derived from the primary amino acid sequence. ' +
       'For higher predictive power, use <strong>Voting Ensemble mode</strong> (RF + SVM + GB + XGB + LGBM), which combines five independent classifiers by soft voting and achieves ' +
-      '<strong>Accuracy: 92.9%</strong>, <strong>Sensitivity: 91.4%</strong>, and <strong>Specificity: 94.4%</strong> on the independent benchmark set (n = 4,736). ' +
-      'Bear in mind that proteins whose primary function is not antimicrobial activity may still harbour potential antimicrobial features in specific sequence regions.' +
+      '<strong>AUC-ROC 0.950</strong>, <strong>MCC 0.742</strong>, <strong>Sensitivity 94.9%</strong>, and <strong>Specificity 78.4%</strong> on the independent benchmark set (n = 4,736). ' +
+      'Bear in mind that proteins whose primary function is not antimicrobial activity may still harbour potential antimicrobial features in specific sequence regions. A full benchmark comparison against 18 published tools is available in Luna-Arago et al. (2026), <a href="https://doi.org/10.1021/acs.jcim.XXXXXXX" target="_blank" style="color:#999;">doi:10.1021/acs.jcim.XXXXXXX</a>.' +
     '</div>';
 }
 
@@ -508,12 +566,20 @@ function submitFeedback() {
 
 @app.route('/')
 def index():
-    return render_template_string(PAGE, version=VERSION)
+    resp = make_response(render_template_string(PAGE, version=VERSION))
+    if not request.cookies.get('_amp_sid'):
+        resp.set_cookie('_amp_sid', str(uuid.uuid4()), max_age=365 * 24 * 3600, samesite='Lax', httponly=True)
+    return resp
 
 
 @app.route('/health')
 def health():
     return jsonify({'status': 'ok'})
+
+
+@app.route('/stats')
+def stats():
+    return jsonify(get_stats())
 
 
 @app.route('/predict', methods=['POST'])
@@ -548,6 +614,12 @@ def predict():
             predictions_df = pd.read_csv(
                 os.path.join(output_dir, f'predictions_{model_choice}.csv')
             )
+
+            session_id = request.cookies.get('_amp_sid', str(uuid.uuid4()))
+            try:
+                increment_stats(len(sequences), session_id)
+            except Exception:
+                pass
 
             return jsonify({
                 'model': model_choice,
