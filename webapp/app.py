@@ -3,11 +3,13 @@ AMPidentifier Web Portal — v2.0
 """
 import contextlib
 import io
+import json
 import os
 import sqlite3
 import sys
 import tempfile
 import threading
+import urllib.request
 import uuid
 
 from flask import Flask, make_response, request, jsonify, render_template_string
@@ -18,6 +20,24 @@ from amp_identifier.core import run_prediction_pipeline
 from amp_identifier.data_io import load_fasta_sequences
 
 VERSION = "2.0.0"
+
+def _send_telegram(text):
+    token   = os.environ.get('TELEGRAM_BOT_TOKEN')
+    chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+    if not token or not chat_id:
+        return
+    def _post():
+        try:
+            payload = json.dumps({'chat_id': chat_id, 'text': text}).encode()
+            req = urllib.request.Request(
+                f'https://api.telegram.org/bot{token}/sendMessage',
+                data=payload,
+                headers={'Content-Type': 'application/json'},
+            )
+            urllib.request.urlopen(req, timeout=5)
+        except Exception:
+            pass
+    threading.Thread(target=_post, daemon=True).start()
 
 _db_lock = threading.Lock()
 
@@ -82,7 +102,8 @@ PAGE = """<!DOCTYPE html>
   .status-dot.online  { background: #059669; }
   .status-dot.offline { background: #dc2626; }
   .sub { font-size: 0.78rem; color: #888; margin-bottom: 6px; }
-  .usage-stats { font-size: 0.70rem; color: #bbb; margin-bottom: 16px; letter-spacing: 0.02em; min-height: 1em; }
+  .usage-stats { font-size: 0.74rem; color: #999; border-left: 2px solid #ddd; padding: 8px 12px; margin-bottom: 16px; line-height: 1.6; min-height: 1em; }
+  .usage-num { font-size: 1.05rem; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
   .notice { font-size: 0.75rem; color: #999; border-left: 2px solid #ddd; padding: 8px 12px; margin-bottom: 32px; line-height: 1.6; }
   .notice a { color: #555; text-decoration: underline; }
   .notice a:hover { color: #111; }
@@ -264,7 +285,6 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
         </div>
       </div>
     </div>
-    <p style="margin-top: 28px; text-align: center; font-size: 0.68rem; color: #ccc; letter-spacing: 0.04em;">Visit <a href="https://github.com/madsondeluna" target="_blank" style="color:#bbb;">https://github.com/madsondeluna</a> for more projects.</p>
   </footer>
 </div>
 
@@ -324,7 +344,7 @@ async function loadStats() {
     const d = await r.json();
     const el = document.getElementById('usageStats');
     if (el && d.total_sequences > 0) {
-      el.textContent = d.total_sequences.toLocaleString() + ' sequences classified · ' + d.total_runs.toLocaleString() + ' runs since launch';
+      el.innerHTML = '<span class="usage-num">' + d.total_sequences.toLocaleString() + '</span> sequences classified &nbsp;&middot;&nbsp; <span class="usage-num">' + d.total_runs.toLocaleString() + '</span> runs since launch';
     }
   } catch(e) {}
 }
@@ -620,6 +640,18 @@ def predict():
                 increment_stats(len(sequences), session_id)
             except Exception:
                 pass
+
+            model_labels = {
+                'voting': 'Voting Ensemble', 'rf': 'Random Forest',
+                'svm': 'SVM', 'gb': 'Gradient Boosting',
+                'xgb': 'XGBoost', 'lgbm': 'LightGBM',
+            }
+            _send_telegram(
+                f'[AMPidentifier] New prediction run\n'
+                f'Sequences: {len(sequences)}\n'
+                f'Model: {model_labels.get(model_choice, model_choice)}\n'
+                f'Session: {session_id[:8]}...'
+            )
 
             return jsonify({
                 'model': model_choice,
