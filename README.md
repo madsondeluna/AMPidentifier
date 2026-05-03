@@ -448,7 +448,13 @@ For any deployment context, the threshold should be selected based on the accept
 
 The directory `benchmarking/external_benchmark/` contains the results of a systematic comparison between AMPidentifier and 11 published AMP prediction tools: AMPScanner v2, AMPlify, amPEPpy, ampir, CAMPR3 (SVM, RF, ANN, DA), DBAASP, and ClassAMP (SVM, RF). All tools were evaluated on the same independent dataset (Bhangu et al., 2025; n=4,736: 2,368 AMP, 2,368 non-AMP). Predictions and per-tool metrics are stored in `benchmarking/external_benchmark/tools/`. The corresponding AMPidentifier results are in `benchmarking/external_benchmark/ampidentifier_results/`. The benchmark sequences are in `benchmarking/external_benchmark/sequences/benchmark.fasta`.
 
-Nine additional tools were identified as candidates but could not be evaluated due to server unavailability, DNS failures, or absence of a public code release. The full list with DOIs and exclusion reasons is in `benchmarking/external_benchmark/excluded_tools.md`.
+Nine additional tools were identified as candidates but could not be evaluated due to server unavailability, DNS failures, or absence of a public code release. The full list with DOIs and exclusion reasons is in `benchmarking/external_benchmark/excluded_tools.md`. This reflects a persistent problem in the field: published tools frequently become inaccessible after the associated paper is published, with no maintenance, deprecation notice, or code release, which limits reproducibility and independent comparison.
+
+The figure below summarizes the comparative performance of all evaluated tools on the benchmark dataset.
+
+![Benchmark comparison](benchmarking/external_benchmark/ampidentifier_results/fig_benchmark_comparison.png)
+
+AMPidentifier achieves competitive performance relative to the tools that remain accessible and actively maintained. Some tools attain higher individual metrics, showing that the field has capable methods. The comparison also shows that AMPidentifier produces results within the range of established tools without requiring a remote server or a proprietary runtime environment.
 
 A detailed comparative analysis, including discriminative performance metrics, classification profiles, and computational scalability, will be reported in the application note submitted to the *Journal of Chemical Information and Modeling* (JCIM).
 
