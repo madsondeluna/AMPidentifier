@@ -36,15 +36,15 @@ Users select a prediction configuration via the `--model` flag (`rf`, `svm`, `gb
 
 ### Command-line interface
 
-The CLI is the primary deployment mode for users working in Unix-based environments. After registering the `ampidentifier2` command (see Installation section of the repository README), predictions are executed as:
+The CLI is the primary deployment mode for users working in Unix-based environments. After registering the `ampidentifier` command (see Installation section of the repository README), predictions are executed as:
 
 ```
-ampidentifier2 -i sequences.fasta -o results/ --model voting
+ampidentifier -i sequences.fasta -o results/ --model voting
 ```
 
-Required arguments are `-i` (input FASTA path) and `-o` (output directory). The terminal output includes a per-run summary box reporting total sequences, AMP and non-AMP counts with percentages, the decision threshold applied, and the output file path. The CLI is compatible with macOS, Linux, and Windows Subsystem for Linux (WSL). A full list of arguments and defaults is available via `ampidentifier2 --help` (Figure 2).
+Required arguments are `-i` (input FASTA path) and `-o` (output directory). The terminal output includes a per-run summary box reporting total sequences, AMP and non-AMP counts with percentages, the decision threshold applied, and the output file path. The CLI is compatible with macOS, Linux, and Windows Subsystem for Linux (WSL). A full list of arguments and defaults is available via `ampidentifier --help` (Figure 2).
 
-**Figure 2.** AMPidentifier command-line interface (`ampidentifier2 --help`). The ASCII banner identifies the tool and version. The help output lists the required arguments (`-i`, `-o`), the `--model` flag with per-model performance benchmarks (Accuracy, AUC-ROC, MCC on the internal test set), and the optional `--threshold` flag for overriding the MCC-optimized default.
+**Figure 2.** AMPidentifier command-line interface (`ampidentifier --help`). The ASCII banner identifies the tool and version. The help output lists the required arguments (`-i`, `-o`), the `--model` flag with per-model performance benchmarks (Accuracy, AUC-ROC, MCC on the internal test set), and the optional `--threshold` flag for overriding the MCC-optimized default.
 
 ![Figure 2: CLI interface](../imgs/cli-visuals.png)
 
@@ -56,7 +56,7 @@ AMPidentifier is installable as a Python package via the Python Package Index:
 pip install ampidentifier
 ```
 
-After installation, the same `ampidentifier2` entry point is available from the command line, and the `amp_identifier` package can be imported programmatically to call the prediction pipeline directly from Python scripts or Jupyter notebooks. The package requires Python >= 3.10 and is registered at https://pypi.org/project/ampidentifier.
+After installation, the same `ampidentifier` entry point is available from the command line, and the `amp_identifier` package can be imported programmatically to call the prediction pipeline directly from Python scripts or Jupyter notebooks. The package requires Python >= 3.10 and is registered at https://pypi.org/project/ampidentifier.
 
 ### Web application
 
@@ -179,7 +179,7 @@ AMPidentifier shares a structural limitation with all sequence-based AMP classif
 
 ## Summary and conclusions
 
-AMPidentifier provides sequence-based AMP prediction through five independently accessible machine learning classifiers and a soft-voting ensemble. The training dataset contains 13,246 balanced sequences; features are a 22-descriptor set covering global peptide properties, functional group fractions, and positional FET and solvent accessibility distributions; LightGBM is included as a fifth classifier. On an internal test set of 2,650 sequences, the voting ensemble achieves accuracy 92.9%, MCC 0.859, and AUC-ROC 0.977. On an independent benchmark of 4,736 sequences, the ensemble achieves MCC 0.742 and AUC-ROC 0.950, exceeding AMPScanner v2 (MCC 0.718) and all other accessible comparators. Nine of nine web-only tools surveyed were inaccessible at evaluation time; AMPidentifier is distributed through three deployment modes operating on identical model artifacts to ensure long-term availability. Per-sequence physicochemical descriptor tables are produced alongside binary predictions in all deployment modes. AMPidentifier is available as a command-line tool (`ampidentifier2`), a PyPI package (`pip install ampidentifier`, Python >= 3.10), and a web application at https://www.lgbv-ufpe.net/AMPidentifier.
+AMPidentifier provides sequence-based AMP prediction through five independently accessible machine learning classifiers and a soft-voting ensemble. The training dataset contains 13,246 balanced sequences; features are a 22-descriptor set covering global peptide properties, functional group fractions, and positional FET and solvent accessibility distributions; LightGBM is included as a fifth classifier. On an internal test set of 2,650 sequences, the voting ensemble achieves accuracy 92.9%, MCC 0.859, and AUC-ROC 0.977. On an independent benchmark of 4,736 sequences, the ensemble achieves MCC 0.742 and AUC-ROC 0.950, exceeding AMPScanner v2 (MCC 0.718) and all other accessible comparators. Nine of nine web-only tools surveyed were inaccessible at evaluation time; AMPidentifier is distributed through three deployment modes operating on identical model artifacts to ensure long-term availability. Per-sequence physicochemical descriptor tables are produced alongside binary predictions in all deployment modes. AMPidentifier is available as a command-line tool (`ampidentifier`), a PyPI package (`pip install ampidentifier`, Python >= 3.10), and a web application at https://www.lgbv-ufpe.net/AMPidentifier.
 
 ## Associated content
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ampidentifier"
-version = "2.0.1"
+version = "2.0.2"
 description = "Sequence-based identification of antimicrobial peptides using physicochemical feature engineering and a soft-voting ensemble of five classifiers"
 readme = "README.md"
 license = "MIT"
@@ -55,7 +55,7 @@ Repository = "https://github.com/madsondeluna/AMPidentifier"
 "Bug Tracker" = "https://github.com/madsondeluna/AMPidentifier/issues"
 
 [project.scripts]
-ampidentifier2 = "main:main"
+ampidentifier = "main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

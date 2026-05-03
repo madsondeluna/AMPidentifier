@@ -26,10 +26,10 @@ Then open the notebook in Colab or Jupyter and run the cells in order. The setup
 
 ## CLI entry point
 
-After `pip install ampidentifier`, the `ampidentifier2` command is available:
+After `pip install ampidentifier`, the `ampidentifier` command is available:
 
 ```bash
-ampidentifier2 -i sequences.fasta -o results/
+ampidentifier -i sequences.fasta -o results/
 ```
 
 | Flag | Short | Required | Default | Description |
