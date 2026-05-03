@@ -671,11 +671,20 @@ def predict():
                 'svm': 'SVM', 'gb': 'Gradient Boosting',
                 'xgb': 'XGBoost', 'lgbm': 'LightGBM',
             }
+            stats_now = get_stats()
+            n_amp = int(predictions_df['prediction'].sum()) if 'prediction' in predictions_df.columns else 0
+            avg_prob = predictions_df['probability_AMP'].mean() if 'probability_AMP' in predictions_df.columns else None
+            prob_line = f'Avg AMP prob: {avg_prob:.3f}\n' if avg_prob is not None else ''
             _send_telegram(
                 f'[AMPidentifier] New prediction run\n'
-                f'Sequences: {len(sequences)}\n'
+                f'Sequences: {len(sequences)} | AMPs: {n_amp} ({n_amp/len(sequences)*100:.0f}%)\n'
+                f'{prob_line}'
                 f'Model: {model_labels.get(model_choice, model_choice)}\n'
-                f'Session: {session_id[:8]}...'
+                f'Session: {session_id[:8]}...\n'
+                f'\n'
+                f'Total sequences classified: {stats_now.get("total_sequences", 0)}\n'
+                f'Total prediction runs: {stats_now.get("total_runs", 0)}\n'
+                f'Unique visitors: {stats_now.get("unique_sessions", 0)}'
             )
 
             return jsonify({
