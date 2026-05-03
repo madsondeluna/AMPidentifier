@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
-title: "AMPidentifier 2.0: physicochemical feature engineering and ensemble classification of antimicrobial peptides"
+title: "AMPidentifier: physicochemical feature engineering and ensemble classification of antimicrobial peptides"
 version: 2.0.0
 date-released: 2026-04-23
 authors:
@@ -36,7 +36,7 @@ keywords:
   - physicochemical features
   - bioinformatics
 abstract: >
-  AMPidentifier 2.0 is a command-line tool for sequence-based identification
+  AMPidentifier is a command-line tool for sequence-based identification
   of antimicrobial peptides (AMPs). It computes 22 physicochemical descriptors
   per sequence and classifies sequences using five independent classifiers
   (Random Forest, SVM, Gradient Boosting, XGBoost, LightGBM) combined in a
