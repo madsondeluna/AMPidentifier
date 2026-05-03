@@ -16,3 +16,7 @@ modlAMP
 # Visualization
 matplotlib>=3.5.0
 seaborn>=0.12.0
+
+# Web server
+flask>=3.0.0
+gunicorn>=21.0.0
