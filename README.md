@@ -16,6 +16,8 @@
   - [Threshold optimization](#threshold-optimization)
 - [External benchmark](#external-benchmark)
 - [Repository structure](#repository-structure)
+- [Intellectual property](#intellectual-property)
+- [How to cite](#how-to-cite)
 
 ## Background
 
@@ -494,3 +496,17 @@ AMPidentifier/
 └── README.md
 ```
 
+## Intellectual property
+
+This tool is officially registered with the INPI - Instituto Nacional da Propriedade Industrial (Brazilian National Institute of Industrial Property).
+
+- **Registration number**: BR 51 2025 005859-4
+- **Registration date**: November 18, 2025
+- **Title**: AMPidentifier: A modular python toolkit for predicting antimicrobial peptides using ensemble machine learning
+- **Registered authors**: Madson A. de Luna Aragão, Rafael L. da Silva, João Pacífico, Carlos A. dos Santos-Silva, Ana M. Benko-Iseppon
+
+All rights reserved. Usage and distribution are subject to the project license terms.
+
+## How to cite
+
+If this tool or its outputs support your research, please cite the repository:
