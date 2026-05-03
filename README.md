@@ -14,8 +14,6 @@
   - [Hyperparameter tuning](#hyperparameter-tuning)
   - [Soft-voting ensemble](#soft-voting-ensemble)
   - [Threshold optimization](#threshold-optimization)
-- [Independent benchmark](#independent-benchmark)
-- [Results](#results)
 - [External benchmark](#external-benchmark)
 - [Repository structure](#repository-structure)
 - [References](#references)
@@ -428,64 +426,6 @@ The default decision threshold of 0.50 is not used. After training or tuning, ea
 $$\text{MCC} = \frac{TP \cdot TN - FP \cdot FN}{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)}}$$
 
 For any deployment context, the threshold should be selected based on the acceptable false positive-false negative trade-off. The `--threshold` flag in the CLI allows overriding the MCC-optimized default.
-
-## Independent benchmark
-
-The benchmark evaluates all tuned models on `benchmarking/benchmark.fasta`, a held-out FASTA file that was not used during training or tuning. Each sequence is labeled in its header (`label=1` for AMP, `label=0` for non-AMP). Scalers for each model are refitted on the full training set from the original pipeline and applied to benchmark sequences without leakage.
-
-The benchmark set contains 4,736 sequences: 2,368 AMP and 2,368 non-AMP. These sequences come from a different curation than the training set, which produces the generalization gap observed in the results.
-
-```bash
-python3 -m model_training.benchmark
-```
-
-Outputs saved to `benchmarking/`:
-
-| File | Description |
-|---|---|
-| `benchmark_results.csv` | Per-model metrics on the independent benchmark |
-| `fig_bench_roc.png` | ROC curves for all models |
-| `fig_bench_metrics.png` | Grouped bar chart of all metrics per model |
-| `fig_bench_confusion.png` | Confusion matrices for all models |
-
-## Results
-
-### Summary
-
-**Table 7.** Independent benchmark results (n=4,736; 2,368 AMP, 2,368 non-AMP).
-
-| Model | AUC-ROC | MCC | F1 | Precision | Recall | Specificity | Threshold |
-|---|---|---|---|---|---|---|---|
-| RF | 0.9477 | 0.7364 | 0.8736 | 0.8152 | 0.9409 | 0.7867 | 0.56 |
-| SVM | 0.9432 | 0.6947 | 0.8548 | 0.7847 | 0.9388 | 0.7424 | 0.47 |
-| GB | 0.9351 | 0.7266 | 0.8691 | 0.8045 | 0.9451 | 0.7703 | 0.55 |
-| XGB | 0.9300 | 0.7070 | 0.8603 | 0.7874 | 0.9481 | 0.7441 | 0.48 |
-| LGBM | 0.9480 | 0.7491 | 0.8794 | 0.8224 | 0.9449 | 0.7991 | 0.71 |
-| VOTING | 0.9503 | 0.7424 | 0.8763 | 0.8144 | 0.9485 | 0.7838 | 0.56 |
-
-LGBM achieves the highest MCC (0.749) and specificity (0.799) among all individual models on the independent benchmark, and the highest AUC-ROC among individual models (0.948). The voting ensemble reaches the highest overall AUC-ROC (0.950) by aggregating probability estimates across all five models. All models show a drop in MCC relative to the internal test set (0.695-0.749 on the benchmark vs. 0.839-0.859 on the internal set). This is expected: the benchmark sequences come from a different source distribution. Recall remains high across all models (0.939-0.949), indicating consistent AMP sensitivity. Specificity is lower (0.742-0.799), reflecting the greater difficulty of rejecting non-AMP sequences from out-of-distribution data.
-
-### Comparison with AMPidentifier beta
-
-| Pipeline | AUC-ROC (internal test) | MCC (internal test) | Features | Models |
-|---|---|---|---|---|
-| Beta | 0.951-0.954 | 0.777-0.780 | 10 global scalars | RF, SVM, GB, XGB |
-| Current (best single model) | 0.975 | 0.855 | 22 (global + grouped AAC + positional) | LGBM |
-| Current (voting ensemble) | 0.977 | 0.859 | 22 | RF + SVM + GB + XGB + LGBM |
-
-The gain from beta to current (MCC +0.079 for the voting ensemble) is primarily attributable to feature expansion. The 22-feature set adds grouped amino acid composition fractions and positional descriptors, which capture residue-level patterns and N-terminal structural constraints discarded by global scalar averaging.
-
-**Figure 21.** ROC curves for all models on the independent benchmark set (n=4,736). The voting ensemble achieves AUC-ROC 0.950, the highest among all configurations evaluated on this set.
-
-![ROC curves benchmark](benchmarking/fig_bench_roc.png)
-
-**Figure 22.** Grouped bar chart of all metrics per model on the independent benchmark set. Recall is consistently above 0.93 across all models. Specificity is the weakest metric (0.74-0.79), reflecting the domain shift from training to benchmark sequences.
-
-![Benchmark metrics](benchmarking/fig_bench_metrics.png)
-
-**Figure 23.** Confusion matrices for all models on the independent benchmark set (n=4,736). All models show higher false positive rates on the benchmark than on the internal test set, consistent with the distribution shift.
-
-![Confusion matrices benchmark](benchmarking/fig_bench_confusion.png)
 
 ## External benchmark
 
