@@ -527,6 +527,6 @@ All rights reserved. Usage and distribution are subject to the project license t
 
 If this tool or its outputs support your research, please cite the repository:
 
-de Luna-Aragão, M. A., da Silva, R. L., Pacifico Bezerra Neto, J., dos Santos-Silva, C. A., da Silva Santos, D. E., & Benko-Iseppon, A. M. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction (Version 2.0.0) [Computer software]. https://github.com/madsondeluna/AMPidentifier
+de Luna-Aragão, M. A., da Silva, R. L., Pacifico Bezerra Neto, J., dos Santos-Silva, C. A., da Silva Santos, D. E., & Benko-Iseppon, A. M. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction. https://github.com/madsondeluna/AMPidentifier
 
 A machine-readable citation is available in [`CITATION.cff`](CITATION.cff).
