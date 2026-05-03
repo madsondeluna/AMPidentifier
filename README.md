@@ -490,6 +490,8 @@ The gain from beta to current (MCC +0.079 for the voting ensemble) is primarily 
 
 The directory `benchmarking/external_benchmark/` contains the results of a systematic comparison between AMPidentifier and 11 published AMP prediction tools: AMPScanner v2, AMPlify, amPEPpy, ampir, CAMPR3 (SVM, RF, ANN, DA), DBAASP, and ClassAMP (SVM, RF). All tools were evaluated on the same independent dataset (Bhangu et al., 2025; n=4,736: 2,368 AMP, 2,368 non-AMP). Predictions and per-tool metrics are stored in `benchmarking/external_benchmark/tools/`. The corresponding AMPidentifier results are in `benchmarking/external_benchmark/ampidentifier_results/`. The benchmark sequences are in `benchmarking/external_benchmark/sequences/benchmark.fasta`.
 
+Nine additional tools were identified as candidates but could not be evaluated due to server unavailability, DNS failures, or absence of a public code release. The full list with DOIs and exclusion reasons is in `benchmarking/external_benchmark/excluded_tools.md`.
+
 A detailed comparative analysis, including discriminative performance metrics, classification profiles, and computational scalability, will be reported in the application note submitted to the *Journal of Chemical Information and Modeling* (JCIM).
 
 ## Repository structure
