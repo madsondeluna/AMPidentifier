@@ -1,4 +1,4 @@
-# AMPidentifier: physicochemical feature engineering and ensemble classification of antimicrobial peptides
+# AMPidentifier
 
 
 ## Contents
