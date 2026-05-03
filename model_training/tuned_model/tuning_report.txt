@@ -1,0 +1,8 @@
+########### Hyperparameter Tuning Report ###########
+
+CV strategy  : StratifiedKFold(n_splits=5, shuffle=True)
+Scoring      : roc_auc
+n_iter       : 50
+random_state : 42
+Scaling      : RobustScaler (rf/gb/xgb/lgbm) | StandardScaler (svm)
+Features     : 22 selected (selected_features.txt)

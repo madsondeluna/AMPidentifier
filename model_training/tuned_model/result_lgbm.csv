@@ -1,0 +1,2 @@
+model,best_cv_roc_auc,threshold,accuracy,precision,recall,specificity,f1,mcc,auc_roc,tp,tn,fp,fn
+LGBM,0.974,0.71,0.9272,0.9415,0.9109,0.9434,0.926,0.8548,0.9752,1207,1250,75,118

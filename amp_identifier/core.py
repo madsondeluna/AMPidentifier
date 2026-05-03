@@ -1,160 +1,275 @@
 # amp_identifier/core.py
 
 import os
-import glob
+import sys
+import joblib
+import numpy as np
 import pandas as pd
-from . import data_io, feature_extraction, prediction, reporting
+from . import data_io, feature_extraction, reporting
 
-# Define the location of internal models
-MODEL_DIR = "model_training/saved_model"
-SCALER_PATH = os.path.join(MODEL_DIR, "feature_scaler.pkl")
+TUNED_DIR = "model_training/tuned_model"
+DATA_DIR  = "model_training/data"
+
+SEL_FEAT_PATH = os.path.join(DATA_DIR, "selected_features.txt")
+
+SCALER_MAP = {
+    "rf":   "robust",
+    "svm":  "std",
+    "gb":   "robust",
+    "xgb":  "robust",
+    "lgbm": "robust",
+}
+
+THRESHOLD_DEFAULTS = {
+    "rf":     0.56,
+    "svm":    0.47,
+    "gb":     0.55,
+    "xgb":    0.48,
+    "lgbm":   0.71,
+    "voting": 0.56,
+}
+
+# ---------------------------------------------------------------------------
+# Terminal helpers
+# ---------------------------------------------------------------------------
+
+_TTY = sys.stdout.isatty()
+
+def _c(code: str, text: str) -> str:
+    return f"\033[{code}m{text}\033[0m" if _TTY else text
+
+def _bold(t):   return _c("1",  t)
+def _dim(t):    return _c("2",  t)
+def _cyan(t):   return _c("36", t)
+def _green(t):  return _c("32", t)
+def _yellow(t): return _c("33", t)
+def _red(t):    return _c("31", t)
+def _gray(t):   return _c("90", t)
+
+# ---------------------------------------------------------------------------
+# Box layout constants  (all widths are visible character counts)
+# ---------------------------------------------------------------------------
+#
+#   ╔══════════════════════════════════════════════════════════════════════╗
+#   ║  <label:18><value:50>                                               ║
+#   ╠══════════════════════════════════════════════════════════════════════╣
+#   ║  <label:9><count:6>  (<pct:5>%)  <bar:BAR_W><pad:7>                ║
+#   ╚══════════════════════════════════════════════════════════════════════╝
+#
+#   BOX_W  = 72   (total line width including ║ on each side)
+#   INNER  = 70   (characters between ║║)
+#   BAR_W  = 32   (visible block characters in the progress bar)
+#   BAR_ROW_FIXED = 2+9+6+3+5+3+2+BAR_W = 62  =>  trailing pad = 70-62 = 8
+
+BOX_W  = 72
+INNER  = BOX_W - 2
+BAR_W  = 32
+_BAR_ROW_FIXED = 2 + 9 + 6 + 3 + 5 + 2 + 2 + BAR_W   # = 61
+_BAR_TRAIL     = INNER - _BAR_ROW_FIXED                # = 9
 
 
-def run_prediction_pipeline(input_file: str, output_dir: str, internal_model_type: str, use_ensemble: bool, external_model_paths: list):
-    """Orchestrates the full prediction pipeline with model selection and ensemble options."""
-    
-    print("\n" + "="*72)
-    print("AMP IDENTIFICATION PIPELINE")
-    print("="*72 + "\n")
+def _bar(ratio: float, color_fn=None) -> str:
+    if color_fn is None:
+        color_fn = _green
+    filled = round(max(0.0, min(1.0, ratio)) * BAR_W)
+    return color_fn("\u2588" * filled) + _gray("\u2591" * (BAR_W - filled))
+
+
+def _box_top():  print("\u2554" + "\u2550" * INNER + "\u2557")
+def _box_div():  print("\u2560" + "\u2550" * INNER + "\u2563")
+def _box_bot():  print("\u255a" + "\u2550" * INNER + "\u255d")
+
+
+def _box_info(label: str, value: str):
+    # visible layout: "  {label:<18}{value:<50}"  = 2+18+50 = 70 = INNER
+    val_w = INNER - 20            # 50
+    if len(value) > val_w:
+        value = value[:val_w - 3] + "..."
+    # Pad raw strings first, then colorize — ANSI codes must not enter f-string width specs
+    row = "  " + _bold(f"{label:<18}") + f"{value:<{val_w}}"
+    print(f"\u2551{row}\u2551")
+
+
+def _box_bar(label: str, count: int, pct: float, color_fn=None):
+    # visible layout: "  {label:<9}{count:>6}  ({pct:5.1f}%)  {bar}{pad}"
+    # = 2+9+6+3+5+3+2+BAR_W+_BAR_TRAIL = INNER
+    left = f"  {label:<9}{count:>6}  ({pct:5.1f}%)  "
+    bar  = _bar(pct / 100.0, color_fn=color_fn)
+    pad  = " " * _BAR_TRAIL
+    print(f"\u2551{left}{bar}{pad}\u2551")
+
+
+def _box_dim(text: str):
+    # dim text row: "  {text:<INNER-2}"
+    inner_text_w = INNER - 2
+    raw = f"  {text:<{inner_text_w}}"
+    print(f"\u2551{_dim(raw)}\u2551")
+
+
+def _box_wrap(text: str):
+    """Word-wrap text into box-width lines and print each with _box_dim."""
+    import textwrap
+    width = INNER - 2  # 68
+    for line in textwrap.wrap(text, width=width):
+        _box_dim(line)
+
+
+# ---------------------------------------------------------------------------
+# Step / log helpers
+# ---------------------------------------------------------------------------
+
+def _step(n: int, total: int, label: str):
+    tag = _bold(_cyan(f"[{n}/{total}]"))
+    print(f"  {tag}  {label}")
+
+def _ok(msg: str):   print(f"        {_gray(msg)}")
+def _warn(msg: str): print(f"        {_yellow('warning:')} {msg}")
+def _err(msg: str):  print(f"        {_red('error:')} {msg}")
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+
+def _load_selected_features():
+    if not os.path.exists(SEL_FEAT_PATH):
+        return None
+    with open(SEL_FEAT_PATH) as f:
+        return [l.strip() for l in f if l.strip()]
+
+
+def _load_threshold(model_type, override=None):
+    if override is not None:
+        return float(override)
+    path = os.path.join(TUNED_DIR, f"threshold_{model_type}.txt")
+    if os.path.exists(path):
+        with open(path) as f:
+            return float(f.read().strip())
+    return THRESHOLD_DEFAULTS.get(model_type, 0.5)
+
+
+# ---------------------------------------------------------------------------
+# Pipeline
+# ---------------------------------------------------------------------------
+
+def run_prediction_pipeline(
+    input_file: str,
+    output_dir: str,
+    internal_model_type: str,
+    use_ensemble: bool,
+    threshold_override=None,
+):
+    print()
 
     # Step 1: Load sequences
-    print("Step 1/4: Loading sequences")
+    _step(1, 4, "Loading sequences")
     sequences, seq_ids = data_io.load_fasta_sequences(input_file)
-    
     if not sequences:
-        print("- No sequences loaded. Exiting pipeline.")
+        _err("no sequences loaded. Exiting.")
         return
-    print(f"- Found {len(sequences)} sequence(s)\n")
+    _ok(f"{len(sequences)} sequence(s) found")
+    print()
 
-    # Step 2: Calculate features
-    print("Step 2/4: Extracting features")
+    # Step 2: Extract features
+    _step(2, 4, "Extracting features")
     features_df = feature_extraction.calculate_physicochemical_features(sequences, seq_ids)
     features_df.fillna(0, inplace=True)
-    
-    features_report_path = os.path.join(output_dir, "physicochemical_features.csv")
-    reporting.save_features_report(features_df, features_report_path)
-    print(f"- Features saved to {features_report_path}\n")
+
+    selected = _load_selected_features()
+    if selected:
+        missing = [f for f in selected if f not in features_df.columns]
+        if missing:
+            _warn(f"{len(missing)} selected feature(s) absent from feature matrix")
+        X_raw = features_df[[f for f in selected if f in features_df.columns]].fillna(0)
+    else:
+        meta_cols = {"ID", "sequence", "label"}
+        X_raw = features_df[[c for c in features_df.columns if c not in meta_cols]].fillna(0)
+
+    feat_path = os.path.join(output_dir, "physicochemical_features.csv")
+    reporting.save_features_report(features_df, feat_path)
+    _ok(f"{X_raw.shape[1]} features x {X_raw.shape[0]} sequences")
+    _ok(f"saved -> {feat_path}")
+    print()
 
     # Step 3: Run predictions
-    print("Step 3/4: Running predictions")
-    print(f"- Loading feature scaler...")
-    scaler = prediction.load_scaler(SCALER_PATH)
-    if scaler is None:
-        print("  Warning: Could not load scaler")
-    
-    all_predictions = {}
-    
-    print("\n")
+    model_type = internal_model_type.lower()
+    threshold  = _load_threshold(model_type, threshold_override)
 
-    # --- Ensemble Voting Logic ---
-    if use_ensemble:
-        print(f"Mode: Ensemble (RF + SVM + GB)")
-        internal_model_paths = glob.glob(os.path.join(MODEL_DIR, "amp_model_*.pkl"))
-        
-        total_models = len(internal_model_paths)
-        
-        for model_path in internal_model_paths:
-            model_name = os.path.splitext(os.path.basename(model_path))[0].replace('amp_model_', '').upper()
-            print(f"- Processing {model_name}...")
-            
-            internal_model = prediction.load_model(model_path)
-            if internal_model:
-                internal_results = prediction.predict_sequences(internal_model, features_df.copy(), scaler)
-                all_predictions[f"internal_{model_name.lower()}"] = internal_results
+    _step(3, 4, f"Running predictions  {_dim(f'model={model_type.upper()}  threshold={threshold:.2f}')}")
 
-        print("\n" + "="*72)
-        print(f"{total_models} models successfully processed")
-        print("="*72)
-
-        print("\n")
-    
-    # --- Single Internal Model Logic ---
-    else:
-        print(f"Mode: Single model ({internal_model_type.upper()})")
-        
-        model_path = os.path.join(MODEL_DIR, f"amp_model_{internal_model_type}.pkl")
-        internal_model = prediction.load_model(model_path)
-        if internal_model:
-            internal_results = prediction.predict_sequences(internal_model, features_df.copy(), scaler)
-            all_predictions[f"internal_{internal_model_type}"] = internal_results
-        
-        print(f"Model executed\n")
-
-    # --- External Model Logic ---
-    if external_model_paths:
-        total_ext = len(external_model_paths)
-        
-        for model_path in external_model_paths:
-            model_name = os.path.splitext(os.path.basename(model_path))[0]
-            print(f"- Loading {model_name}...")
-            
-            external_model = prediction.load_model(model_path)
-            if external_model:
-                external_results = prediction.predict_sequences(external_model, features_df.copy(), None)
-                all_predictions[f"external_{model_name}"] = external_results
-        
-        print(f"{total_ext} external model(s) processed\n")
-    
-    # Step 4: Generate Report
-    if not all_predictions:
-        print("No models loaded. Cannot generate report.")
-        print("="*80)
+    model_path = os.path.join(TUNED_DIR, f"amp_model_{model_type}_tuned.pkl")
+    if not os.path.exists(model_path):
+        _err(f"model not found: {model_path}")
+        _err("run  python3 -m model_training.tune  to generate tuned models")
         return
-    
-    print("Step 4/4: Generating report")
-    
-    comparison_report_path = os.path.join(output_dir, "prediction_comparison_report.csv")
-    reporting.save_comparison_report(features_df, all_predictions, use_ensemble, comparison_report_path)
-    
-    print(f"- Report saved to {comparison_report_path}\n")
-    
-    # Calculate and display statistics
-    print("\n" + "="*72)
-    print("PREDICTION SUMMARY")
-    print("="*72 + "\n")
-    
-    report_df = pd.read_csv(comparison_report_path)
-    total_sequences = len(report_df)
-    
-    # Determine which column to use for AMP classification
-    if use_ensemble and 'ensemble_prediction' in report_df.columns:
-        amp_count = int(report_df['ensemble_prediction'].sum())
-        prediction_method = "Ensemble Voting"
-    elif f'pred_internal_{internal_model_type}' in report_df.columns:
-        amp_count = int(report_df[f'pred_internal_{internal_model_type}'].sum())
-        prediction_method = f"{internal_model_type.upper()}"
+
+    model = joblib.load(model_path)
+    _ok(f"loaded {model_path}")
+
+    if model_type == "voting":
+        proba = model.predict_proba(X_raw)[:, 1]
     else:
-        pred_cols = [col for col in report_df.columns if col.startswith('pred_')]
-        if pred_cols:
-            amp_count = int(report_df[pred_cols[0]].sum())
-            prediction_method = "Single Model"
+        scaler_key  = SCALER_MAP[model_type]
+        scaler_path = os.path.join(TUNED_DIR, f"scaler_{scaler_key}.pkl")
+        if os.path.exists(scaler_path):
+            scaler = joblib.load(scaler_path)
+            X_sc   = pd.DataFrame(
+                scaler.transform(X_raw),
+                columns=X_raw.columns, index=X_raw.index,
+            )
         else:
-            amp_count = 0
-            prediction_method = "Unknown"
-    
-    non_amp_count = total_sequences - amp_count
-    amp_percentage = (amp_count / total_sequences * 100) if total_sequences > 0 else 0
-    non_amp_percentage = 100 - amp_percentage
-    
-    # Create compact visual bar (40 chars total)
-    bar_total = 40
-    amp_bar_len = int(amp_percentage * bar_total / 100)
-    non_amp_bar_len = bar_total - amp_bar_len
-    
-    print(f"Sequences analyzed: {total_sequences}")
-    print(f"Method: {prediction_method}")
-    print()
-    print(f"Potential AMPs detected:    {amp_count:3d} ({amp_percentage:5.1f}%)  [{'█' * amp_bar_len}{'░' * non_amp_bar_len}]")
-    print(f"Potential Non-AMPs:         {non_amp_count:3d} ({non_amp_percentage:5.1f}%)  [{'░' * amp_bar_len}{'█' * non_amp_bar_len}]")
-    print()
-    print(f"Predicted Results: {comparison_report_path}")
+            _warn(f"scaler not found at {scaler_path} — using unscaled features")
+            X_sc = X_raw
+        proba = model.predict_proba(X_sc)[:, 1]
+
+    predictions = (proba >= threshold).astype(int)
+
+    results_df = pd.DataFrame({
+        "ID":              features_df["ID"],
+        "sequence":        features_df["sequence"],
+        "probability_AMP": np.round(proba, 4),
+        "prediction":      predictions,
+        "label":           predictions.astype(str),
+    })
+    results_df["label"] = results_df["prediction"].map({1: "AMP", 0: "non-AMP"})
+
+    pred_path = os.path.join(output_dir, f"predictions_{model_type}.csv")
+    results_df.to_csv(pred_path, index=False)
+    _ok(f"saved -> {pred_path}")
     print()
 
-    print("="*80)
+    # Step 4: Summary
+    _step(4, 4, "Summary")
+    print()
 
-    # Citation message
-    print("If this tool supports your research, please cite:")
-    print("Luna-Aragão, M. A., da Silva, R. L., Pacífico, J., Santos-Silva, C. A. & Benko-Iseppon, A. M. (2025).")
-    print("AMPidentifier: A Python toolkit for predicting antimicrobial peptides using ensemble machine learning.")
-    print("GitHub repository: https://github.com/madsondeluna/AMPIdentifier")
-    print("="*80 + "\n")
+    n_total   = len(results_df)
+    n_amp     = int(predictions.sum())
+    n_non_amp = n_total - n_amp
+    pct_amp   = n_amp     / n_total * 100 if n_total > 0 else 0.0
+    pct_non   = n_non_amp / n_total * 100 if n_total > 0 else 0.0
+
+    _box_top()
+    _box_info("Model",            model_type.upper())
+    _box_info("Threshold",        f"{threshold:.2f}")
+    _box_info("Total sequences",  str(n_total))
+    _box_div()
+    _box_bar("AMP",     n_amp,     pct_amp,  color_fn=_green)
+    _box_bar("non-AMP", n_non_amp, pct_non, color_fn=_red)
+    _box_div()
+    _box_info("Output", pred_path)
+    _box_div()
+    _box_wrap(
+        "Interpretation note: Predictions are computed from physicochemical "
+        "and compositional descriptors derived from the primary amino acid "
+        "sequence. For higher predictive power, use Voting Ensemble mode "
+        "(RF + SVM + GB + XGB + LGBM), which combines five independent "
+        "classifiers and achieves Accuracy: 92.9%, Sensitivity: 91.4%, "
+        "Specificity: 94.4% on the validation set. Bear in mind that "
+        "proteins whose primary function is not antimicrobial activity may "
+        "still harbour potential antimicrobial features in specific "
+        "sequence regions."
+    )
+    _box_div()
+    _box_dim("Luna-Aragao, M.A. et al. (2026). AMPidentifier 1.0.")
+    _box_dim("Luna-Aragao, M.A. et al. (2026). AMPidentifier 2.0.")
+    _box_bot()
+    print()

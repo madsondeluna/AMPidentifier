@@ -50,3 +50,6 @@ htmlcov/
 test_progress/
 data-for-tests/results_*/
 *.log
+
+model_training/data/raw_downloads/
+.claude/

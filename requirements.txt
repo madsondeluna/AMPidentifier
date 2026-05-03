@@ -3,6 +3,9 @@ numpy
 pandas
 scikit-learn
 joblib
+scipy
+xgboost>=1.6.0
+lightgbm>=4.0.0
 
 # Library for bioinformatics
 biopython
@@ -10,10 +13,6 @@ biopython
 # AMP-specific feature calculation
 modlAMP
 
-# Explainability and visualization
-shap>=0.42.0
+# Visualization
 matplotlib>=3.5.0
 seaborn>=0.12.0
-
-# Library for testing
-pytest

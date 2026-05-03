@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "AMPidentifier 2.0: physicochemical feature engineering and ensemble classification of antimicrobial peptides"
+version: 2.0.0
+date-released: 2026-04-23
+authors:
+  - family-names: de Luna-Aragão
+    given-names: Madson Allan
+    email: madsondeluna@gmail.com
+    orcid: "https://orcid.org/0000-0001-5313-3913"
+    affiliation: "Institute of Biological Sciences, Universidade Federal de Minas Gerais (UFMG), Belo Horizonte, Brazil; Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife, Brazil"
+  - family-names: da Silva
+    given-names: Rafael Lucas
+    affiliation: "Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife, Brazil"
+  - family-names: Pacifico Bezerra Neto
+    given-names: João
+    orcid: "https://orcid.org/0000-0003-3861-4879"
+    affiliation: "Universidade de Pernambuco (UPE), Petrolina, Brazil"
+  - family-names: dos Santos-Silva
+    given-names: Carlos André
+    affiliation: "Centro Universitário CESMAC, Maceió, Brazil"
+  - family-names: da Silva Santos
+    given-names: Denys Ewerton
+    affiliation: "Department of Fundamental Chemistry, Universidade Federal de Pernambuco (UFPE), Recife, Brazil"
+  - family-names: Benko-Iseppon
+    given-names: Ana Maria
+    orcid: "https://orcid.org/0000-0002-0575-3197"
+    affiliation: "Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife, Brazil"
+repository-code: "https://github.com/madsondeluna/AMPidentifier"
+keywords:
+  - antimicrobial peptides
+  - AMP prediction
+  - machine learning
+  - ensemble classifier
+  - physicochemical features
+  - bioinformatics
+abstract: >
+  AMPidentifier 2.0 is a command-line tool for sequence-based identification
+  of antimicrobial peptides (AMPs). It computes 22 physicochemical descriptors
+  per sequence and classifies sequences using five independent classifiers
+  (Random Forest, SVM, Gradient Boosting, XGBoost, LightGBM) combined in a
+  soft-voting ensemble. On an independent benchmark set (n=4,736), the ensemble
+  reaches AUC-ROC 0.950 and MCC 0.742.

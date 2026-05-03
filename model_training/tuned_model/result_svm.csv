@@ -1,0 +1,2 @@
+model,best_cv_roc_auc,threshold,accuracy,precision,recall,specificity,f1,mcc,auc_roc,tp,tn,fp,fn
+SVM,0.9671,0.47,0.9192,0.918,0.9208,0.9177,0.9194,0.8385,0.9692,1220,1216,109,105
