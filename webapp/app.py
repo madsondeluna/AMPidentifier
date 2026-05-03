@@ -94,17 +94,21 @@ PAGE = """<!DOCTYPE html>
 <style>
   html { font-size: 17px; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Roboto Mono', monospace; background: #ffffff; color: #1a1a1a; min-height: 100vh; padding: 48px 24px; }
+  body { font-family: 'Roboto Mono', monospace; background: #ffffff; color: #1a1a1a; min-height: 100vh; padding: 28px 24px; }
   .wrap { max-width: 760px; margin: 0 auto; }
   .title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
   h1 { font-size: 1.4rem; font-weight: normal; letter-spacing: 0.1em; color: #0f0f0f; }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; flex-shrink: 0; transition: background 0.4s; cursor: default; }
   .status-dot.online  { background: #059669; }
   .status-dot.offline { background: #dc2626; }
-  .sub { font-size: 0.78rem; color: #888; margin-bottom: 6px; }
-  .usage-stats { font-size: 0.74rem; color: #999; border-left: 2px solid #ddd; padding: 8px 12px; margin-bottom: 16px; line-height: 1.6; min-height: 1em; }
-  .usage-num { font-size: 1.05rem; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
-  .notice { font-size: 0.75rem; color: #999; border-left: 2px solid #ddd; padding: 8px 12px; margin-bottom: 32px; line-height: 1.6; }
+  .sub { font-size: 0.78rem; color: #888; margin-bottom: 10px; }
+  .stats-section { margin-top: 12px; margin-bottom: 16px; text-align: center; }
+  .stats-section-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
+  .stats-grid { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 20px 32px; }
+  .stats-item { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+  .stats-val { font-size: 1.8rem; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; line-height: 1; flex-shrink: 0; }
+  .stats-lbl { font-size: 0.62rem; color: #bbb; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; max-width: 120px; line-height: 1.3; }
+  .notice { font-size: 0.75rem; color: #999; border-left: 2px solid #ddd; padding: 6px 12px; margin-bottom: 18px; line-height: 1.6; }
   .notice a { color: #555; text-decoration: underline; }
   .notice a:hover { color: #111; }
   footer { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e8e8e8; font-size: 0.63rem; color: #aaa; line-height: 1.8; text-align: justify; }
@@ -114,7 +118,7 @@ PAGE = """<!DOCTYPE html>
   label { font-size: 0.75rem; color: #999; letter-spacing: 0.08em; text-transform: uppercase; }
   .seq-counter { font-size: 0.72rem; color: #bbb; }
   textarea {
-    width: 100%; height: 180px; background: #f7f7f7; border: 1px solid #e0e0e0;
+    width: 100%; height: 120px; background: #f7f7f7; border: 1px solid #e0e0e0;
     color: #1a1a1a; font-family: 'Roboto Mono', monospace; font-size: 0.82rem;
     padding: 14px; resize: vertical; outline: none; border-radius: 4px;
   }
@@ -214,7 +218,28 @@ PAGE = """<!DOCTYPE html>
     <span class="status-dot" id="statusDot" title="Checking server..."></span>
   </div>
   <p class="sub">A Python-based toolkit for predicting antimicrobial peptides using ensemble machine learning and physicochemical descriptors.</p>
-  <p class="usage-stats" id="usageStats"></p>
+
+  <div class="stats-section">
+    <div class="stats-grid">
+      <div class="stats-item">
+        <span class="stats-val" id="statSeq">—</span>
+        <span class="stats-lbl">sequences classified</span>
+      </div>
+      <div class="stats-item">
+        <span class="stats-val" id="statRuns">—</span>
+        <span class="stats-lbl">prediction runs</span>
+      </div>
+      <div class="stats-item">
+        <span class="stats-val" id="statVisitors">—</span>
+        <span class="stats-lbl">unique visitors</span>
+      </div>
+      <div class="stats-item">
+        <span class="stats-val">3</span>
+        <span class="stats-lbl">research groups using AMPidentifier as main tool</span>
+      </div>
+    </div>
+  </div>
+
   <p class="notice">For advanced parameter control use the <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a> or install via <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>: <code style="background:#f0f0f0;color:#444;padding:2px 8px;border-radius:4px;font-size:0.85em;">pip install ampidentifier</code></p>
 
   <div class="label-row">
@@ -342,10 +367,10 @@ async function loadStats() {
   try {
     const r = await fetch('/stats', { cache: 'no-cache' });
     const d = await r.json();
-    const el = document.getElementById('usageStats');
-    if (el && d.total_sequences > 0) {
-      el.innerHTML = '<span class="usage-num">' + d.total_sequences.toLocaleString() + '</span> sequences classified &nbsp;&middot;&nbsp; <span class="usage-num">' + d.total_runs.toLocaleString() + '</span> runs since launch';
-    }
+    const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v != null ? v.toLocaleString() : '—'; };
+    set('statSeq',      d.total_sequences);
+    set('statRuns',     d.total_runs);
+    set('statVisitors', d.unique_sessions);
   } catch(e) {}
 }
 loadStats();

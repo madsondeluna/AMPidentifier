@@ -1,6 +1,5 @@
-# AMPidentifier 2.0: physicochemical feature engineering and ensemble classification of antimicrobial peptides
+# AMPidentifier: physicochemical feature engineering and ensemble classification of antimicrobial peptides
 
-Branch: `feature/expanded-features-deeplearning`
 
 ## Contents
 
@@ -26,7 +25,7 @@ Antimicrobial peptides (AMPs) are short polypeptides (typically 5-50 residues) p
 
 The previous version of this pipeline (branch `beta`) trained four classifiers on ten global scalar descriptors computed by `modlamp.GlobalDescriptor.calculate_all()`. After hyperparameter tuning with `RandomizedSearchCV` (50 iterations, `StratifiedKFold` with 5 folds, scoring: AUC-ROC), all four models converged to AUC-ROC 0.951-0.954 and Matthews Correlation Coefficient (MCC) 0.777-0.780. The plateau across architecturally distinct models indicated that the bottleneck was the feature representation, not model capacity.
 
-AMPidentifier 2.0 addresses this through two changes: the descriptor set is expanded from 10 global scalars to 22 features that include the hydrophobic moment, grouped amino acid composition fractions, and positional features derived from free energy of transfer (FET) and solvent accessibility (SA) groups; and the model suite is expanded to five classifiers plus a soft-voting ensemble. On an independent benchmark set (n=4,736), the voting ensemble reaches AUC-ROC 0.950 and MCC 0.742, compared to AUC-ROC 0.951-0.954 and MCC 0.777-0.780 from the beta pipeline on its internal test set, which used a different dataset split.
+AMPidentifier addresses this through two changes: the descriptor set is expanded from 10 global scalars to 22 features that include the hydrophobic moment, grouped amino acid composition fractions, and positional features derived from free energy of transfer (FET) and solvent accessibility (SA) groups; and the model suite is expanded to five classifiers plus a soft-voting ensemble. On an independent benchmark set (n=4,736), the voting ensemble reaches AUC-ROC 0.950 and MCC 0.742, compared to AUC-ROC 0.951-0.954 and MCC 0.777-0.780 from the beta pipeline on its internal test set, which used a different dataset split.
 
 ## Installation
 
@@ -55,11 +54,11 @@ Make sure `~/.local/bin` is in your `PATH` (add `export PATH="$HOME/.local/bin:$
 
 ## Usage
 
-<img src="imgs/workflow.svg" alt="AMPidentifier 2.0 prediction workflow" width="700">
+<img src="imgs/workflow.svg" alt="AMPidentifier prediction workflow" width="700">
 
 *Prediction workflow. FASTA sequences are parsed, 22 physicochemical descriptors are computed per sequence, and five independent classifiers (RF, SVM, GB, XGB, LGBM) each produce a P(AMP) score. The soft-voting ensemble averages these scores; sequences with P(AMP) above the optimized threshold are classified as AMP.*
 
-AMPidentifier 2.0 is invoked from the project root via `python3 main.py`.
+AMPidentifier is invoked from the project root via `python3 main.py`.
 
 ### Command-line flags
 
@@ -83,7 +82,7 @@ AMPidentifier 2.0 is invoked from the project root via `python3 main.py`.
 
 ### Examples
 
-<img src="imgs/cli-visuals.png" alt="AMPidentifier 2.0 CLI" width="700">
+<img src="imgs/cli-visuals.png" alt="AMPidentifier CLI" width="700">
 
 ```bash
 # Predict with the voting ensemble (default, recommended)
@@ -119,7 +118,7 @@ python3 main.py -i sequences.fasta -o results/ -m voting --threshold 0.40
 
 ### Sources
 
-AMPidentifier 2.0 uses the same positive and negative sequence sets as the beta pipeline (v1.0). No new data collection was performed.
+AMPidentifier uses the same positive and negative sequence sets as the beta pipeline (v1.0). No new data collection was performed.
 
 ### Pre-processing
 
@@ -473,10 +472,10 @@ LGBM achieves the highest MCC (0.749) and specificity (0.799) among all individu
 | Pipeline | AUC-ROC (internal test) | MCC (internal test) | Features | Models |
 |---|---|---|---|---|
 | Beta | 0.951-0.954 | 0.777-0.780 | 10 global scalars | RF, SVM, GB, XGB |
-| 2.0 (best single model) | 0.975 | 0.855 | 22 (global + grouped AAC + positional) | LGBM |
-| 2.0 (voting ensemble) | 0.977 | 0.859 | 22 | RF + SVM + GB + XGB + LGBM |
+| Current (best single model) | 0.975 | 0.855 | 22 (global + grouped AAC + positional) | LGBM |
+| Current (voting ensemble) | 0.977 | 0.859 | 22 | RF + SVM + GB + XGB + LGBM |
 
-The gain from beta to v2.0 (MCC +0.079 for the voting ensemble) is primarily attributable to feature expansion. The 22-feature set adds grouped amino acid composition fractions and positional descriptors, which capture residue-level patterns and N-terminal structural constraints discarded by global scalar averaging.
+The gain from beta to current (MCC +0.079 for the voting ensemble) is primarily attributable to feature expansion. The 22-feature set adds grouped amino acid composition fractions and positional descriptors, which capture residue-level patterns and N-terminal structural constraints discarded by global scalar averaging.
 
 **Figure 21.** ROC curves for all models on the independent benchmark set (n=4,736). The voting ensemble achieves AUC-ROC 0.950, the highest among all configurations evaluated on this set.
 
