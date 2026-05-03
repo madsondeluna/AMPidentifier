@@ -47,7 +47,7 @@ To install directly from PyPI without cloning the repository:
 pip install ampidentifier
 ```
 
-This registers the `ampidentifier2` command globally. Note that the trained model files are not bundled in the pip package; clone the repository to use the CLI or Python API with the full model suite. See [COLAB_GUIDE.md](COLAB_GUIDE.md) for setup instructions in Google Colab and Jupyter.
+This registers the `ampidentifier` command globally. Note that the trained model files are not bundled in the pip package; clone the repository to use the CLI or Python API with the full model suite. See [COLAB_GUIDE.md](COLAB_GUIDE.md) for setup instructions in Google Colab and Jupyter.
 
 ## Usage
 
