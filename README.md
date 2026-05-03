@@ -16,6 +16,7 @@
   - [Threshold optimization](#threshold-optimization)
 - [Independent benchmark](#independent-benchmark)
 - [Results](#results)
+- [External benchmark](#external-benchmark)
 - [Repository structure](#repository-structure)
 - [References](#references)
 
