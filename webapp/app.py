@@ -538,7 +538,7 @@ function renderResults(data) {
       '<strong>Interpretation note:</strong> Predictions are computed from 22 physicochemical and compositional descriptors derived from the primary amino acid sequence. ' +
       'For higher predictive power, use <strong>Voting Ensemble mode</strong> (RF + SVM + GB + XGB + LGBM), which combines five independent classifiers by soft voting and achieves ' +
       '<strong>AUC-ROC 0.950</strong>, <strong>MCC 0.742</strong>, <strong>Sensitivity 94.9%</strong>, and <strong>Specificity 78.4%</strong> on the independent benchmark set (n = 4,736). ' +
-      'Bear in mind that proteins whose primary function is not antimicrobial activity may still harbour potential antimicrobial features in specific sequence regions. A full benchmark comparison against 18 published tools is available in Luna-Arago et al. (2026), <a href="https://doi.org/10.1021/acs.jcim.XXXXXXX" target="_blank" style="color:#999;">doi:10.1021/acs.jcim.XXXXXXX</a>.' +
+      'Bear in mind that proteins whose primary function is not antimicrobial activity may still harbour potential antimicrobial features in specific sequence regions. A full benchmark is available in Luna-Arago et al. (2026), <a href="https://doi.org/10.1021/acs.jcim.XXXXXXX" target="_blank" style="color:#999;">doi:10.1021/acs.jcim.XXXXXXX</a>.' +
     '</div>';
 }
 
