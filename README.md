@@ -39,18 +39,15 @@ pip install -r requirements.txt
 
 **Core dependencies:** `scikit-learn`, `xgboost`, `lightgbm`, `modlamp`, `pandas`, `numpy`, `matplotlib`, `joblib`, `biopython`.
 
-### Optional: register the `ampidentifier2` command
+### Installation via pip (alternative)
 
-To invoke the tool as `ampidentifier2` instead of `python3 main.py`, create a shell wrapper after cloning:
+To install directly from PyPI without cloning the repository:
 
 ```bash
-mkdir -p ~/.local/bin
-echo '#!/usr/bin/env bash' > ~/.local/bin/ampidentifier2
-echo 'exec python3 '"$(pwd)"'/main.py "$@"' >> ~/.local/bin/ampidentifier2
-chmod +x ~/.local/bin/ampidentifier2
+pip install ampidentifier
 ```
 
-Make sure `~/.local/bin` is in your `PATH` (add `export PATH="$HOME/.local/bin:$PATH"` to `~/.zshrc` or `~/.bashrc` if needed). After that, `ampidentifier2 --help` works from any directory.
+This registers the `ampidentifier2` command globally. Note that the trained model files are not bundled in the pip package; clone the repository to use the CLI or Python API with the full model suite. See [COLAB_GUIDE.md](COLAB_GUIDE.md) for setup instructions in Google Colab and Jupyter.
 
 ## Usage
 
