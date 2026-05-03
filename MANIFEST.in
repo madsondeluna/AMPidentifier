@@ -1,0 +1,2 @@
+global-exclude ._*
+global-exclude .DS_Store
