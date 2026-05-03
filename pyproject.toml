@@ -55,7 +55,10 @@ Repository = "https://github.com/madsondeluna/AMPidentifier"
 "Bug Tracker" = "https://github.com/madsondeluna/AMPidentifier/issues"
 
 [project.scripts]
-ampidentifier = "main:main"
+ampidentifier = "amp_identifier.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.setuptools.package-data]
+amp_identifier = ["models/*.pkl", "models/*.txt"]

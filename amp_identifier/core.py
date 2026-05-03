@@ -7,8 +7,9 @@ import numpy as np
 import pandas as pd
 from . import data_io, feature_extraction, reporting
 
-TUNED_DIR = "model_training/tuned_model"
-DATA_DIR  = "model_training/data"
+_PKG_DIR  = os.path.dirname(__file__)
+TUNED_DIR = os.path.join(_PKG_DIR, "models")
+DATA_DIR  = os.path.join(_PKG_DIR, "models")
 
 SEL_FEAT_PATH = os.path.join(DATA_DIR, "selected_features.txt")
 
