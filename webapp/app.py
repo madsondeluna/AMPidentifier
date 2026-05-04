@@ -1003,8 +1003,10 @@ def send_recommendation():
         'GitHub:    https://github.com/madsondeluna\n'
         'Portfolio: https://madsondeluna.com/\n'
         'Lab tools: https://delunalab.dev/\n\n'
-        'Reference: Luna-Aragão et al. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit '
-        'for Antimicrobial Peptide Prediction.\n'
+        'Reference: de Luna-Aragão, M. A., da Silva, R. L., Pacifico Bezerra Neto, J., '
+        'dos Santos-Silva, C. A., da Silva Santos, D. E., & Benko-Iseppon, A. M. (2026). '
+        'AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction. '
+        'https://github.com/madsondeluna/AMPidentifier\n'
     )
 
     metrics_block = (
@@ -1025,7 +1027,7 @@ def send_recommendation():
                 'from FASTA sequences. It uses a Voting Ensemble of five machine learning classifiers '
                 '(Random Forest, SVM, Gradient Boosting, XGBoost, LightGBM) trained on 22 physicochemical '
                 'and compositional descriptors derived from the primary amino acid sequence.\n\n'
-                'Performance on the independent benchmark set (n = 4,736):\n'
+                'Official metrics:\n'
                 f'{metrics_block}\n'
                 'Built with Python, scikit-learn, XGBoost, LightGBM, Flask, and PostgreSQL. '
                 'Runs directly in the browser, no installation required.\n\n'
@@ -1049,7 +1051,7 @@ def send_recommendation():
                 'de cinq classificateurs de machine learning (Random Forest, SVM, Gradient Boosting, '
                 'XGBoost, LightGBM) entraînés sur 22 descripteurs physico-chimiques et compositionnels '
                 'dérivés de la séquence primaire d\'acides aminés.\n\n'
-                'Performance sur le benchmark indépendant (n = 4 736):\n'
+                'Métriques officielles:\n'
                 '  AUC-ROC:      0.950\n'
                 '  MCC:          0.742\n'
                 '  Sensibilité:  94.9%\n'
@@ -1076,7 +1078,7 @@ def send_recommendation():
                 'de cinco clasificadores de machine learning (Random Forest, SVM, Gradient Boosting, '
                 'XGBoost, LightGBM) entrenados con 22 descriptores fisicoquímicos y composicionales '
                 'derivados de la secuencia primaria de aminoácidos.\n\n'
-                'Rendimiento en el benchmark independiente (n = 4.736):\n'
+                'Métricas oficiales:\n'
                 '  AUC-ROC:       0.950\n'
                 '  MCC:           0.742\n'
                 '  Sensibilidad:  94.9%\n'
@@ -1093,7 +1095,7 @@ def send_recommendation():
             ),
         },
         'pt': {
-            'subject': 'Alguém te recomenda o AMPidentifier',
+            'subject': 'Alguém te recomendou o AMPidentifier',
             'body': (
                 'Se você está recebendo esta mensagem, é porque alguém usando o AMPidentifier '
                 'achou que poderia ser útil para você também.\n\n'
@@ -1103,7 +1105,7 @@ def send_recommendation():
                 'classificadores de machine learning (Random Forest, SVM, Gradient Boosting, XGBoost, '
                 'LightGBM) treinados com 22 descritores físico-químicos e composicionais derivados da '
                 'sequência primária de aminoácidos.\n\n'
-                'Desempenho no benchmark independente (n = 4.736):\n'
+                'Métricas oficiais:\n'
                 '  AUC-ROC:        0.950\n'
                 '  MCC:            0.742\n'
                 '  Sensibilidade:  94.9%\n'
