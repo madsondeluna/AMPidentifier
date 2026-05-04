@@ -431,6 +431,32 @@ PAGE = """<!DOCTYPE html>
   .share-form select:focus { border-color: #1a1a1a; outline: none; }
   .share-form-status { font-size: 0.72rem; min-height: 16px; flex-basis: 100%; }
   .share-form-status .err { color: #dc2626; }
+  .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  @media (max-width: 640px) {
+    body { padding: 12px; }
+    .wrap { max-width: 100%; }
+    h1 { font-size: 1.4rem; }
+    .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+    .stats-item { justify-content: center; }
+    .status-tooltip { display: none; }
+    .share-inner { flex-direction: column; align-items: stretch; gap: 10px; }
+    .share-actions { width: 100%; justify-content: stretch; }
+    .share-actions .share-btn { flex: 1; padding: 10px 14px; }
+    .share-form { flex-direction: column; align-items: stretch; }
+    .share-form select, .share-form input, .share-form .share-btn { width: 100%; min-width: 0; }
+    .email-csv-fields { grid-template-columns: 1fr !important; gap: 10px; }
+    .email-csv-btn { width: 100%; padding: 12px 20px; }
+    .row { flex-wrap: wrap; }
+    .upload-row { flex-wrap: wrap; }
+    table { font-size: 0.72rem; }
+    th, td { padding: 6px 8px !important; }
+    .dl { flex-wrap: wrap; gap: 8px; }
+    .dl button { flex: 1; min-width: 140px; }
+    .filter-btn { padding: 6px 10px; font-size: 0.72rem; }
+    .logo-strip { gap: 16px 20px; }
+    footer { font-size: 0.6rem; text-align: left; }
+  }
 </style>
 </head>
 <body>
@@ -785,10 +811,12 @@ function renderResults(data) {
       '<button class="filter-btn" id="fAmp" onclick="applyFilter(\\'amp\\')">AMP only</button>' +
       '<button class="filter-btn" id="fNon" onclick="applyFilter(\\'non\\')">Non-AMP only</button>' +
     '</div>' +
-    '<table id="tbl">' +
-      '<thead><tr><th>ID</th><th>Sequence</th><th>Prediction</th><th>Prob. AMP</th></tr></thead>' +
-      '<tbody>' + preds.map(makeRow).join('') + '</tbody>' +
-    '</table>' +
+    '<div class="table-scroll">' +
+      '<table id="tbl">' +
+        '<thead><tr><th>ID</th><th>Sequence</th><th>Prediction</th><th>Prob. AMP</th></tr></thead>' +
+        '<tbody>' + preds.map(makeRow).join('') + '</tbody>' +
+      '</table>' +
+    '</div>' +
     '<div class="dl">' +
       '<button onclick="downloadCSV()">Download CSV</button>' +
       '<button id="copyBtn" onclick="copyTable()">Copy table</button>' +
