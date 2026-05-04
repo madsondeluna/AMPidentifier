@@ -339,6 +339,14 @@ PAGE = """<!DOCTYPE html>
     background: #fff; color: #1a1a1a;
   }
   .share-form input:focus { border-color: #1a1a1a; outline: none; }
+  .share-form select {
+    padding: 8px 28px 8px 10px; border: 1px solid #d0d0d0; border-radius: 4px;
+    font-family: 'Roboto Mono', monospace; font-size: 0.78rem;
+    background: #fff; color: #1a1a1a; cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23666' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .share-form select:focus { border-color: #1a1a1a; outline: none; }
   .share-form-status { font-size: 0.72rem; min-height: 16px; flex-basis: 100%; }
   .share-form-status .err { color: #dc2626; }
 </style>
@@ -392,6 +400,12 @@ PAGE = """<!DOCTYPE html>
     </div>
     <div class="share-url-box" id="shareUrlBox"></div>
     <div class="share-form" id="shareForm">
+      <select id="shareLang" title="Email language">
+        <option value="en">EN</option>
+        <option value="fr">FR</option>
+        <option value="es">ES</option>
+        <option value="pt">PT</option>
+      </select>
       <input type="email" id="shareFriendEmail" placeholder="friend@example.com">
       <button class="share-btn copy-btn" onclick="sendShareEmail()" id="sendShareBtn">Send</button>
       <div class="share-form-status" id="shareFormStatus"></div>
@@ -834,6 +848,7 @@ async function sendShareEmail() {
   try {
     const fd = new FormData();
     fd.append('to_email', email);
+    fd.append('lang', document.getElementById('shareLang').value);
     const res = await fetch('/send_recommendation', { method: 'POST', body: fd });
     const data = await res.json();
     if (data.ok) {
@@ -968,41 +983,76 @@ def send_recommendation():
         return jsonify({'ok': False, 'error': 'Email service not configured.'}), 503
 
     to_email = request.form.get('to_email', '').strip()
+    lang = request.form.get('lang', 'en').strip().lower()
+    if lang not in ('en', 'fr', 'es', 'pt'):
+        lang = 'en'
     if not to_email or '@' not in to_email:
         return jsonify({'ok': False, 'error': 'Invalid email address.'}), 400
 
     from_addr = os.environ.get('RESEND_FROM_EMAIL', 'AMPidentifier <onboarding@resend.dev>')
     site_url = request.url_root.rstrip('/') + '/'
 
-    subject = 'Someone recommends AMPidentifier to you'
-    body = (
-        'If you are receiving this message, it is because someone using AMPidentifier '
-        'thought you might find it useful too.\n\n'
-        'Hi! Hope you are doing well.\n\n'
-        'AMPidentifier is a free tool for predicting antimicrobial peptides (AMPs) from FASTA sequences '
-        'using an ensemble of five machine learning classifiers. It runs directly in the browser and requires no installation.\n\n'
-        f'Check it out: {site_url}\n\n'
-        '----------\n\n'
-        'Si vous recevez ce message, c est parce que quelqu un utilisant AMPidentifier '
-        'a pense que cet outil pourrait vous etre utile.\n\n'
-        'Salut! Comment ca va?\n\n'
-        'AMPidentifier est un outil gratuit pour predire les peptides antimicrobiens (AMP) a partir '
-        'de sequences FASTA via un ensemble de cinq classificateurs. Il fonctionne directement dans le navigateur, sans installation.\n\n'
-        f'Jette un coup d oeil: {site_url}\n\n'
-        '----------\n\n'
-        'Se voce esta recebendo esta mensagem, e porque alguem usando o AMPidentifier '
-        'achou que poderia ser util para voce tambem.\n\n'
-        'Ola! Tudo bem?\n\n'
-        'O AMPidentifier e uma ferramenta gratuita para predizer peptideos antimicrobianos (AMPs) '
-        'a partir de sequencias FASTA usando um ensemble de cinco modelos de machine learning. '
-        'Roda direto no navegador e nao precisa instalar nada.\n\n'
-        f'Da uma olhada: {site_url}\n\n'
+    signature = (
         '----------\n'
         'Madson A. de Luna Aragao\n'
         'PhD Student in Bioinformatics @ UFMG | Belo Horizonte, Brazil\n'
         'madsondeluna@gmail.com | madsondeluna.com | delunalab.dev | linkedin.com/in/madsonaragao\n\n'
         'Reference: Luna-Aragao et al. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction.\n'
     )
+
+    messages = {
+        'en': {
+            'subject': 'Someone recommends AMPidentifier to you',
+            'body': (
+                'If you are receiving this message, it is because someone using AMPidentifier '
+                'thought you might find it useful too.\n\n'
+                'Hi! Hope you are doing well.\n\n'
+                'AMPidentifier is a free tool for predicting antimicrobial peptides (AMPs) from FASTA sequences '
+                'using an ensemble of five machine learning classifiers. It runs directly in the browser '
+                'and requires no installation.\n\n'
+                f'Check it out: {site_url}\n\n'
+            ),
+        },
+        'fr': {
+            'subject': 'Quelqu un vous recommande AMPidentifier',
+            'body': (
+                'Si vous recevez ce message, c est parce que quelqu un utilisant AMPidentifier '
+                'a pense que cet outil pourrait vous etre utile.\n\n'
+                'Salut! Comment ca va?\n\n'
+                'AMPidentifier est un outil gratuit pour predire les peptides antimicrobiens (AMP) '
+                'a partir de sequences FASTA via un ensemble de cinq classificateurs. '
+                'Il fonctionne directement dans le navigateur, sans installation.\n\n'
+                f'Jette un coup d oeil: {site_url}\n\n'
+            ),
+        },
+        'es': {
+            'subject': 'Alguien te recomienda AMPidentifier',
+            'body': (
+                'Si recibes este mensaje, es porque alguien que usa AMPidentifier '
+                'penso que esta herramienta podria serte util tambien.\n\n'
+                'Hola! Espero que estes bien.\n\n'
+                'AMPidentifier es una herramienta gratuita para predecir peptidos antimicrobianos (AMPs) '
+                'a partir de secuencias FASTA usando un ensemble de cinco clasificadores de machine learning. '
+                'Funciona directamente en el navegador y no requiere instalacion.\n\n'
+                f'Echa un vistazo: {site_url}\n\n'
+            ),
+        },
+        'pt': {
+            'subject': 'Alguem te recomenda o AMPidentifier',
+            'body': (
+                'Se voce esta recebendo esta mensagem, e porque alguem usando o AMPidentifier '
+                'achou que poderia ser util para voce tambem.\n\n'
+                'Ola! Tudo bem?\n\n'
+                'O AMPidentifier e uma ferramenta gratuita para predizer peptideos antimicrobianos (AMPs) '
+                'a partir de sequencias FASTA usando um ensemble de cinco modelos de machine learning. '
+                'Roda direto no navegador e nao precisa instalar nada.\n\n'
+                f'Da uma olhada: {site_url}\n\n'
+            ),
+        },
+    }
+
+    subject = messages[lang]['subject']
+    body = messages[lang]['body'] + signature
 
     payload = json.dumps({
         'from': from_addr,
