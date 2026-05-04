@@ -113,23 +113,7 @@ init_db()
 
 ISSUES_URL = 'https://github.com/madsondeluna/AMPidentifier/issues'
 
-EMAIL_SIGNATURE = (
-    '\n'
-    'Madson A. de Luna Aragão\n'
-    'PhD Student in Bioinformatics, UFMG, Belo Horizonte, Brazil\n'
-    '\n'
-    'Email: madsondeluna@gmail.com\n'
-    'LinkedIn: https://www.linkedin.com/in/madsonaragao/\n'
-    'GitHub: https://github.com/madsondeluna\n'
-    'Portfolio: https://madsondeluna.com/\n'
-    'Lab tools: https://delunalab.dev/\n'
-    '\n'
-    'Reference:\n'
-    'de Luna-Aragão, M. A., da Silva, R. L., Pacifico Bezerra Neto, J., '
-    'dos Santos-Silva, C. A., da Silva Santos, D. E., & Benko-Iseppon, A. M. (2026). '
-    'AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction. '
-    'https://github.com/madsondeluna/AMPidentifier\n'
-)
+EMAIL_SIGNATURE = 'AMPidentifier Development Team\n'
 
 
 EMAIL_CLOSING = {
@@ -1106,6 +1090,8 @@ def send_csv():
                 'harbour potential antimicrobial features in specific sequence regions. The full '
                 'benchmark is available in Luna-Aragão et al. (2026).\n\n'
                 f'To run another analysis, please visit: {site_url}\n\n'
+                'For more information about the web interface, CLI, and Python package, see the full documentation at:\n'
+                'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'To report a bug or suggest a feature, please open an issue at:\n'
                 f'{ISSUES_URL}\n\n'
             ),
@@ -1133,6 +1119,8 @@ def send_csv():
                 'potentielles dans des régions spécifiques de la séquence. Le benchmark complet est '
                 'disponible dans Luna-Aragão et al. (2026).\n\n'
                 f'Pour effectuer une nouvelle analyse, veuillez consulter: {site_url}\n\n'
+                'Pour plus d\'informations sur l\'interface web, le CLI et le package Python, consultez la documentation complète à l\'adresse:\n'
+                'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'Pour signaler un bug ou suggérer une fonctionnalité, veuillez ouvrir une issue à l\'adresse:\n'
                 f'{ISSUES_URL}\n\n'
             ),
@@ -1159,6 +1147,8 @@ def send_csv():
                 'presentar características antimicrobianas potenciales en regiones específicas de la '
                 'secuencia. El benchmark completo está disponible en Luna-Aragão et al. (2026).\n\n'
                 f'Para realizar un nuevo análisis, visite: {site_url}\n\n'
+                'Para más información sobre la interfaz web, el CLI y el paquete Python, consulte la documentación completa en:\n'
+                'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'Para reportar un error o sugerir una funcionalidad, por favor abra una issue en:\n'
                 f'{ISSUES_URL}\n\n'
             ),
@@ -1185,6 +1175,8 @@ def send_csv():
                 'características antimicrobianas potenciais em regiões específicas da sequência. '
                 'O benchmark completo está disponível em Luna-Aragão et al. (2026).\n\n'
                 f'Para realizar uma nova análise, acesse: {site_url}\n\n'
+                'Para mais informações sobre a interface web, o CLI e o pacote Python, acesse a documentação completa em:\n'
+                'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'Para relatar um problema ou sugerir uma funcionalidade, por favor abra uma issue em:\n'
                 f'{ISSUES_URL}\n\n'
             ),
@@ -1207,6 +1199,8 @@ def send_csv():
                 '敬请注意，主要功能并非抗菌活性的蛋白质仍可能在特定序列区域具有潜在的抗菌特征。'
                 '完整基准结果详见 Luna-Aragão et al. (2026)。\n\n'
                 f'如需进行新的分析，请访问：{site_url}\n\n'
+                '如需了解更多关于 Web 界面、CLI 和 Python 包的信息，请访问完整文档：\n'
+                'https://github.com/madsondeluna/AMPidentifier\n\n'
                 '如需报告问题或提出功能建议，请通过以下地址提交 issue：\n'
                 f'{ISSUES_URL}\n\n'
             ),
@@ -1214,7 +1208,7 @@ def send_csv():
     }
 
     subject = messages[lang]['subject']
-    body = messages[lang]['body'] + EMAIL_CLOSING[lang] + EMAIL_SIGNATURE + EMAIL_FOOTER[lang]
+    body = messages[lang]['body'] + EMAIL_FOOTER[lang] + EMAIL_CLOSING[lang] + EMAIL_SIGNATURE
 
     payload = json.dumps({
         'from': from_addr,
@@ -1236,7 +1230,7 @@ def send_csv():
             headers={
                 'Authorization': f'Bearer {api_key}',
                 'Content-Type': 'application/json',
-                'User-Agent': 'AMPidentifier/2.0 (https://ampidentifier.onrender.com)',
+                'User-Agent': 'AMPidentifier/2.0 (https://ampidentifier.com)',
                 'Accept': 'application/json',
             },
             method='POST',
@@ -1293,7 +1287,7 @@ def send_recommendation():
         'en': {
             'subject': 'AMPidentifier has been recommended to you',
             'body': (
-                'Dear colleague,\n\n'
+                'Dear researcher,\n\n'
                 'This message has been sent to you because a user of AMPidentifier considered that '
                 'this tool may be of interest to your work.\n\n'
                 'AMPidentifier is a free, open-source tool for predicting antimicrobial peptides (AMPs) '
@@ -1308,6 +1302,8 @@ def send_recommendation():
                 f'Web: {site_url}\n'
                 'CLI / repo: https://github.com/madsondeluna/AMPidentifier\n'
                 'Python package: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
+                'For more information about the web interface, CLI, and Python package, see the full documentation at:\n'
+                'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'To report a bug or suggest a feature, please open an issue at:\n'
                 f'{issues_url}\n'
                 'For direct contact, please use the information provided below.\n\n'
@@ -1335,6 +1331,8 @@ def send_recommendation():
                 f'Web: {site_url}\n'
                 'CLI / dépôt: https://github.com/madsondeluna/AMPidentifier\n'
                 'Paquet pip: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
+                'Pour plus d\'informations sur l\'interface web, le CLI et le package Python, consultez la documentation complète à l\'adresse:\n'
+                'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'Pour signaler un bug ou suggérer une fonctionnalité, veuillez ouvrir une issue à l\'adresse:\n'
                 f'{issues_url}\n'
                 'Pour me contacter directement, veuillez utiliser les coordonnées indiquées ci-dessous.\n\n'
@@ -1362,6 +1360,8 @@ def send_recommendation():
                 f'Web: {site_url}\n'
                 'CLI / repo: https://github.com/madsondeluna/AMPidentifier\n'
                 'Paquete pip: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
+                'Para más información sobre la interfaz web, el CLI y el paquete Python, consulte la documentación completa en:\n'
+                'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'Para reportar un error o sugerir una funcionalidad, por favor abra una issue en:\n'
                 f'{issues_url}\n'
                 'Para contacto directo, utilice la información proporcionada a continuación.\n\n'
@@ -1389,6 +1389,8 @@ def send_recommendation():
                 f'Web: {site_url}\n'
                 'CLI / repo: https://github.com/madsondeluna/AMPidentifier\n'
                 'Pacote pip: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
+                'Para mais informações sobre a interface web, o CLI e o pacote Python, acesse a documentação completa em:\n'
+                'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'Para relatar um problema ou sugerir uma funcionalidade, por favor abra uma issue em:\n'
                 f'{issues_url}\n'
                 'Para contato direto, utilize as informações fornecidas abaixo.\n\n'
@@ -1413,6 +1415,8 @@ def send_recommendation():
                 f'Web: {site_url}\n'
                 'CLI / repo: https://github.com/madsondeluna/AMPidentifier\n'
                 'Python 包: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
+                '如需了解更多关于 Web 界面、CLI 和 Python 包的信息，请访问完整文档：\n'
+                'https://github.com/madsondeluna/AMPidentifier\n\n'
                 '如需报告问题或提出功能建议，请通过以下地址提交 issue：\n'
                 f'{issues_url}\n'
                 '如需直接联系，请使用下方提供的联系方式。\n\n'
@@ -1421,7 +1425,7 @@ def send_recommendation():
     }
 
     subject = messages[lang]['subject']
-    body = messages[lang]['body'] + EMAIL_CLOSING[lang] + signature + EMAIL_FOOTER[lang]
+    body = messages[lang]['body'] + EMAIL_FOOTER[lang] + EMAIL_CLOSING[lang] + signature
 
     payload = json.dumps({
         'from': from_addr,
@@ -1439,7 +1443,7 @@ def send_recommendation():
             headers={
                 'Authorization': f'Bearer {api_key}',
                 'Content-Type': 'application/json',
-                'User-Agent': 'AMPidentifier/2.0 (https://ampidentifier.onrender.com)',
+                'User-Agent': 'AMPidentifier/2.0 (https://ampidentifier.com)',
                 'Accept': 'application/json',
             },
             method='POST',
