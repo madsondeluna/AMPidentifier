@@ -169,11 +169,11 @@ PAGE = """<!DOCTYPE html>
   .sub { font-size: 0.78rem; color: #888; margin-bottom: 10px; }
   .stats-section { margin-top: 12px; margin-bottom: 16px; text-align: center; }
   .stats-section-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
-  .stats-grid { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 20px 32px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 16px; align-items: start; justify-items: center; }
+  @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
   .stats-item { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; }
   .stats-val { font-size: 1.8rem; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; line-height: 1; flex-shrink: 0; }
-  .stats-lbl { font-size: 0.62rem; color: #bbb; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; max-width: 120px; line-height: 1.3; }
-  .stats-item.wide .stats-lbl { max-width: 160px; }
+  .stats-lbl { font-size: 0.62rem; color: #bbb; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; line-height: 1.3; }
   .notice { font-size: 0.75rem; color: #999; border-left: 2px solid #ddd; padding: 6px 12px; margin-bottom: 18px; line-height: 1.6; }
   .notice a { color: #555; text-decoration: underline; }
   .notice a:hover { color: #111; }
