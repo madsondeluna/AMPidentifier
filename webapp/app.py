@@ -1,6 +1,7 @@
 """
 AMPidentifier Web Portal — v2.0
 """
+import base64
 import contextlib
 import io
 import json
@@ -9,6 +10,7 @@ import sqlite3
 import sys
 import tempfile
 import threading
+import urllib.error
 import urllib.request
 import uuid
 
@@ -124,9 +126,46 @@ PAGE = """<!DOCTYPE html>
   .wrap { max-width: 760px; margin: 0 auto; }
   .title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
   h1 { font-size: 1.4rem; font-weight: normal; letter-spacing: 0.1em; color: #0f0f0f; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; flex-shrink: 0; transition: background 0.4s; cursor: default; }
-  .status-dot.online  { background: #059669; }
+  @keyframes pulse-green {
+    0%   { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.55); }
+    70%  { box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+  }
+  .status-dot-wrapper { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.4s; cursor: default; }
+  .status-dot.online  { background: #059669; animation: pulse-green 1.8s ease-out infinite; }
   .status-dot.offline { background: #dc2626; }
+  .status-tooltip {
+    display: none;
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #1a1a1a;
+    color: #e8e8e8;
+    font-size: 0.68rem;
+    line-height: 1.6;
+    padding: 8px 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .status-tooltip::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-right-color: #1a1a1a;
+  }
+  .status-tooltip .tt-row { display: flex; align-items: center; gap: 7px; }
+  .status-tooltip .tt-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .status-tooltip .tt-dot.c-green  { background: #059669; }
+  .status-tooltip .tt-dot.c-red    { background: #dc2626; }
+  .status-tooltip .tt-dot.c-gray   { background: #ddd; }
+  .status-dot-wrapper:hover .status-tooltip { display: block; }
   .sub { font-size: 0.78rem; color: #888; margin-bottom: 10px; }
   .stats-section { margin-top: 12px; margin-bottom: 16px; text-align: center; }
   .stats-section-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
@@ -235,13 +274,76 @@ PAGE = """<!DOCTYPE html>
   .logo-row { display: flex; align-items: flex-start; gap: 6px; }
   .logo-row img { width: auto; object-fit: contain; filter: grayscale(30%); opacity: 0.75; transition: opacity 0.2s, filter 0.2s; }
   .logo-row img:hover { opacity: 1; filter: grayscale(0%); }
+  .email-csv-section {
+    margin-top: 20px; border: 1px solid #e0e0e0; border-radius: 4px;
+    padding: 18px 20px; background: #f9f9f9;
+  }
+  .email-csv-header { margin-bottom: 4px; }
+  .email-csv-title { font-size: 0.78rem; color: #444; font-weight: bold; letter-spacing: 0.04em; }
+  .email-csv-desc { font-size: 0.72rem; color: #aaa; margin-top: 3px; }
+  .email-csv-desc strong { color: #059669; font-weight: normal; }
+  .email-csv-fields {
+    display: grid; grid-template-columns: 1fr auto; gap: 10px;
+    align-items: end; margin-top: 14px;
+  }
+  @media (max-width: 540px) {
+    .email-csv-fields { grid-template-columns: 1fr; }
+  }
+  .email-csv-field label {
+    font-size: 0.65rem; color: #bbb; text-transform: uppercase; letter-spacing: 0.07em;
+    display: block; margin-bottom: 5px;
+  }
+  .email-csv-field input {
+    width: 100%; background: #fff; border: 1px solid #e0e0e0; color: #1a1a1a;
+    font-family: 'Roboto Mono', monospace; font-size: 0.8rem; padding: 9px 11px;
+    border-radius: 4px; outline: none;
+  }
+  .email-csv-field input:focus { border-color: #aaa; }
+  .email-csv-btn {
+    background: #059669; color: #fff; border: none;
+    font-family: 'Roboto Mono', monospace; font-size: 0.78rem; padding: 9px 20px;
+    border-radius: 4px; cursor: pointer; font-weight: normal; white-space: nowrap;
+    align-self: end;
+  }
+  .email-csv-btn:hover { background: #047857; }
+  .email-csv-btn:disabled { background: #ccc; color: #888; cursor: not-allowed; }
+  .email-csv-status { font-size: 0.72rem; margin-top: 10px; min-height: 16px; }
+  .share-section {
+    margin-top: 20px; margin-bottom: 20px;
+    border: 1px solid #e0e0e0; border-left: 3px solid #1a1a1a;
+    border-radius: 4px; padding: 16px 20px; background: #f9f9f9;
+  }
+  .share-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+  .share-heading { font-size: 0.82rem; color: #1a1a1a; font-weight: bold; letter-spacing: 0.03em; }
+  .share-sub { font-size: 0.7rem; color: #aaa; margin-top: 3px; }
+  .share-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .share-btn {
+    border: none; font-family: 'Roboto Mono', monospace; font-size: 0.75rem;
+    padding: 8px 18px; border-radius: 4px; cursor: pointer; font-weight: normal;
+    letter-spacing: 0.03em; white-space: nowrap;
+  }
+  .share-btn.copy-btn { background: #1a1a1a; color: #fff; }
+  .share-btn.copy-btn:hover { background: #333; }
+  .share-btn.gmail-btn { background: #fff; color: #1a1a1a; border: 1px solid #d0d0d0; }
+  .share-btn.gmail-btn:hover { background: #f0f0f0; }
+  .share-url-box {
+    font-size: 0.72rem; color: #059669; background: #f0fdf4; border: 1px solid #bbf7d0;
+    border-radius: 4px; padding: 7px 12px; margin-top: 12px; word-break: break-all; display: none;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="title-row">
     <h1>AMPidentifier</h1>
-    <span class="status-dot" id="statusDot" title="Checking server..."></span>
+    <span class="status-dot-wrapper">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-tooltip">
+        <span class="tt-row"><span class="tt-dot c-green"></span> Server online</span>
+        <span class="tt-row"><span class="tt-dot c-red"></span> Server offline or error</span>
+        <span class="tt-row"><span class="tt-dot c-gray"></span> Checking connection...</span>
+      </span>
+    </span>
   </div>
   <p class="sub">A Python-based toolkit for predicting antimicrobial peptides using ensemble machine learning and physicochemical descriptors.</p>
 
@@ -264,6 +366,20 @@ PAGE = """<!DOCTYPE html>
         <span class="stats-lbl">research groups using as main tool for AMP prediction</span>
       </div>
     </div>
+  </div>
+
+  <div class="share-section">
+    <div class="share-inner">
+      <div class="share-text">
+        <div class="share-heading">Find AMPidentifier useful?</div>
+        <div class="share-sub">Share it with your lab or collaborators.</div>
+      </div>
+      <div class="share-actions">
+        <button class="share-btn copy-btn" onclick="copyLink()" id="copyLinkBtn">Copy link</button>
+        <button class="share-btn gmail-btn" onclick="shareByEmail()">Share by email</button>
+      </div>
+    </div>
+    <div class="share-url-box" id="shareUrlBox"></div>
   </div>
 
   <p class="notice">For advanced parameter control use the <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a> or install via <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>: <code style="background:#f0f0f0;color:#444;padding:2px 8px;border-radius:4px;font-size:0.85em;">pip install ampidentifier</code></p>
@@ -337,6 +453,7 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
       </div>
     </div>
   </footer>
+
 </div>
 
 <!-- Feedback modal -->
@@ -381,10 +498,10 @@ async function checkServerStatus() {
   const dot = document.getElementById('statusDot');
   try {
     const r = await fetch('/health', { cache: 'no-cache' });
-    if (r.ok) { dot.classList.add('online');  dot.title = 'Server online'; }
-    else       { dot.classList.add('offline'); dot.title = 'Server error';  }
+    if (r.ok) { dot.classList.add('online'); }
+    else       { dot.classList.add('offline'); }
   } catch(e) {
-    dot.classList.add('offline'); dot.title = 'Server offline';
+    dot.classList.add('offline');
   }
 }
 checkServerStatus();
@@ -561,6 +678,24 @@ function renderResults(data) {
       '<button onclick="downloadCSV()">Download CSV</button>' +
       '<button id="copyBtn" onclick="copyTable()">Copy table</button>' +
     '</div>' +
+    '<div class="email-csv-section">' +
+      '<div class="email-csv-header">' +
+        '<div class="email-csv-title">Receive results by email</div>' +
+        '<div class="email-csv-desc">A CSV with <strong>' + total + ' prediction' + (total !== 1 ? 's' : '') + '</strong> (' +
+          '<strong style="color:#059669">' + amps + ' AMP</strong> / ' +
+          '<strong style="color:#dc2626">' + (total - amps) + ' non-AMP</strong>) ' +
+          'using <strong>' + (modelLabels[data.model] || data.model) + '</strong> will be sent to your inbox.' +
+        '</div>' +
+      '</div>' +
+      '<div class="email-csv-fields">' +
+        '<div class="email-csv-field">' +
+          '<label for="csvEmail">Your email</label>' +
+          '<input type="email" id="csvEmail" placeholder="you@example.com">' +
+        '</div>' +
+        '<button class="email-csv-btn" id="sendCsvBtn" onclick="sendCsvByEmail()">Send</button>' +
+      '</div>' +
+      '<div class="email-csv-status" id="emailCsvStatus"></div>' +
+    '</div>' +
     '<div class="result-note">' +
       '<strong>Interpretation note:</strong> Predictions are computed from 22 physicochemical and compositional descriptors derived from the primary amino acid sequence. ' +
       'For higher predictive power, use <strong>Voting Ensemble mode</strong> (RF + SVM + GB + XGB + LGBM), which combines five independent classifiers by soft voting and achieves ' +
@@ -590,8 +725,11 @@ function downloadCSV() {
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'ampidentifier_' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.download = 'ampidentifier_results.csv';
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
 }
 
 function copyTable() {
@@ -606,6 +744,96 @@ function copyTable() {
     btn.textContent = 'Copied!';
     setTimeout(() => btn.textContent = 'Copy table', 1500);
   }).catch(() => alert('Copy not supported in this browser.'));
+}
+
+async function sendCsvByEmail() {
+  if (!lastData) return;
+  const email = document.getElementById('csvEmail').value.trim();
+  const status = document.getElementById('emailCsvStatus');
+  const btn = document.getElementById('sendCsvBtn');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    status.innerHTML = '<span class="err">Enter a valid email address.</span>';
+    return;
+  }
+  const keys = Object.keys(lastData[0]);
+  const csv = [
+    keys.join(','),
+    ...lastData.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))
+  ].join('\\n');
+  btn.disabled = true;
+  status.style.color = '#999';
+  status.textContent = 'Sending...';
+  try {
+    const form = new FormData();
+    form.append('to_email', email);
+    form.append('csv_data', csv);
+    const res = await fetch('/send_csv', { method: 'POST', body: form });
+    const data = await res.json();
+    if (data.ok) {
+      status.style.color = '#059669';
+      status.textContent = 'Email sent to ' + email;
+    } else {
+      status.innerHTML = '<span class="err">' + (data.error || 'Failed to send.') + '</span>';
+    }
+  } catch (e) {
+    status.innerHTML = '<span class="err">Request failed: ' + e.message + '</span>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function copyLink() {
+  const url = window.location.origin + '/';
+  const box = document.getElementById('shareUrlBox');
+  const btn = document.getElementById('copyLinkBtn');
+  navigator.clipboard.writeText(url).then(() => {
+    box.textContent = url + '  (copied)';
+    box.style.display = 'block';
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy link'; box.style.display = 'none'; }, 2500);
+  }).catch(() => {
+    box.textContent = url;
+    box.style.display = 'block';
+  });
+}
+
+function shareByEmail() {
+  const url = window.location.origin + '/';
+  const subject = encodeURIComponent('I want you to meet AMPidentifier! / Je veux te presenter AMPidentifier! / Quero te apresentar o AMPidentifier!');
+  const body = encodeURIComponent(
+    'If you are receiving this message, it is because a friend used AMPidentifier and thought you might find it useful too.\\n\\n' +
+    'Hi! Hope you are doing well.\\n\\n' +
+    'I wanted to share a tool I have been using in my research: AMPidentifier. ' +
+    'It predicts antimicrobial peptides (AMPs) from FASTA sequences using an ensemble of five machine learning classifiers. ' +
+    'It is free, runs directly in the browser, and requires no installation.\\n\\n' +
+    'Check it out: ' + url + '\\n\\n' +
+    'If you have any questions getting started, feel free to reach out to me directly!\\n\\n' +
+    '---\\n\\n' +
+    'Si vous recevez ce message, c est parce qu un ami a utilise AMPidentifier et a pense que cet outil pourrait vous etre utile.\\n\\n' +
+    'Salut! Comment ca va?\\n\\n' +
+    'Je voulais te parler d un outil que j utilise dans mes recherches: AMPidentifier. ' +
+    'Il predit les peptides antimicrobiens (AMP) a partir de sequences FASTA via un ensemble de cinq classificateurs. ' +
+    'C est gratuit, ca fonctionne directement dans le navigateur, sans aucune installation.\\n\\n' +
+    'Jette un coup d oeil: ' + url + '\\n\\n' +
+    'Si tu as des questions pour commencer, contacte-moi directement, je serai heureux de t aider!\\n\\n' +
+    '---\\n\\n' +
+    'Se voce esta recebendo esta mensagem, e porque um amigo seu usou o AMPidentifier e achou que poderia ser util para voce tambem.\\n\\n' +
+    'Ola! Tudo bem?\\n\\n' +
+    'Queria te contar sobre uma ferramenta que tenho usado nas minhas pesquisas: o AMPidentifier. ' +
+    'Ele prediz peptideos antimicrobianos (AMPs) a partir de sequencias FASTA usando um ensemble de cinco modelos de machine learning. ' +
+    'E gratuito, roda direto no navegador e nao precisa instalar nada.\\n\\n' +
+    'Da uma olhada: ' + url + '\\n\\n' +
+    'Se tiver qualquer duvida para comecar a usar, pode falar comigo diretamente que te ajudo!\\n\\n' +
+    '---\\n' +
+    'Madson A. de Luna Aragao\\n' +
+    'PhD Student in Bioinformatics @ UFMG | Belo Horizonte, Brazil\\n' +
+    'madsondeluna@gmail.com | madsondeluna.com | delunalab.dev | linkedin.com/in/madsonaragao\\n\\n' +
+    'Reference: Luna-Aragao et al. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction.\\n'
+  );
+  window.open(
+    'https://mail.google.com/mail/?view=cm&fs=1&su=' + subject + '&body=' + body,
+    '_blank', 'noopener,noreferrer'
+  );
 }
 
 function openFeedback() {
@@ -652,6 +880,57 @@ def health():
 @app.route('/stats')
 def stats():
     return jsonify(get_stats())
+
+
+@app.route('/send_csv', methods=['POST'])
+def send_csv():
+    api_key = os.environ.get('RESEND_API_KEY', '')
+    if not api_key:
+        return jsonify({'ok': False, 'error': 'Email service not configured.'}), 503
+
+    to_email = request.form.get('to_email', '').strip()
+    csv_data = request.form.get('csv_data', '').strip()
+
+    if not to_email or '@' not in to_email:
+        return jsonify({'ok': False, 'error': 'Invalid email address.'}), 400
+    if not csv_data:
+        return jsonify({'ok': False, 'error': 'No data to send.'}), 400
+
+    from_addr = os.environ.get('RESEND_FROM_EMAIL', 'AMPidentifier <onboarding@resend.dev>')
+    payload = json.dumps({
+        'from': from_addr,
+        'to': [to_email],
+        'subject': '[AMPidentifier] Your prediction results',
+        'text': (
+            'Your AMPidentifier prediction results are attached as a CSV file.\n\n'
+            '--\n'
+            'AMPidentifier - Ensemble Machine Learning for AMP Prediction\n'
+            'Luna-Aragao et al. (2026)\n'
+        ),
+        'attachments': [{
+            'filename': 'ampidentifier_results.csv',
+            'content': base64.b64encode(csv_data.encode('utf-8')).decode('ascii'),
+        }],
+    }).encode('utf-8')
+
+    try:
+        req = urllib.request.Request(
+            'https://api.resend.com/emails',
+            data=payload,
+            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+            method='POST',
+        )
+        with urllib.request.urlopen(req) as resp:
+            resp.read()
+        return jsonify({'ok': True})
+    except urllib.error.HTTPError as e:
+        try:
+            err = json.loads(e.read()).get('message', str(e))
+        except Exception:
+            err = str(e)
+        return jsonify({'ok': False, 'error': err}), 500
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
 
 
 @app.route('/predict', methods=['POST'])
