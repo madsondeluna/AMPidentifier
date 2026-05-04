@@ -865,7 +865,7 @@ function renderResults(data) {
     '<div class="result-note">' +
       '<strong>Interpretation note:</strong> Predictions are computed from 22 physicochemical and compositional descriptors derived from the primary amino acid sequence. ' +
       'For higher predictive power, use <strong>Voting Ensemble mode</strong> (RF + SVM + GB + XGB + LGBM), which combines five independent classifiers by soft voting and achieves ' +
-      '<strong>AUC-ROC 0.950</strong>, <strong>MCC 0.742</strong>, <strong>Sensitivity 94.9%</strong>, and <strong>Specificity 78.4%</strong> on the independent benchmark set (n = 4,736). ' +
+      '<strong>AUC-ROC 0.950</strong>, <strong>MCC 0.742</strong>, <strong>Sensitivity 94.9%</strong>, and <strong>Specificity 78.4%</strong> on the independent benchmark set. ' +
       'Bear in mind that proteins whose primary function is not antimicrobial activity may still harbour potential antimicrobial features in specific sequence regions. A full benchmark is available in Luna-Arago et al. (2026), <a href="https://doi.org/10.1021/acs.jcim.XXXXXXX" target="_blank" style="color:#999;">doi:10.1021/acs.jcim.XXXXXXX</a>.' +
     '</div>';
 }
@@ -1087,8 +1087,9 @@ def send_csv():
         'en': {
             'subject': '[AMPidentifier] Your prediction results',
             'body': (
-                'Hi!\n\n'
-                'Your AMPidentifier analysis is complete. The CSV file with the full results is attached.\n\n'
+                'Dear user,\n\n'
+                'Your AMPidentifier analysis has been completed. The CSV file containing the full '
+                'results is attached to this message.\n\n'
                 'Analysis summary:\n'
                 f'Date/time: **{timestamp}**\n'
                 f'Model used: **{model_label}**\n'
@@ -1100,20 +1101,21 @@ def send_csv():
                 'derived from the primary amino acid sequence. For higher predictive power, the '
                 'Voting Ensemble mode (RF + SVM + GB + XGB + LGBM) combines five independent '
                 'classifiers by soft voting and achieves AUC-ROC 0.950, MCC 0.742, Sensitivity 94.9%, '
-                'and Specificity 78.4% on the independent benchmark set (n = 4,736). Bear in mind '
+                'and Specificity 78.4% on the independent benchmark set. Please note '
                 'that proteins whose primary function is not antimicrobial activity may still '
-                'harbour potential antimicrobial features in specific sequence regions. A full '
+                'harbour potential antimicrobial features in specific sequence regions. The full '
                 'benchmark is available in Luna-Aragão et al. (2026).\n\n'
-                f'Run another analysis: {site_url}\n\n'
-                'Found a bug or have a feature suggestion? Open an issue:\n'
+                f'To run another analysis, please visit: {site_url}\n\n'
+                'To report a bug or suggest a feature, please open an issue at:\n'
                 f'{ISSUES_URL}\n\n'
             ),
         },
         'fr': {
             'subject': '[AMPidentifier] Vos résultats de prédiction',
             'body': (
-                'Salut!\n\n'
-                'Votre analyse AMPidentifier est terminée. Le fichier CSV avec les résultats complets est en pièce jointe.\n\n'
+                'Madame, Monsieur,\n\n'
+                'Votre analyse AMPidentifier a été menée à terme. Le fichier CSV contenant '
+                'l\'ensemble des résultats est joint à ce message.\n\n'
                 'Résumé de l\'analyse:\n'
                 f'Date/heure: **{timestamp}**\n'
                 f'Modèle utilisé: **{model_label}**\n'
@@ -1125,21 +1127,22 @@ def send_csv():
                 'compositionnels dérivés de la séquence primaire d\'acides aminés. Pour une meilleure '
                 'puissance prédictive, le mode Voting Ensemble (RF + SVM + GB + XGB + LGBM) combine '
                 'cinq classificateurs indépendants par soft voting et atteint AUC-ROC 0.950, MCC 0.742, '
-                'Sensibilité 94.9% et Spécificité 78.4% sur le benchmark indépendant (n = 4 736). '
-                'Tenez compte que des protéines dont la fonction principale n\'est pas l\'activité '
-                'antimicrobienne peuvent encore présenter des caractéristiques antimicrobiennes '
-                'potentielles dans des régions spécifiques. Le benchmark complet est disponible dans '
-                'Luna-Aragão et al. (2026).\n\n'
-                f'Faire une autre analyse: {site_url}\n\n'
-                'Bug ou idée de fonctionnalité? Ouvre une issue:\n'
+                'Sensibilité 94.9% et Spécificité 78.4% sur le benchmark indépendant. '
+                'Veuillez noter que des protéines dont la fonction principale n\'est pas l\'activité '
+                'antimicrobienne peuvent néanmoins présenter des caractéristiques antimicrobiennes '
+                'potentielles dans des régions spécifiques de la séquence. Le benchmark complet est '
+                'disponible dans Luna-Aragão et al. (2026).\n\n'
+                f'Pour effectuer une nouvelle analyse, veuillez consulter: {site_url}\n\n'
+                'Pour signaler un bug ou suggérer une fonctionnalité, veuillez ouvrir une issue à l\'adresse:\n'
                 f'{ISSUES_URL}\n\n'
             ),
         },
         'es': {
-            'subject': '[AMPidentifier] Tus resultados de predicción',
+            'subject': '[AMPidentifier] Sus resultados de predicción',
             'body': (
-                '¡Hola!\n\n'
-                'Tu análisis en AMPidentifier está completo. El archivo CSV con los resultados completos está adjunto.\n\n'
+                'Estimado/a usuario/a,\n\n'
+                'Su análisis en AMPidentifier ha sido completado. El archivo CSV con los resultados '
+                'completos se encuentra adjunto a este mensaje.\n\n'
                 'Resumen del análisis:\n'
                 f'Fecha/hora: **{timestamp}**\n'
                 f'Modelo usado: **{model_label}**\n'
@@ -1151,20 +1154,21 @@ def send_csv():
                 'derivados de la secuencia primaria de aminoácidos. Para mayor poder predictivo, el modo '
                 'Voting Ensemble (RF + SVM + GB + XGB + LGBM) combina cinco clasificadores independientes '
                 'mediante soft voting y alcanza AUC-ROC 0.950, MCC 0.742, Sensibilidad 94.9% y '
-                'Especificidad 78.4% en el benchmark independiente (n = 4.736). Ten en cuenta que '
-                'proteínas cuya función principal no es la actividad antimicrobiana aún pueden albergar '
-                'características antimicrobianas potenciales en regiones específicas de la secuencia. '
-                'El benchmark completo está disponible en Luna-Aragão et al. (2026).\n\n'
-                f'Realizar otro análisis: {site_url}\n\n'
-                '¿Bug o sugerencia de feature? Abre un issue:\n'
+                'Especificidad 78.4% en el benchmark independiente. Tenga en cuenta que '
+                'las proteínas cuya función principal no es la actividad antimicrobiana pueden aún '
+                'presentar características antimicrobianas potenciales en regiones específicas de la '
+                'secuencia. El benchmark completo está disponible en Luna-Aragão et al. (2026).\n\n'
+                f'Para realizar un nuevo análisis, visite: {site_url}\n\n'
+                'Para reportar un error o sugerir una funcionalidad, por favor abra una issue en:\n'
                 f'{ISSUES_URL}\n\n'
             ),
         },
         'pt': {
             'subject': '[AMPidentifier] Seus resultados de predição',
             'body': (
-                'Olá!\n\n'
-                'Sua análise no AMPidentifier está completa. O arquivo CSV com os resultados completos está anexado.\n\n'
+                'Prezado(a) usuário(a),\n\n'
+                'Sua análise no AMPidentifier foi concluída. O arquivo CSV contendo os resultados '
+                'completos encontra-se anexado a esta mensagem.\n\n'
                 'Resumo da análise:\n'
                 f'Data/hora: **{timestamp}**\n'
                 f'Modelo: **{model_label}**\n'
@@ -1176,20 +1180,20 @@ def send_csv():
                 'derivados da sequência primária de aminoácidos. Para maior poder preditivo, o modo '
                 'Voting Ensemble (RF + SVM + GB + XGB + LGBM) combina cinco classificadores independentes '
                 'por soft voting e atinge AUC-ROC 0,950, MCC 0,742, Sensibilidade 94,9% e Especificidade '
-                '78,4% no conjunto benchmark independente (n = 4.736). Tenha em mente que proteínas cuja '
-                'função primária não é a atividade antimicrobiana ainda podem abrigar características '
-                'antimicrobianas potenciais em regiões específicas da sequência. O benchmark completo '
-                'está disponível em Luna-Aragão et al. (2026).\n\n'
-                f'Faça uma nova análise: {site_url}\n\n'
-                'Encontrou algum bug ou tem sugestão de feature? Abre uma issue:\n'
+                '78,4% no conjunto benchmark independente. Note que proteínas cuja função '
+                'primária não é a atividade antimicrobiana podem, ainda assim, apresentar '
+                'características antimicrobianas potenciais em regiões específicas da sequência. '
+                'O benchmark completo está disponível em Luna-Aragão et al. (2026).\n\n'
+                f'Para realizar uma nova análise, acesse: {site_url}\n\n'
+                'Para relatar um problema ou sugerir uma funcionalidade, por favor abra uma issue em:\n'
                 f'{ISSUES_URL}\n\n'
             ),
         },
         'zh': {
             'subject': '[AMPidentifier] 您的预测结果',
             'body': (
-                '您好！\n\n'
-                '您的 AMPidentifier 分析已完成。包含完整结果的 CSV 文件已附在此邮件中。\n\n'
+                '尊敬的用户，您好。\n\n'
+                '您在 AMPidentifier 上的分析已完成。包含完整结果的 CSV 文件已作为附件随本邮件一同发送。\n\n'
                 '分析摘要：\n'
                 f'日期/时间: **{timestamp}**\n'
                 f'使用模型: **{model_label}**\n'
@@ -1199,11 +1203,11 @@ def send_csv():
                 '解释说明：\n'
                 '预测基于从氨基酸主序列衍生的 22 个理化和组成描述符计算。为获得更高的预测能力，'
                 'Voting Ensemble 模式（RF + SVM + GB + XGB + LGBM）通过 soft voting 组合五个独立分类器，'
-                '在独立基准集（n = 4,736）上达到 AUC-ROC 0.950、MCC 0.742、敏感度 94.9%、特异度 78.4%。'
-                '请注意，主要功能不是抗菌活性的蛋白质仍可能在特定序列区域具有潜在的抗菌特征。'
-                '完整基准请参见 Luna-Aragão et al. (2026)。\n\n'
-                f'进行新的分析: {site_url}\n\n'
-                '发现 bug 或有功能建议？请提交 issue：\n'
+                '在独立基准集上达到 AUC-ROC 0.950、MCC 0.742、敏感度 94.9%、特异度 78.4%。'
+                '敬请注意，主要功能并非抗菌活性的蛋白质仍可能在特定序列区域具有潜在的抗菌特征。'
+                '完整基准结果详见 Luna-Aragão et al. (2026)。\n\n'
+                f'如需进行新的分析，请访问：{site_url}\n\n'
+                '如需报告问题或提出功能建议，请通过以下地址提交 issue：\n'
                 f'{ISSUES_URL}\n\n'
             ),
         },
@@ -1287,11 +1291,11 @@ def send_recommendation():
 
     messages = {
         'en': {
-            'subject': 'Someone recommends AMPidentifier to you',
+            'subject': 'AMPidentifier has been recommended to you',
             'body': (
-                'If you are receiving this message, it is because someone using AMPidentifier '
-                'thought you might find it useful too.\n\n'
-                'Hi! Hope you are doing well.\n\n'
+                'Dear colleague,\n\n'
+                'This message has been sent to you because a user of AMPidentifier considered that '
+                'this tool may be of interest to your work.\n\n'
                 'AMPidentifier is a free, open-source tool for predicting antimicrobial peptides (AMPs) '
                 'from FASTA sequences. It uses a Voting Ensemble of five machine learning classifiers '
                 '(Random Forest, SVM, Gradient Boosting, XGBoost, LightGBM) trained on 22 physicochemical '
@@ -1304,17 +1308,17 @@ def send_recommendation():
                 f'Web: {site_url}\n'
                 'CLI / repo: https://github.com/madsondeluna/AMPidentifier\n'
                 'Python package: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
-                'Found a bug or have a feature suggestion? Please open an issue at:\n'
+                'To report a bug or suggest a feature, please open an issue at:\n'
                 f'{issues_url}\n'
-                'Or reach out directly using the contacts below.\n\n'
+                'For direct contact, please use the information provided below.\n\n'
             ),
         },
         'fr': {
-            'subject': 'Quelqu\'un vous recommande AMPidentifier',
+            'subject': 'AMPidentifier vous a été recommandé',
             'body': (
-                'Si vous recevez ce message, c\'est parce que quelqu\'un utilisant AMPidentifier '
-                'a pensé que cet outil pourrait vous être utile.\n\n'
-                'Salut! Comment ça va?\n\n'
+                'Madame, Monsieur,\n\n'
+                'Ce message vous a été envoyé parce qu\'un utilisateur d\'AMPidentifier a estimé que '
+                'cet outil pourrait être utile à vos travaux.\n\n'
                 'AMPidentifier est un outil gratuit et open-source pour prédire les peptides '
                 'antimicrobiens (AMP) à partir de séquences FASTA. Il utilise un Voting Ensemble '
                 'de cinq classificateurs de machine learning (Random Forest, SVM, Gradient Boosting, '
@@ -1331,19 +1335,19 @@ def send_recommendation():
                 f'Web: {site_url}\n'
                 'CLI / dépôt: https://github.com/madsondeluna/AMPidentifier\n'
                 'Paquet pip: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
-                'Tu as trouvé un bug ou une idée de fonctionnalité? Ouvre une issue:\n'
+                'Pour signaler un bug ou suggérer une fonctionnalité, veuillez ouvrir une issue à l\'adresse:\n'
                 f'{issues_url}\n'
-                'Ou contacte-moi directement via les liens ci-dessous.\n\n'
+                'Pour me contacter directement, veuillez utiliser les coordonnées indiquées ci-dessous.\n\n'
             ),
         },
         'es': {
-            'subject': 'Alguien te recomienda AMPidentifier',
+            'subject': 'AMPidentifier le ha sido recomendado',
             'body': (
-                'Si recibes este mensaje, es porque alguien que usa AMPidentifier pensó que '
-                'esta herramienta podría serte útil también.\n\n'
-                '¡Hola! Espero que estés bien.\n\n'
+                'Estimado/a colega,\n\n'
+                'Este mensaje le ha sido enviado porque un usuario de AMPidentifier consideró '
+                'que esta herramienta podría ser de utilidad para su trabajo.\n\n'
                 'AMPidentifier es una herramienta gratuita y de código abierto para predecir '
-                'péptidos antimicrobianos (AMPs) a partir de secuencias FASTA. Usa un Voting Ensemble '
+                'péptidos antimicrobianos (AMPs) a partir de secuencias FASTA. Utiliza un Voting Ensemble '
                 'de cinco clasificadores de machine learning (Random Forest, SVM, Gradient Boosting, '
                 'XGBoost, LightGBM) entrenados con 22 descriptores fisicoquímicos y composicionales '
                 'derivados de la secuencia primaria de aminoácidos.\n\n'
@@ -1358,19 +1362,19 @@ def send_recommendation():
                 f'Web: {site_url}\n'
                 'CLI / repo: https://github.com/madsondeluna/AMPidentifier\n'
                 'Paquete pip: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
-                '¿Encontraste un bug o tienes una sugerencia? Abre un issue:\n'
+                'Para reportar un error o sugerir una funcionalidad, por favor abra una issue en:\n'
                 f'{issues_url}\n'
-                'O contáctame directamente con los datos de abajo.\n\n'
+                'Para contacto directo, utilice la información proporcionada a continuación.\n\n'
             ),
         },
         'pt': {
-            'subject': 'Alguém te recomendou o AMPidentifier',
+            'subject': 'O AMPidentifier foi recomendado a você',
             'body': (
-                'Se você está recebendo esta mensagem, é porque alguém usando o AMPidentifier '
-                'achou que poderia ser útil para você também.\n\n'
-                'Olá! Tudo bem?\n\n'
+                'Prezado(a) colega,\n\n'
+                'Esta mensagem foi enviada a você porque um usuário do AMPidentifier considerou '
+                'que esta ferramenta pode ser de interesse para o seu trabalho.\n\n'
                 'O AMPidentifier é uma ferramenta gratuita e open-source para predizer peptídeos '
-                'antimicrobianos (AMPs) a partir de sequências FASTA. Usa um Voting Ensemble de cinco '
+                'antimicrobianos (AMPs) a partir de sequências FASTA. Utiliza um Voting Ensemble de cinco '
                 'classificadores de machine learning (Random Forest, SVM, Gradient Boosting, XGBoost, '
                 'LightGBM) treinados com 22 descritores físico-químicos e composicionais derivados da '
                 'sequência primária de aminoácidos.\n\n'
@@ -1380,38 +1384,38 @@ def send_recommendation():
                 'Sensibilidade: **94.9%**\n'
                 'Especificidade: **78.4%**\n\n'
                 'Construído com Python, scikit-learn, XGBoost, LightGBM, Flask e PostgreSQL. '
-                'Roda direto no navegador, sem precisar instalar nada.\n\n'
+                'Executa diretamente no navegador, sem necessidade de instalação.\n\n'
                 'Disponível em três formatos:\n'
                 f'Web: {site_url}\n'
                 'CLI / repo: https://github.com/madsondeluna/AMPidentifier\n'
                 'Pacote pip: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
-                'Encontrou algum bug ou tem sugestão de feature? Abre uma issue:\n'
+                'Para relatar um problema ou sugerir uma funcionalidade, por favor abra uma issue em:\n'
                 f'{issues_url}\n'
-                'Ou fala comigo direto pelos contatos abaixo.\n\n'
+                'Para contato direto, utilize as informações fornecidas abaixo.\n\n'
             ),
         },
         'zh': {
-            'subject': '有人向您推荐 AMPidentifier',
+            'subject': '向您推荐 AMPidentifier',
             'body': (
-                '如果您收到此消息，是因为有 AMPidentifier 的用户认为这个工具可能对您有用。\n\n'
-                '您好！希望您一切顺利。\n\n'
+                '尊敬的同行，您好。\n\n'
+                '本邮件之所以发送给您，是因为一位 AMPidentifier 用户认为该工具可能对您的工作有所助益。\n\n'
                 'AMPidentifier 是一款免费的开源工具，用于从 FASTA 序列预测抗菌肽（AMPs）。'
-                '它使用五个机器学习分类器（Random Forest、SVM、Gradient Boosting、XGBoost、LightGBM）的'
+                '它采用五个机器学习分类器（Random Forest、SVM、Gradient Boosting、XGBoost、LightGBM）的'
                 ' Voting Ensemble，基于从氨基酸主序列衍生的 22 个理化和组成描述符进行训练。\n\n'
                 '官方指标：\n'
                 'AUC-ROC: **0.950**\n'
                 'MCC: **0.742**\n'
                 '敏感度（Sensitivity）: **94.9%**\n'
                 '特异度（Specificity）: **78.4%**\n\n'
-                '使用 Python、scikit-learn、XGBoost、LightGBM、Flask 和 PostgreSQL 构建。'
-                '直接在浏览器中运行，无需安装。\n\n'
-                '提供三种格式：\n'
+                '本工具基于 Python、scikit-learn、XGBoost、LightGBM、Flask 与 PostgreSQL 构建，'
+                '可直接在浏览器中运行，无需安装。\n\n'
+                '提供以下三种使用方式：\n'
                 f'Web: {site_url}\n'
                 'CLI / repo: https://github.com/madsondeluna/AMPidentifier\n'
                 'Python 包: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
-                '发现 bug 或有功能建议？请提交 issue：\n'
+                '如需报告问题或提出功能建议，请通过以下地址提交 issue：\n'
                 f'{issues_url}\n'
-                '或通过下方联系方式直接与我联系。\n\n'
+                '如需直接联系，请使用下方提供的联系方式。\n\n'
             ),
         },
     }
