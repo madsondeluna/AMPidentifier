@@ -138,10 +138,9 @@ def _wrap_email_html(text_body: str) -> str:
     import html as _html
     escaped = _html.escape(text_body)
     return (
-        '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f5f5f5;">'
-        '<div style="max-width:720px;margin:24px auto;padding:32px;background:#ffffff;'
-        'border:1px solid #e5e5e5;border-radius:6px;">'
-        '<pre style="margin:0;white-space:pre-wrap;word-break:break-word;'
+        '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#ffffff;">'
+        '<div style="max-width:720px;margin:0;padding:24px;background:#ffffff;text-align:left;">'
+        '<pre style="margin:0;text-align:left;white-space:pre-wrap;word-break:break-word;'
         'font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;'
         'font-size:13.5px;line-height:1.55;color:#1a1a1a;">'
         f'{escaped}'
