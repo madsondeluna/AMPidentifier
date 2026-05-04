@@ -992,12 +992,26 @@ def send_recommendation():
     from_addr = os.environ.get('RESEND_FROM_EMAIL', 'AMPidentifier <onboarding@resend.dev>')
     site_url = request.url_root.rstrip('/') + '/'
 
+    issues_url = 'https://github.com/madsondeluna/AMPidentifier/issues'
+
     signature = (
         '----------\n'
-        'Madson A. de Luna Aragao\n'
-        'PhD Student in Bioinformatics @ UFMG | Belo Horizonte, Brazil\n'
-        'madsondeluna@gmail.com | madsondeluna.com | delunalab.dev | linkedin.com/in/madsonaragao\n\n'
-        'Reference: Luna-Aragao et al. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction.\n'
+        'Madson A. de Luna Aragão\n'
+        'PhD Student in Bioinformatics @ UFMG | Belo Horizonte, Brazil\n\n'
+        'Email:     madsondeluna@gmail.com\n'
+        'LinkedIn:  https://www.linkedin.com/in/madsonaragao/\n'
+        'GitHub:    https://github.com/madsondeluna\n'
+        'Portfolio: https://madsondeluna.com/\n'
+        'Lab tools: https://delunalab.dev/\n\n'
+        'Reference: Luna-Aragão et al. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit '
+        'for Antimicrobial Peptide Prediction.\n'
+    )
+
+    metrics_block = (
+        '  AUC-ROC:     0.950\n'
+        '  MCC:         0.742\n'
+        '  Sensitivity: 94.9%\n'
+        '  Specificity: 78.4%\n'
     )
 
     messages = {
@@ -1007,46 +1021,90 @@ def send_recommendation():
                 'If you are receiving this message, it is because someone using AMPidentifier '
                 'thought you might find it useful too.\n\n'
                 'Hi! Hope you are doing well.\n\n'
-                'AMPidentifier is a free tool for predicting antimicrobial peptides (AMPs) from FASTA sequences '
-                'using an ensemble of five machine learning classifiers. It runs directly in the browser '
-                'and requires no installation.\n\n'
-                f'Check it out: {site_url}\n\n'
+                'AMPidentifier is a free, open-source tool for predicting antimicrobial peptides (AMPs) '
+                'from FASTA sequences. It uses a Voting Ensemble of five machine learning classifiers '
+                '(Random Forest, SVM, Gradient Boosting, XGBoost, LightGBM) trained on 22 physicochemical '
+                'and compositional descriptors derived from the primary amino acid sequence.\n\n'
+                'Performance on the independent benchmark set (n = 4,736):\n'
+                f'{metrics_block}\n'
+                'Built with Python, scikit-learn, XGBoost, LightGBM, Flask, and PostgreSQL. '
+                'Runs directly in the browser, no installation required.\n\n'
+                f'Try it: {site_url}\n\n'
+                'Found a bug or have a feature suggestion? Please open an issue at:\n'
+                f'{issues_url}\n'
+                'Or reach out directly using the contacts below.\n\n'
             ),
         },
         'fr': {
-            'subject': 'Quelqu un vous recommande AMPidentifier',
+            'subject': 'Quelqu\'un vous recommande AMPidentifier',
             'body': (
-                'Si vous recevez ce message, c est parce que quelqu un utilisant AMPidentifier '
-                'a pense que cet outil pourrait vous etre utile.\n\n'
-                'Salut! Comment ca va?\n\n'
-                'AMPidentifier est un outil gratuit pour predire les peptides antimicrobiens (AMP) '
-                'a partir de sequences FASTA via un ensemble de cinq classificateurs. '
-                'Il fonctionne directement dans le navigateur, sans installation.\n\n'
-                f'Jette un coup d oeil: {site_url}\n\n'
+                'Si vous recevez ce message, c\'est parce que quelqu\'un utilisant AMPidentifier '
+                'a pensé que cet outil pourrait vous être utile.\n\n'
+                'Salut! Comment ça va?\n\n'
+                'AMPidentifier est un outil gratuit et open-source pour prédire les peptides '
+                'antimicrobiens (AMP) à partir de séquences FASTA. Il utilise un Voting Ensemble '
+                'de cinq classificateurs de machine learning (Random Forest, SVM, Gradient Boosting, '
+                'XGBoost, LightGBM) entraînés sur 22 descripteurs physico-chimiques et compositionnels '
+                'dérivés de la séquence primaire d\'acides aminés.\n\n'
+                'Performance sur le benchmark indépendant (n = 4 736):\n'
+                '  AUC-ROC:      0.950\n'
+                '  MCC:          0.742\n'
+                '  Sensibilité:  94.9%\n'
+                '  Spécificité:  78.4%\n\n'
+                'Construit avec Python, scikit-learn, XGBoost, LightGBM, Flask et PostgreSQL. '
+                'Fonctionne directement dans le navigateur, sans installation.\n\n'
+                f'Essaie-le: {site_url}\n\n'
+                'Tu as trouvé un bug ou une idée de fonctionnalité? Ouvre une issue:\n'
+                f'{issues_url}\n'
+                'Ou contacte-moi directement via les liens ci-dessous.\n\n'
             ),
         },
         'es': {
             'subject': 'Alguien te recomienda AMPidentifier',
             'body': (
-                'Si recibes este mensaje, es porque alguien que usa AMPidentifier '
-                'penso que esta herramienta podria serte util tambien.\n\n'
-                'Hola! Espero que estes bien.\n\n'
-                'AMPidentifier es una herramienta gratuita para predecir peptidos antimicrobianos (AMPs) '
-                'a partir de secuencias FASTA usando un ensemble de cinco clasificadores de machine learning. '
-                'Funciona directamente en el navegador y no requiere instalacion.\n\n'
-                f'Echa un vistazo: {site_url}\n\n'
+                'Si recibes este mensaje, es porque alguien que usa AMPidentifier pensó que '
+                'esta herramienta podría serte útil también.\n\n'
+                '¡Hola! Espero que estés bien.\n\n'
+                'AMPidentifier es una herramienta gratuita y de código abierto para predecir '
+                'péptidos antimicrobianos (AMPs) a partir de secuencias FASTA. Usa un Voting Ensemble '
+                'de cinco clasificadores de machine learning (Random Forest, SVM, Gradient Boosting, '
+                'XGBoost, LightGBM) entrenados con 22 descriptores fisicoquímicos y composicionales '
+                'derivados de la secuencia primaria de aminoácidos.\n\n'
+                'Rendimiento en el benchmark independiente (n = 4.736):\n'
+                '  AUC-ROC:       0.950\n'
+                '  MCC:           0.742\n'
+                '  Sensibilidad:  94.9%\n'
+                '  Especificidad: 78.4%\n\n'
+                'Construido con Python, scikit-learn, XGBoost, LightGBM, Flask y PostgreSQL. '
+                'Funciona directamente en el navegador, sin instalación.\n\n'
+                f'Pruébalo: {site_url}\n\n'
+                '¿Encontraste un bug o tienes una sugerencia? Abre un issue:\n'
+                f'{issues_url}\n'
+                'O contáctame directamente con los datos de abajo.\n\n'
             ),
         },
         'pt': {
-            'subject': 'Alguem te recomenda o AMPidentifier',
+            'subject': 'Alguém te recomenda o AMPidentifier',
             'body': (
-                'Se voce esta recebendo esta mensagem, e porque alguem usando o AMPidentifier '
-                'achou que poderia ser util para voce tambem.\n\n'
-                'Ola! Tudo bem?\n\n'
-                'O AMPidentifier e uma ferramenta gratuita para predizer peptideos antimicrobianos (AMPs) '
-                'a partir de sequencias FASTA usando um ensemble de cinco modelos de machine learning. '
-                'Roda direto no navegador e nao precisa instalar nada.\n\n'
-                f'Da uma olhada: {site_url}\n\n'
+                'Se você está recebendo esta mensagem, é porque alguém usando o AMPidentifier '
+                'achou que poderia ser útil para você também.\n\n'
+                'Olá! Tudo bem?\n\n'
+                'O AMPidentifier é uma ferramenta gratuita e open-source para predizer peptídeos '
+                'antimicrobianos (AMPs) a partir de sequências FASTA. Usa um Voting Ensemble de cinco '
+                'classificadores de machine learning (Random Forest, SVM, Gradient Boosting, XGBoost, '
+                'LightGBM) treinados com 22 descritores físico-químicos e composicionais derivados da '
+                'sequência primária de aminoácidos.\n\n'
+                'Desempenho no benchmark independente (n = 4.736):\n'
+                '  AUC-ROC:        0.950\n'
+                '  MCC:            0.742\n'
+                '  Sensibilidade:  94.9%\n'
+                '  Especificidade: 78.4%\n\n'
+                'Construído com Python, scikit-learn, XGBoost, LightGBM, Flask e PostgreSQL. '
+                'Roda direto no navegador, sem precisar instalar nada.\n\n'
+                f'Dá uma olhada: {site_url}\n\n'
+                'Encontrou algum bug ou tem sugestão de feature? Abre uma issue:\n'
+                f'{issues_url}\n'
+                'Ou fala comigo direto pelos contatos abaixo.\n\n'
             ),
         },
     }
