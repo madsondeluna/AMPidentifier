@@ -51,12 +51,18 @@ def _conn():
     return c
 
 def init_db():
+    seed = {
+        'total_sequences':  int(os.environ.get('STATS_SEQUENCES', 0)),
+        'total_runs':       int(os.environ.get('STATS_RUNS', 0)),
+        'unique_sessions':  int(os.environ.get('STATS_SESSIONS', 0)),
+        'research_groups':  int(os.environ.get('STATS_RESEARCH_GROUPS', 3)),
+    }
     with _db_lock:
         c = _conn()
         c.execute('CREATE TABLE IF NOT EXISTS stats (key TEXT PRIMARY KEY, value INTEGER DEFAULT 0)')
         c.execute('CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY)')
-        for k in ('total_sequences', 'total_runs', 'unique_sessions'):
-            c.execute('INSERT OR IGNORE INTO stats VALUES (?, 0)', (k,))
+        for k, v in seed.items():
+            c.execute('INSERT OR IGNORE INTO stats VALUES (?, ?)', (k, v))
         c.commit()
         c.close()
 
@@ -231,11 +237,11 @@ PAGE = """<!DOCTYPE html>
       </div>
       <div class="stats-item">
         <span class="stats-val" id="statVisitors">—</span>
-        <span class="stats-lbl">unique visitors</span>
+        <span class="stats-lbl">unique users</span>
       </div>
       <div class="stats-item">
-        <span class="stats-val">3</span>
-        <span class="stats-lbl">research groups using as main tool</span>
+        <span class="stats-val" id="statGroups">—</span>
+        <span class="stats-lbl">research groups using as main tool for AMP prediction</span>
       </div>
     </div>
   </div>
@@ -293,6 +299,7 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
         <div class="logo-row">
           <img src="/img/dqf.png"   alt="Departamento de Química Fundamental" style="height:36px;">
           <img src="/img/dgen.jpeg" alt="Departamento de Genética"            style="height:36px;">
+          <img src="/img/icb.png"   alt="Instituto de Ciências Biológicas"    style="height:36px;">
         </div>
       </div>
       <div class="logo-group">
@@ -371,6 +378,7 @@ async function loadStats() {
     set('statSeq',      d.total_sequences);
     set('statRuns',     d.total_runs);
     set('statVisitors', d.unique_sessions);
+    set('statGroups',   d.research_groups);
   } catch(e) {}
 }
 loadStats();
