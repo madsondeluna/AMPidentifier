@@ -169,10 +169,11 @@ PAGE = """<!DOCTYPE html>
   .sub { font-size: 0.78rem; color: #888; margin-bottom: 10px; }
   .stats-section { margin-top: 12px; margin-bottom: 16px; text-align: center; }
   .stats-section-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
-  .stats-grid { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 20px 32px; }
-  .stats-item { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+  .stats-grid { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 20px 32px; }
+  .stats-item { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; }
   .stats-val { font-size: 1.8rem; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; line-height: 1; flex-shrink: 0; }
   .stats-lbl { font-size: 0.62rem; color: #bbb; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; max-width: 120px; line-height: 1.3; }
+  .stats-item.wide .stats-lbl { max-width: 160px; }
   .notice { font-size: 0.75rem; color: #999; border-left: 2px solid #ddd; padding: 6px 12px; margin-bottom: 18px; line-height: 1.6; }
   .notice a { color: #555; text-decoration: underline; }
   .notice a:hover { color: #111; }
@@ -330,6 +331,16 @@ PAGE = """<!DOCTYPE html>
     font-size: 0.72rem; color: #059669; background: #f0fdf4; border: 1px solid #bbf7d0;
     border-radius: 4px; padding: 7px 12px; margin-top: 12px; word-break: break-all; display: none;
   }
+  .share-form { display: none; margin-top: 12px; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .share-form.open { display: flex; }
+  .share-form input {
+    flex: 1; min-width: 220px; padding: 8px 12px; border: 1px solid #d0d0d0;
+    border-radius: 4px; font-family: 'Roboto Mono', monospace; font-size: 0.78rem;
+    background: #fff; color: #1a1a1a;
+  }
+  .share-form input:focus { border-color: #1a1a1a; outline: none; }
+  .share-form-status { font-size: 0.72rem; min-height: 16px; flex-basis: 100%; }
+  .share-form-status .err { color: #dc2626; }
 </style>
 </head>
 <body>
@@ -361,7 +372,7 @@ PAGE = """<!DOCTYPE html>
         <span class="stats-val" id="statVisitors">—</span>
         <span class="stats-lbl">unique users</span>
       </div>
-      <div class="stats-item">
+      <div class="stats-item wide">
         <span class="stats-val" id="statGroups">—</span>
         <span class="stats-lbl">research groups using as main tool for AMP prediction</span>
       </div>
@@ -376,10 +387,15 @@ PAGE = """<!DOCTYPE html>
       </div>
       <div class="share-actions">
         <button class="share-btn copy-btn" onclick="copyLink()" id="copyLinkBtn">Copy link</button>
-        <button class="share-btn gmail-btn" onclick="shareByEmail()">Share by email</button>
+        <button class="share-btn gmail-btn" onclick="toggleShareForm()" id="shareEmailBtn">Share by email</button>
       </div>
     </div>
     <div class="share-url-box" id="shareUrlBox"></div>
+    <div class="share-form" id="shareForm">
+      <input type="email" id="shareFriendEmail" placeholder="friend@example.com">
+      <button class="share-btn copy-btn" onclick="sendShareEmail()" id="sendShareBtn">Send</button>
+      <div class="share-form-status" id="shareFormStatus"></div>
+    </div>
   </div>
 
   <p class="notice">For advanced parameter control use the <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a> or install via <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>: <code style="background:#f0f0f0;color:#444;padding:2px 8px;border-radius:4px;font-size:0.85em;">pip install ampidentifier</code></p>
@@ -797,43 +813,41 @@ function copyLink() {
   });
 }
 
-function shareByEmail() {
-  const url = window.location.origin + '/';
-  const subject = encodeURIComponent('I want you to meet AMPidentifier! / Je veux te presenter AMPidentifier! / Quero te apresentar o AMPidentifier!');
-  const body = encodeURIComponent(
-    'If you are receiving this message, it is because a friend used AMPidentifier and thought you might find it useful too.\\n\\n' +
-    'Hi! Hope you are doing well.\\n\\n' +
-    'I wanted to share a tool I have been using in my research: AMPidentifier. ' +
-    'It predicts antimicrobial peptides (AMPs) from FASTA sequences using an ensemble of five machine learning classifiers. ' +
-    'It is free, runs directly in the browser, and requires no installation.\\n\\n' +
-    'Check it out: ' + url + '\\n\\n' +
-    'If you have any questions getting started, feel free to reach out to me directly!\\n\\n' +
-    '---\\n\\n' +
-    'Si vous recevez ce message, c est parce qu un ami a utilise AMPidentifier et a pense que cet outil pourrait vous etre utile.\\n\\n' +
-    'Salut! Comment ca va?\\n\\n' +
-    'Je voulais te parler d un outil que j utilise dans mes recherches: AMPidentifier. ' +
-    'Il predit les peptides antimicrobiens (AMP) a partir de sequences FASTA via un ensemble de cinq classificateurs. ' +
-    'C est gratuit, ca fonctionne directement dans le navigateur, sans aucune installation.\\n\\n' +
-    'Jette un coup d oeil: ' + url + '\\n\\n' +
-    'Si tu as des questions pour commencer, contacte-moi directement, je serai heureux de t aider!\\n\\n' +
-    '---\\n\\n' +
-    'Se voce esta recebendo esta mensagem, e porque um amigo seu usou o AMPidentifier e achou que poderia ser util para voce tambem.\\n\\n' +
-    'Ola! Tudo bem?\\n\\n' +
-    'Queria te contar sobre uma ferramenta que tenho usado nas minhas pesquisas: o AMPidentifier. ' +
-    'Ele prediz peptideos antimicrobianos (AMPs) a partir de sequencias FASTA usando um ensemble de cinco modelos de machine learning. ' +
-    'E gratuito, roda direto no navegador e nao precisa instalar nada.\\n\\n' +
-    'Da uma olhada: ' + url + '\\n\\n' +
-    'Se tiver qualquer duvida para comecar a usar, pode falar comigo diretamente que te ajudo!\\n\\n' +
-    '---\\n' +
-    'Madson A. de Luna Aragao\\n' +
-    'PhD Student in Bioinformatics @ UFMG | Belo Horizonte, Brazil\\n' +
-    'madsondeluna@gmail.com | madsondeluna.com | delunalab.dev | linkedin.com/in/madsonaragao\\n\\n' +
-    'Reference: Luna-Aragao et al. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction.\\n'
-  );
-  window.open(
-    'https://mail.google.com/mail/?view=cm&fs=1&su=' + subject + '&body=' + body,
-    '_blank', 'noopener,noreferrer'
-  );
+function toggleShareForm() {
+  const form = document.getElementById('shareForm');
+  const opening = !form.classList.contains('open');
+  form.classList.toggle('open');
+  if (opening) document.getElementById('shareFriendEmail').focus();
+}
+
+async function sendShareEmail() {
+  const email = document.getElementById('shareFriendEmail').value.trim();
+  const status = document.getElementById('shareFormStatus');
+  const btn = document.getElementById('sendShareBtn');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    status.innerHTML = '<span class="err">Enter a valid email.</span>';
+    return;
+  }
+  btn.disabled = true;
+  status.style.color = '#999';
+  status.textContent = 'Sending...';
+  try {
+    const fd = new FormData();
+    fd.append('to_email', email);
+    const res = await fetch('/send_recommendation', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.ok) {
+      status.style.color = '#059669';
+      status.textContent = 'Recommendation sent to ' + email;
+      document.getElementById('shareFriendEmail').value = '';
+    } else {
+      status.innerHTML = '<span class="err">' + (data.error || 'Failed to send.') + '</span>';
+    }
+  } catch (e) {
+    status.innerHTML = '<span class="err">' + e.message + '</span>';
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 function openFeedback() {
@@ -939,6 +953,86 @@ def send_csv():
         return jsonify({'ok': False, 'error': f'Resend {e.code}: {msg}'}), 500
     except Exception as e:
         app.logger.exception('send_csv failed')
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+
+@app.route('/send_recommendation', methods=['POST'])
+def send_recommendation():
+    api_key = os.environ.get('RESEND_API_KEY', '')
+    if not api_key:
+        return jsonify({'ok': False, 'error': 'Email service not configured.'}), 503
+
+    to_email = request.form.get('to_email', '').strip()
+    if not to_email or '@' not in to_email:
+        return jsonify({'ok': False, 'error': 'Invalid email address.'}), 400
+
+    from_addr = os.environ.get('RESEND_FROM_EMAIL', 'AMPidentifier <onboarding@resend.dev>')
+    site_url = request.url_root.rstrip('/') + '/'
+
+    subject = 'Someone recommends AMPidentifier to you'
+    body = (
+        'If you are receiving this message, it is because someone using AMPidentifier '
+        'thought you might find it useful too.\n\n'
+        'Hi! Hope you are doing well.\n\n'
+        'AMPidentifier is a free tool for predicting antimicrobial peptides (AMPs) from FASTA sequences '
+        'using an ensemble of five machine learning classifiers. It runs directly in the browser and requires no installation.\n\n'
+        f'Check it out: {site_url}\n\n'
+        '----------\n\n'
+        'Si vous recevez ce message, c est parce que quelqu un utilisant AMPidentifier '
+        'a pense que cet outil pourrait vous etre utile.\n\n'
+        'Salut! Comment ca va?\n\n'
+        'AMPidentifier est un outil gratuit pour predire les peptides antimicrobiens (AMP) a partir '
+        'de sequences FASTA via un ensemble de cinq classificateurs. Il fonctionne directement dans le navigateur, sans installation.\n\n'
+        f'Jette un coup d oeil: {site_url}\n\n'
+        '----------\n\n'
+        'Se voce esta recebendo esta mensagem, e porque alguem usando o AMPidentifier '
+        'achou que poderia ser util para voce tambem.\n\n'
+        'Ola! Tudo bem?\n\n'
+        'O AMPidentifier e uma ferramenta gratuita para predizer peptideos antimicrobianos (AMPs) '
+        'a partir de sequencias FASTA usando um ensemble de cinco modelos de machine learning. '
+        'Roda direto no navegador e nao precisa instalar nada.\n\n'
+        f'Da uma olhada: {site_url}\n\n'
+        '----------\n'
+        'Madson A. de Luna Aragao\n'
+        'PhD Student in Bioinformatics @ UFMG | Belo Horizonte, Brazil\n'
+        'madsondeluna@gmail.com | madsondeluna.com | delunalab.dev | linkedin.com/in/madsonaragao\n\n'
+        'Reference: Luna-Aragao et al. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction.\n'
+    )
+
+    payload = json.dumps({
+        'from': from_addr,
+        'to': [to_email],
+        'reply_to': 'madsondeluna@gmail.com',
+        'subject': subject,
+        'text': body,
+    }).encode('utf-8')
+
+    try:
+        req = urllib.request.Request(
+            'https://api.resend.com/emails',
+            data=payload,
+            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+            method='POST',
+        )
+        with urllib.request.urlopen(req) as resp:
+            resp.read()
+        return jsonify({'ok': True})
+    except urllib.error.HTTPError as e:
+        raw = ''
+        try:
+            raw = e.read().decode('utf-8', errors='replace')
+        except Exception:
+            pass
+        msg = ''
+        try:
+            data = json.loads(raw) if raw else {}
+            msg = data.get('message') or data.get('error') or raw
+        except Exception:
+            msg = raw or str(e)
+        app.logger.error(f'Resend HTTP {e.code}: {raw}')
+        return jsonify({'ok': False, 'error': f'Resend {e.code}: {msg}'}), 500
+    except Exception as e:
+        app.logger.exception('send_recommendation failed')
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 
