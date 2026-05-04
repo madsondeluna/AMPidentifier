@@ -153,6 +153,11 @@ EMAIL_FOOTER = {
         'Esta é uma mensagem automática, você não precisa responder.\n'
         'Seus dados são transmitidos com criptografia TLS de ponta a ponta.\n'
     ),
+    'zh': (
+        '\n'
+        '这是一封自动邮件，您无需回复。\n'
+        '您的数据通过端到端 TLS 加密传输。\n'
+    ),
 }
 
 
@@ -511,6 +516,7 @@ PAGE = """<!DOCTYPE html>
         <option value="fr">FR</option>
         <option value="es">ES</option>
         <option value="pt">PT</option>
+        <option value="zh">ZH</option>
       </select>
       <input type="email" id="shareFriendEmail" placeholder="friend@example.com">
       <button class="share-btn copy-btn" onclick="sendShareEmail()" id="sendShareBtn">Send</button>
@@ -836,6 +842,7 @@ function renderResults(data) {
             '<option value="fr">FR</option>' +
             '<option value="es">ES</option>' +
             '<option value="pt">PT</option>' +
+            '<option value="zh">ZH</option>' +
           '</select>' +
         '</div>' +
         '<div class="email-csv-field">' +
@@ -1054,7 +1061,7 @@ def send_csv():
     except ValueError:
         total, amps = 0, 0
     non_amps = max(total - amps, 0)
-    if lang not in ('en', 'fr', 'es', 'pt'):
+    if lang not in ('en', 'fr', 'es', 'pt', 'zh'):
         lang = 'en'
 
     if not to_email or '@' not in to_email:
@@ -1169,6 +1176,28 @@ def send_csv():
                 f'{ISSUES_URL}\n\n'
             ),
         },
+        'zh': {
+            'subject': '[AMPidentifier] 您的预测结果',
+            'body': (
+                '您好！\n\n'
+                '您的 AMPidentifier 分析已完成。包含完整结果的 CSV 文件已附在此邮件中。\n\n'
+                '分析摘要：\n'
+                f'日期/时间: **{timestamp}**\n'
+                f'使用模型: **{model_label}**\n'
+                f'总数: **{total} 个序列**\n'
+                f'预测为 AMP: **{amps}**\n'
+                f'非 AMP: **{non_amps}**\n\n'
+                '解释说明：\n'
+                '预测基于从氨基酸主序列衍生的 22 个理化和组成描述符计算。为获得更高的预测能力，'
+                'Voting Ensemble 模式（RF + SVM + GB + XGB + LGBM）通过 soft voting 组合五个独立分类器，'
+                '在独立基准集（n = 4,736）上达到 AUC-ROC 0.950、MCC 0.742、敏感度 94.9%、特异度 78.4%。'
+                '请注意，主要功能不是抗菌活性的蛋白质仍可能在特定序列区域具有潜在的抗菌特征。'
+                '完整基准请参见 Luna-Aragão et al. (2026)。\n\n'
+                f'进行新的分析: {site_url}\n\n'
+                '发现 bug 或有功能建议？请提交 issue：\n'
+                f'{ISSUES_URL}\n\n'
+            ),
+        },
     }
 
     subject = messages[lang]['subject']
@@ -1229,7 +1258,7 @@ def send_recommendation():
 
     to_email = request.form.get('to_email', '').strip()
     lang = request.form.get('lang', 'en').strip().lower()
-    if lang not in ('en', 'fr', 'es', 'pt'):
+    if lang not in ('en', 'fr', 'es', 'pt', 'zh'):
         lang = 'en'
     if not to_email or '@' not in to_email:
         return jsonify({'ok': False, 'error': 'Invalid email address.'}), 400
@@ -1350,6 +1379,30 @@ def send_recommendation():
                 'Encontrou algum bug ou tem sugestão de feature? Abre uma issue:\n'
                 f'{issues_url}\n'
                 'Ou fala comigo direto pelos contatos abaixo.\n\n'
+            ),
+        },
+        'zh': {
+            'subject': '有人向您推荐 AMPidentifier',
+            'body': (
+                '如果您收到此消息，是因为有 AMPidentifier 的用户认为这个工具可能对您有用。\n\n'
+                '您好！希望您一切顺利。\n\n'
+                'AMPidentifier 是一款免费的开源工具，用于从 FASTA 序列预测抗菌肽（AMPs）。'
+                '它使用五个机器学习分类器（Random Forest、SVM、Gradient Boosting、XGBoost、LightGBM）的'
+                ' Voting Ensemble，基于从氨基酸主序列衍生的 22 个理化和组成描述符进行训练。\n\n'
+                '官方指标：\n'
+                'AUC-ROC: **0.950**\n'
+                'MCC: **0.742**\n'
+                '敏感度（Sensitivity）: **94.9%**\n'
+                '特异度（Specificity）: **78.4%**\n\n'
+                '使用 Python、scikit-learn、XGBoost、LightGBM、Flask 和 PostgreSQL 构建。'
+                '直接在浏览器中运行，无需安装。\n\n'
+                '提供三种格式：\n'
+                f'Web: {site_url}\n'
+                'CLI / repo: https://github.com/madsondeluna/AMPidentifier\n'
+                'Python 包: pip install ampidentifier (https://pypi.org/project/ampidentifier/)\n\n'
+                '发现 bug 或有功能建议？请提交 issue：\n'
+                f'{issues_url}\n'
+                '或通过下方联系方式直接与我联系。\n\n'
             ),
         },
     }
