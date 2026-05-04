@@ -12,6 +12,7 @@ import tempfile
 import threading
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 import uuid
 
 from flask import Flask, make_response, request, jsonify, render_template_string
@@ -109,6 +110,32 @@ def get_stats():
 app = Flask(__name__, static_folder='img', static_url_path='/img')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 init_db()
+
+ISSUES_URL = 'https://github.com/madsondeluna/AMPidentifier/issues'
+
+EMAIL_SIGNATURE = (
+    '----------\n'
+    'Madson A. de Luna Aragão\n'
+    'PhD Student in Bioinformatics @ UFMG | Belo Horizonte, Brazil\n\n'
+    'Email:     madsondeluna@gmail.com\n'
+    'LinkedIn:  https://www.linkedin.com/in/madsonaragao/\n'
+    'GitHub:    https://github.com/madsondeluna\n'
+    'Portfolio: https://madsondeluna.com/\n'
+    'Lab tools: https://delunalab.dev/\n\n'
+    'Reference: de Luna-Aragão, M. A., da Silva, R. L., Pacifico Bezerra Neto, J., '
+    'dos Santos-Silva, C. A., da Silva Santos, D. E., & Benko-Iseppon, A. M. (2026). '
+    'AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction. '
+    'https://github.com/madsondeluna/AMPidentifier\n'
+)
+
+MODEL_LABELS = {
+    'voting': 'Voting Ensemble (RF + SVM + GB + XGB + LGBM)',
+    'rf': 'Random Forest',
+    'svm': 'SVM',
+    'gb': 'Gradient Boosting',
+    'xgb': 'XGBoost',
+    'lgbm': 'LightGBM',
+}
 
 PAGE = """<!DOCTYPE html>
 <html lang="en">
@@ -284,12 +311,20 @@ PAGE = """<!DOCTYPE html>
   .email-csv-desc { font-size: 0.72rem; color: #aaa; margin-top: 3px; }
   .email-csv-desc strong { color: #059669; font-weight: normal; }
   .email-csv-fields {
-    display: grid; grid-template-columns: 1fr auto; gap: 10px;
+    display: grid; grid-template-columns: auto 1fr auto; gap: 10px;
     align-items: end; margin-top: 14px;
   }
   @media (max-width: 540px) {
     .email-csv-fields { grid-template-columns: 1fr; }
   }
+  .email-csv-field select {
+    background: #fff; border: 1px solid #e0e0e0; color: #1a1a1a;
+    font-family: 'Roboto Mono', monospace; font-size: 0.8rem; padding: 9px 28px 9px 11px;
+    border-radius: 4px; outline: none; cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23666' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .email-csv-field select:focus { border-color: #aaa; }
   .email-csv-field label {
     font-size: 0.65rem; color: #bbb; text-transform: uppercase; letter-spacing: 0.07em;
     display: block; margin-bottom: 5px;
@@ -523,6 +558,7 @@ const EXAMPLE = [
 
 const VALID_AA = /^[ACDEFGHIKLMNPQRSTVWYBXZUOJ*-]+$/i;
 let lastData = null;
+let lastModel = null;
 
 async function checkServerStatus() {
   const dot = document.getElementById('statusDot');
@@ -613,6 +649,7 @@ function clearAll() {
   document.getElementById('validationErr').textContent = '';
   document.getElementById('fileInput').value = '';
   lastData = null;
+  lastModel = null;
 }
 
 async function runPrediction() {
@@ -639,6 +676,7 @@ async function runPrediction() {
       status.innerHTML = '<span class="err">Error: ' + data.error + '</span>';
     } else {
       lastData = data.predictions;
+      lastModel = data.model;
       status.textContent = '';
       renderResults(data);
       loadStats();
@@ -719,6 +757,15 @@ function renderResults(data) {
       '</div>' +
       '<div class="email-csv-fields">' +
         '<div class="email-csv-field">' +
+          '<label for="csvEmailLang">Lang</label>' +
+          '<select id="csvEmailLang">' +
+            '<option value="en">EN</option>' +
+            '<option value="fr">FR</option>' +
+            '<option value="es">ES</option>' +
+            '<option value="pt">PT</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="email-csv-field">' +
           '<label for="csvEmail">Your email</label>' +
           '<input type="email" id="csvEmail" placeholder="you@example.com">' +
         '</div>' +
@@ -777,8 +824,9 @@ function copyTable() {
 }
 
 async function sendCsvByEmail() {
-  if (!lastData) return;
+  if (!lastData || !lastModel) return;
   const email = document.getElementById('csvEmail').value.trim();
+  const lang  = document.getElementById('csvEmailLang').value;
   const status = document.getElementById('emailCsvStatus');
   const btn = document.getElementById('sendCsvBtn');
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -790,6 +838,9 @@ async function sendCsvByEmail() {
     keys.join(','),
     ...lastData.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))
   ].join('\\n');
+  const total = lastData.length;
+  const amps  = lastData.filter(r => (r.prediction || r.label || '').toString().toLowerCase().includes('amp')
+                                  && !(r.prediction || r.label || '').toString().toLowerCase().includes('non')).length;
   btn.disabled = true;
   status.style.color = '#999';
   status.textContent = 'Sending...';
@@ -797,6 +848,10 @@ async function sendCsvByEmail() {
     const form = new FormData();
     form.append('to_email', email);
     form.append('csv_data', csv);
+    form.append('lang',  lang);
+    form.append('model', lastModel);
+    form.append('total', total);
+    form.append('amps',  amps);
     const res = await fetch('/send_csv', { method: 'POST', body: form });
     const data = await res.json();
     if (data.ok) {
@@ -919,6 +974,16 @@ def send_csv():
 
     to_email = request.form.get('to_email', '').strip()
     csv_data = request.form.get('csv_data', '').strip()
+    lang     = request.form.get('lang', 'en').strip().lower()
+    model    = request.form.get('model', 'voting').strip().lower()
+    try:
+        total = int(request.form.get('total', '0'))
+        amps  = int(request.form.get('amps',  '0'))
+    except ValueError:
+        total, amps = 0, 0
+    non_amps = max(total - amps, 0)
+    if lang not in ('en', 'fr', 'es', 'pt'):
+        lang = 'en'
 
     if not to_email or '@' not in to_email:
         return jsonify({'ok': False, 'error': 'Invalid email address.'}), 400
@@ -926,16 +991,123 @@ def send_csv():
         return jsonify({'ok': False, 'error': 'No data to send.'}), 400
 
     from_addr = os.environ.get('RESEND_FROM_EMAIL', 'AMPidentifier <onboarding@resend.dev>')
+    site_url = request.url_root.rstrip('/') + '/'
+    timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+    model_label = MODEL_LABELS.get(model, model)
+
+    messages = {
+        'en': {
+            'subject': '[AMPidentifier] Your prediction results',
+            'body': (
+                'Hi!\n\n'
+                'Your AMPidentifier analysis is complete. The CSV file with the full results is attached.\n\n'
+                'Analysis summary:\n'
+                f'  Date/time:     {timestamp}\n'
+                f'  Model used:    {model_label}\n'
+                f'  Total:         {total} sequence(s)\n'
+                f'  Predicted AMP: {amps}\n'
+                f'  Non-AMP:       {non_amps}\n\n'
+                'Interpretation note:\n'
+                'Predictions are computed from 22 physicochemical and compositional descriptors '
+                'derived from the primary amino acid sequence. For higher predictive power, the '
+                'Voting Ensemble mode (RF + SVM + GB + XGB + LGBM) combines five independent '
+                'classifiers by soft voting and achieves AUC-ROC 0.950, MCC 0.742, Sensitivity 94.9%, '
+                'and Specificity 78.4% on the independent benchmark set (n = 4,736). Bear in mind '
+                'that proteins whose primary function is not antimicrobial activity may still '
+                'harbour potential antimicrobial features in specific sequence regions. A full '
+                'benchmark is available in Luna-Aragão et al. (2026).\n\n'
+                f'Run another analysis: {site_url}\n\n'
+                'Found a bug or have a feature suggestion? Open an issue:\n'
+                f'{ISSUES_URL}\n\n'
+            ),
+        },
+        'fr': {
+            'subject': '[AMPidentifier] Vos résultats de prédiction',
+            'body': (
+                'Salut!\n\n'
+                'Votre analyse AMPidentifier est terminée. Le fichier CSV avec les résultats complets est en pièce jointe.\n\n'
+                'Résumé de l\'analyse:\n'
+                f'  Date/heure:    {timestamp}\n'
+                f'  Modèle utilisé:{model_label}\n'
+                f'  Total:         {total} séquence(s)\n'
+                f'  AMP prédit:    {amps}\n'
+                f'  Non-AMP:       {non_amps}\n\n'
+                'Note d\'interprétation:\n'
+                'Les prédictions sont calculées à partir de 22 descripteurs physico-chimiques et '
+                'compositionnels dérivés de la séquence primaire d\'acides aminés. Pour une meilleure '
+                'puissance prédictive, le mode Voting Ensemble (RF + SVM + GB + XGB + LGBM) combine '
+                'cinq classificateurs indépendants par soft voting et atteint AUC-ROC 0.950, MCC 0.742, '
+                'Sensibilité 94.9% et Spécificité 78.4% sur le benchmark indépendant (n = 4 736). '
+                'Tenez compte que des protéines dont la fonction principale n\'est pas l\'activité '
+                'antimicrobienne peuvent encore présenter des caractéristiques antimicrobiennes '
+                'potentielles dans des régions spécifiques. Le benchmark complet est disponible dans '
+                'Luna-Aragão et al. (2026).\n\n'
+                f'Faire une autre analyse: {site_url}\n\n'
+                'Bug ou idée de fonctionnalité? Ouvre une issue:\n'
+                f'{ISSUES_URL}\n\n'
+            ),
+        },
+        'es': {
+            'subject': '[AMPidentifier] Tus resultados de predicción',
+            'body': (
+                '¡Hola!\n\n'
+                'Tu análisis en AMPidentifier está completo. El archivo CSV con los resultados completos está adjunto.\n\n'
+                'Resumen del análisis:\n'
+                f'  Fecha/hora:     {timestamp}\n'
+                f'  Modelo usado:   {model_label}\n'
+                f'  Total:          {total} secuencia(s)\n'
+                f'  AMP predicho:   {amps}\n'
+                f'  No-AMP:         {non_amps}\n\n'
+                'Nota de interpretación:\n'
+                'Las predicciones se calculan a partir de 22 descriptores fisicoquímicos y composicionales '
+                'derivados de la secuencia primaria de aminoácidos. Para mayor poder predictivo, el modo '
+                'Voting Ensemble (RF + SVM + GB + XGB + LGBM) combina cinco clasificadores independientes '
+                'mediante soft voting y alcanza AUC-ROC 0.950, MCC 0.742, Sensibilidad 94.9% y '
+                'Especificidad 78.4% en el benchmark independiente (n = 4.736). Ten en cuenta que '
+                'proteínas cuya función principal no es la actividad antimicrobiana aún pueden albergar '
+                'características antimicrobianas potenciales en regiones específicas de la secuencia. '
+                'El benchmark completo está disponible en Luna-Aragão et al. (2026).\n\n'
+                f'Realizar otro análisis: {site_url}\n\n'
+                '¿Bug o sugerencia de feature? Abre un issue:\n'
+                f'{ISSUES_URL}\n\n'
+            ),
+        },
+        'pt': {
+            'subject': '[AMPidentifier] Seus resultados de predição',
+            'body': (
+                'Olá!\n\n'
+                'Sua análise no AMPidentifier está completa. O arquivo CSV com os resultados completos está anexado.\n\n'
+                'Resumo da análise:\n'
+                f'  Data/hora:    {timestamp}\n'
+                f'  Modelo:       {model_label}\n'
+                f'  Total:        {total} sequência(s)\n'
+                f'  AMP previsto: {amps}\n'
+                f'  Não-AMP:      {non_amps}\n\n'
+                'Nota de interpretação:\n'
+                'As predições são computadas a partir de 22 descritores físico-químicos e composicionais '
+                'derivados da sequência primária de aminoácidos. Para maior poder preditivo, o modo '
+                'Voting Ensemble (RF + SVM + GB + XGB + LGBM) combina cinco classificadores independentes '
+                'por soft voting e atinge AUC-ROC 0,950, MCC 0,742, Sensibilidade 94,9% e Especificidade '
+                '78,4% no conjunto benchmark independente (n = 4.736). Tenha em mente que proteínas cuja '
+                'função primária não é a atividade antimicrobiana ainda podem abrigar características '
+                'antimicrobianas potenciais em regiões específicas da sequência. O benchmark completo '
+                'está disponível em Luna-Aragão et al. (2026).\n\n'
+                f'Faça uma nova análise: {site_url}\n\n'
+                'Encontrou algum bug ou tem sugestão de feature? Abre uma issue:\n'
+                f'{ISSUES_URL}\n\n'
+            ),
+        },
+    }
+
+    subject = messages[lang]['subject']
+    body = messages[lang]['body'] + EMAIL_SIGNATURE
+
     payload = json.dumps({
         'from': from_addr,
         'to': [to_email],
-        'subject': '[AMPidentifier] Your prediction results',
-        'text': (
-            'Your AMPidentifier prediction results are attached as a CSV file.\n\n'
-            '--\n'
-            'AMPidentifier - Ensemble Machine Learning for AMP Prediction\n'
-            'Luna-Aragao et al. (2026)\n'
-        ),
+        'reply_to': 'madsondeluna@gmail.com',
+        'subject': subject,
+        'text': body,
         'attachments': [{
             'filename': 'ampidentifier_results.csv',
             'content': base64.b64encode(csv_data.encode('utf-8')).decode('ascii'),
@@ -992,22 +1164,8 @@ def send_recommendation():
     from_addr = os.environ.get('RESEND_FROM_EMAIL', 'AMPidentifier <onboarding@resend.dev>')
     site_url = request.url_root.rstrip('/') + '/'
 
-    issues_url = 'https://github.com/madsondeluna/AMPidentifier/issues'
-
-    signature = (
-        '----------\n'
-        'Madson A. de Luna Aragão\n'
-        'PhD Student in Bioinformatics @ UFMG | Belo Horizonte, Brazil\n\n'
-        'Email:     madsondeluna@gmail.com\n'
-        'LinkedIn:  https://www.linkedin.com/in/madsonaragao/\n'
-        'GitHub:    https://github.com/madsondeluna\n'
-        'Portfolio: https://madsondeluna.com/\n'
-        'Lab tools: https://delunalab.dev/\n\n'
-        'Reference: de Luna-Aragão, M. A., da Silva, R. L., Pacifico Bezerra Neto, J., '
-        'dos Santos-Silva, C. A., da Silva Santos, D. E., & Benko-Iseppon, A. M. (2026). '
-        'AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction. '
-        'https://github.com/madsondeluna/AMPidentifier\n'
-    )
+    issues_url = ISSUES_URL
+    signature = EMAIL_SIGNATURE
 
     metrics_block = (
         '  AUC-ROC:     0.950\n'
