@@ -132,6 +132,34 @@ EMAIL_SIGNATURE = (
 )
 
 
+EMAIL_FOOTER = {
+    'en': (
+        '\n'
+        '----------------------------------------------------------------------\n'
+        'This is an automated message, you do not need to reply.\n'
+        'Your data is transmitted with end-to-end TLS encryption.\n'
+    ),
+    'fr': (
+        '\n'
+        '----------------------------------------------------------------------\n'
+        'Ceci est un message automatique, vous n\'avez pas besoin de répondre.\n'
+        'Vos données sont transmises avec chiffrement TLS de bout en bout.\n'
+    ),
+    'es': (
+        '\n'
+        '----------------------------------------------------------------------\n'
+        'Este es un mensaje automático, no es necesario responder.\n'
+        'Tus datos se transmiten con cifrado TLS de extremo a extremo.\n'
+    ),
+    'pt': (
+        '\n'
+        '----------------------------------------------------------------------\n'
+        'Esta é uma mensagem automática, você não precisa responder.\n'
+        'Seus dados são transmitidos com criptografia TLS de ponta a ponta.\n'
+    ),
+}
+
+
 def _wrap_email_html(text_body: str) -> str:
     """Wrap a plain-text email body in HTML using <pre> so monospace
     alignment is preserved consistently across all clients."""
@@ -1119,7 +1147,7 @@ def send_csv():
     }
 
     subject = messages[lang]['subject']
-    body = messages[lang]['body'] + EMAIL_SIGNATURE
+    body = messages[lang]['body'] + EMAIL_SIGNATURE + EMAIL_FOOTER[lang]
 
     payload = json.dumps({
         'from': from_addr,
@@ -1302,7 +1330,7 @@ def send_recommendation():
     }
 
     subject = messages[lang]['subject']
-    body = messages[lang]['body'] + signature
+    body = messages[lang]['body'] + signature + EMAIL_FOOTER[lang]
 
     payload = json.dumps({
         'from': from_addr,
