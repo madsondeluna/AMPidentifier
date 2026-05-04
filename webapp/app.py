@@ -114,19 +114,39 @@ init_db()
 ISSUES_URL = 'https://github.com/madsondeluna/AMPidentifier/issues'
 
 EMAIL_SIGNATURE = (
-    '----------\n'
+    '----------------------------------------------------------------------\n'
     'Madson A. de Luna Aragão\n'
-    'PhD Student in Bioinformatics @ UFMG | Belo Horizonte, Brazil\n\n'
-    'Email:     madsondeluna@gmail.com\n'
-    'LinkedIn:  https://www.linkedin.com/in/madsonaragao/\n'
-    'GitHub:    https://github.com/madsondeluna\n'
-    'Portfolio: https://madsondeluna.com/\n'
-    'Lab tools: https://delunalab.dev/\n\n'
-    'Reference: de Luna-Aragão, M. A., da Silva, R. L., Pacifico Bezerra Neto, J., '
-    'dos Santos-Silva, C. A., da Silva Santos, D. E., & Benko-Iseppon, A. M. (2026). '
-    'AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction. '
-    'https://github.com/madsondeluna/AMPidentifier\n'
+    'PhD Student in Bioinformatics @ UFMG | Belo Horizonte, Brazil\n'
+    '\n'
+    '  Email     :  madsondeluna@gmail.com\n'
+    '  LinkedIn  :  https://www.linkedin.com/in/madsonaragao/\n'
+    '  GitHub    :  https://github.com/madsondeluna\n'
+    '  Portfolio :  https://madsondeluna.com/\n'
+    '  Lab tools :  https://delunalab.dev/\n'
+    '\n'
+    'Reference: de Luna-Aragão, M. A., da Silva, R. L., Pacifico Bezerra Neto, J.,\n'
+    '           dos Santos-Silva, C. A., da Silva Santos, D. E., & Benko-Iseppon,\n'
+    '           A. M. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit\n'
+    '           for Antimicrobial Peptide Prediction.\n'
+    '           https://github.com/madsondeluna/AMPidentifier\n'
 )
+
+
+def _wrap_email_html(text_body: str) -> str:
+    """Wrap a plain-text email body in HTML using <pre> so monospace
+    alignment is preserved consistently across all clients."""
+    import html as _html
+    escaped = _html.escape(text_body)
+    return (
+        '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f5f5f5;">'
+        '<div style="max-width:720px;margin:24px auto;padding:32px;background:#ffffff;'
+        'border:1px solid #e5e5e5;border-radius:6px;">'
+        '<pre style="margin:0;white-space:pre-wrap;word-break:break-word;'
+        'font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;'
+        'font-size:13.5px;line-height:1.55;color:#1a1a1a;">'
+        f'{escaped}'
+        '</pre></div></body></html>'
+    )
 
 MODEL_LABELS = {
     'voting': 'Voting Ensemble (RF + SVM + GB + XGB + LGBM)',
@@ -196,9 +216,9 @@ PAGE = """<!DOCTYPE html>
   .sub { font-size: 0.78rem; color: #888; margin-bottom: 10px; }
   .stats-section { margin-top: 12px; margin-bottom: 16px; text-align: center; }
   .stats-section-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 16px; align-items: start; justify-items: center; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 16px; align-items: center; justify-items: center; }
   @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-  .stats-item { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; }
+  .stats-item { display: flex; flex-direction: row; align-items: center; gap: 10px; }
   .stats-val { font-size: 1.8rem; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; line-height: 1; flex-shrink: 0; }
   .stats-lbl { font-size: 0.62rem; color: #bbb; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; line-height: 1.3; }
   .notice { font-size: 0.75rem; color: #999; border-left: 2px solid #ddd; padding: 6px 12px; margin-bottom: 18px; line-height: 1.6; }
@@ -1108,6 +1128,7 @@ def send_csv():
         'reply_to': 'madsondeluna@gmail.com',
         'subject': subject,
         'text': body,
+        'html': _wrap_email_html(body),
         'attachments': [{
             'filename': 'ampidentifier_results.csv',
             'content': base64.b64encode(csv_data.encode('utf-8')).decode('ascii'),
@@ -1290,6 +1311,7 @@ def send_recommendation():
         'reply_to': 'madsondeluna@gmail.com',
         'subject': subject,
         'text': body,
+        'html': _wrap_email_html(body),
     }).encode('utf-8')
 
     try:
