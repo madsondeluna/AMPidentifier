@@ -914,8 +914,7 @@ async function sendCsvByEmail() {
     ...lastData.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))
   ].join('\\n');
   const total = lastData.length;
-  const amps  = lastData.filter(r => (r.prediction || r.label || '').toString().toLowerCase().includes('amp')
-                                  && !(r.prediction || r.label || '').toString().toLowerCase().includes('non')).length;
+  const amps  = lastData.filter(r => r.prediction === 1).length;
   btn.disabled = true;
   status.style.color = '#999';
   status.textContent = 'Sending...';
