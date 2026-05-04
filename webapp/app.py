@@ -931,7 +931,12 @@ def send_csv():
         req = urllib.request.Request(
             'https://api.resend.com/emails',
             data=payload,
-            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+                'User-Agent': 'AMPidentifier/2.0 (https://ampidentifier.onrender.com)',
+                'Accept': 'application/json',
+            },
             method='POST',
         )
         with urllib.request.urlopen(req) as resp:
@@ -1011,7 +1016,12 @@ def send_recommendation():
         req = urllib.request.Request(
             'https://api.resend.com/emails',
             data=payload,
-            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+                'User-Agent': 'AMPidentifier/2.0 (https://ampidentifier.onrender.com)',
+                'Accept': 'application/json',
+            },
             method='POST',
         )
         with urllib.request.urlopen(req) as resp:
