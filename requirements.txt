@@ -20,3 +20,4 @@ seaborn>=0.12.0
 # Web server
 flask>=3.0.0
 gunicorn>=21.0.0
+psycopg2-binary>=2.9.0

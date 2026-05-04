@@ -40,12 +40,25 @@ def _send_telegram(text):
     threading.Thread(target=_post, daemon=True).start()
 
 _db_lock = threading.Lock()
+_USE_PG  = bool(os.environ.get('DATABASE_URL'))
+
+if _USE_PG:
+    _PH             = '%s'
+    _INSERT_STAT    = 'INSERT INTO stats (key, value) VALUES (%s, %s) ON CONFLICT (key) DO NOTHING'
+    _INSERT_SESSION = 'INSERT INTO sessions (id) VALUES (%s) ON CONFLICT (id) DO NOTHING'
+else:
+    _PH             = '?'
+    _INSERT_STAT    = 'INSERT OR IGNORE INTO stats VALUES (?, ?)'
+    _INSERT_SESSION = 'INSERT OR IGNORE INTO sessions VALUES (?)'
 
 def _db_path():
     default = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'stats.db')
     return os.environ.get('STATS_DB', default)
 
 def _conn():
+    if _USE_PG:
+        import psycopg2
+        return psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
     c = sqlite3.connect(_db_path(), check_same_thread=False)
     c.execute('PRAGMA journal_mode=WAL')
     return c
@@ -59,28 +72,35 @@ def init_db():
     }
     with _db_lock:
         c = _conn()
-        c.execute('CREATE TABLE IF NOT EXISTS stats (key TEXT PRIMARY KEY, value INTEGER DEFAULT 0)')
-        c.execute('CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY)')
+        cur = c.cursor()
+        cur.execute('CREATE TABLE IF NOT EXISTS stats (key TEXT PRIMARY KEY, value INTEGER DEFAULT 0)')
+        cur.execute('CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY)')
         for k, v in seed.items():
-            c.execute('INSERT OR IGNORE INTO stats VALUES (?, ?)', (k, v))
+            cur.execute(_INSERT_STAT, (k, v))
         c.commit()
+        cur.close()
         c.close()
 
 def increment_stats(seq_count, session_id):
     with _db_lock:
         c = _conn()
-        c.execute('UPDATE stats SET value = value + ? WHERE key = ?', (seq_count, 'total_sequences'))
-        c.execute('UPDATE stats SET value = value + 1 WHERE key = ?', ('total_runs',))
-        if not c.execute('SELECT 1 FROM sessions WHERE id = ?', (session_id,)).fetchone():
-            c.execute('INSERT OR IGNORE INTO sessions VALUES (?)', (session_id,))
-            c.execute('UPDATE stats SET value = value + 1 WHERE key = ?', ('unique_sessions',))
+        cur = c.cursor()
+        cur.execute(f'UPDATE stats SET value = value + {_PH} WHERE key = {_PH}', (seq_count, 'total_sequences'))
+        cur.execute(f'UPDATE stats SET value = value + 1 WHERE key = {_PH}', ('total_runs',))
+        cur.execute(_INSERT_SESSION, (session_id,))
+        if cur.rowcount > 0:
+            cur.execute(f'UPDATE stats SET value = value + 1 WHERE key = {_PH}', ('unique_sessions',))
         c.commit()
+        cur.close()
         c.close()
 
 def get_stats():
     with _db_lock:
         c = _conn()
-        rows = c.execute('SELECT key, value FROM stats').fetchall()
+        cur = c.cursor()
+        cur.execute('SELECT key, value FROM stats')
+        rows = cur.fetchall()
+        cur.close()
         c.close()
         return {k: v for k, v in rows}
 
