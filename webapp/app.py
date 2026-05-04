@@ -924,12 +924,21 @@ def send_csv():
             resp.read()
         return jsonify({'ok': True})
     except urllib.error.HTTPError as e:
+        raw = ''
         try:
-            err = json.loads(e.read()).get('message', str(e))
+            raw = e.read().decode('utf-8', errors='replace')
         except Exception:
-            err = str(e)
-        return jsonify({'ok': False, 'error': err}), 500
+            pass
+        msg = ''
+        try:
+            data = json.loads(raw) if raw else {}
+            msg = data.get('message') or data.get('error') or raw
+        except Exception:
+            msg = raw or str(e)
+        app.logger.error(f'Resend HTTP {e.code}: {raw}')
+        return jsonify({'ok': False, 'error': f'Resend {e.code}: {msg}'}), 500
     except Exception as e:
+        app.logger.exception('send_csv failed')
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 
