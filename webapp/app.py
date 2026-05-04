@@ -319,7 +319,6 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
         <div class="logo-row">
           <img src="/img/dqf.png"   alt="Departamento de Química Fundamental" style="height:36px;">
           <img src="/img/dgen.jpeg" alt="Departamento de Genética"            style="height:36px;">
-          <img src="/img/icb.png"   alt="Instituto de Ciências Biológicas"    style="height:36px;">
         </div>
       </div>
       <div class="logo-group">
