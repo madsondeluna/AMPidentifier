@@ -132,6 +132,15 @@ EMAIL_SIGNATURE = (
 )
 
 
+EMAIL_CLOSING = {
+    'en': 'Kind regards,\n',
+    'fr': 'Cordialement,\n',
+    'es': 'Saludos cordiales,\n',
+    'pt': 'Atenciosamente,\n',
+    'zh': '此致敬礼，\n',
+}
+
+
 EMAIL_FOOTER = {
     'en': (
         '\n'
@@ -1201,7 +1210,7 @@ def send_csv():
     }
 
     subject = messages[lang]['subject']
-    body = messages[lang]['body'] + EMAIL_SIGNATURE + EMAIL_FOOTER[lang]
+    body = messages[lang]['body'] + EMAIL_CLOSING[lang] + EMAIL_SIGNATURE + EMAIL_FOOTER[lang]
 
     payload = json.dumps({
         'from': from_addr,
@@ -1408,7 +1417,7 @@ def send_recommendation():
     }
 
     subject = messages[lang]['subject']
-    body = messages[lang]['body'] + signature + EMAIL_FOOTER[lang]
+    body = messages[lang]['body'] + EMAIL_CLOSING[lang] + signature + EMAIL_FOOTER[lang]
 
     payload = json.dumps({
         'from': from_addr,
