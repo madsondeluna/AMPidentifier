@@ -115,6 +115,8 @@ ISSUES_URL = 'https://github.com/madsondeluna/AMPidentifier/issues'
 
 EMAIL_SIGNATURE = 'AMPidentifier Development Team\n'
 
+_SIG_MARKER = '\x00SIGSTART\x00'
+
 
 EMAIL_CLOSING = {
     'en': 'Kind regards,\n',
@@ -150,21 +152,33 @@ EMAIL_FOOTER = {
 
 
 def _wrap_email_html(text_body: str) -> str:
-    """Wrap a plain-text email body in HTML using Gmail's default
-    sans-serif font, fully left-aligned, with <br> for line breaks.
-    Tokens wrapped in **...** become <strong>."""
     import html as _html
     import re as _re
-    escaped = _html.escape(text_body)
-    escaped = _re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', escaped)
-    html_body = escaped.replace('\n', '<br>')
-    return (
+
+    def _render(text: str) -> str:
+        escaped = _html.escape(text)
+        escaped = _re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', escaped)
+        return escaped.replace('\n', '<br>')
+
+    wrapper_open = (
         '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#ffffff;">'
         '<div style="max-width:680px;margin:0;padding:20px;background:#ffffff;text-align:left;'
         'font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#222222;">'
-        f'{html_body}'
-        '</div></body></html>'
     )
+    wrapper_close = '</div></body></html>'
+
+    if _SIG_MARKER in text_body:
+        main, sig = text_body.split(_SIG_MARKER, 1)
+        html_body = (
+            _render(main)
+            + '<div class="gmail_signature">'
+            + _render(sig)
+            + '</div>'
+        )
+    else:
+        html_body = _render(text_body)
+
+    return wrapper_open + html_body + wrapper_close
 
 MODEL_LABELS = {
     'voting': 'Voting Ensemble (RF + SVM + GB + XGB + LGBM)',
@@ -1193,7 +1207,8 @@ def send_csv():
     }
 
     subject = messages[lang]['subject']
-    body = messages[lang]['body'] + EMAIL_CLOSING[lang] + EMAIL_SIGNATURE + '\n' + EMAIL_FOOTER[lang]
+    raw_body = messages[lang]['body'] + EMAIL_FOOTER[lang] + _SIG_MARKER + EMAIL_CLOSING[lang] + EMAIL_SIGNATURE
+    body = raw_body.replace(_SIG_MARKER, '')
 
     payload = json.dumps({
         'from': from_addr,
@@ -1201,7 +1216,7 @@ def send_csv():
         'reply_to': 'madsondeluna@gmail.com',
         'subject': subject,
         'text': body,
-        'html': _wrap_email_html(body),
+        'html': _wrap_email_html(raw_body),
         'attachments': [{
             'filename': 'ampidentifier_results.csv',
             'content': base64.b64encode(csv_data.encode('utf-8')).decode('ascii'),
@@ -1390,7 +1405,8 @@ def send_recommendation():
     }
 
     subject = messages[lang]['subject']
-    body = messages[lang]['body'] + EMAIL_CLOSING[lang] + signature + '\n' + EMAIL_FOOTER[lang]
+    raw_body = messages[lang]['body'] + EMAIL_FOOTER[lang] + _SIG_MARKER + EMAIL_CLOSING[lang] + signature
+    body = raw_body.replace(_SIG_MARKER, '')
 
     payload = json.dumps({
         'from': from_addr,
@@ -1398,7 +1414,7 @@ def send_recommendation():
         'reply_to': 'madsondeluna@gmail.com',
         'subject': subject,
         'text': body,
-        'html': _wrap_email_html(body),
+        'html': _wrap_email_html(raw_body),
     }).encode('utf-8')
 
     try:
