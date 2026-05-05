@@ -129,27 +129,27 @@ EMAIL_FOOTER = {
     'en': (
         '\n'
         'This is an automated message, you do not need to reply.\n'
-        'Your data is transmitted with end-to-end TLS encryption.\n'
+        'Your data is transmitted with end-to-end TLS encryption.\n\n'
     ),
     'fr': (
         '\n'
         'Ceci est un message automatique, vous n\'avez pas besoin de répondre.\n'
-        'Vos données sont transmises avec chiffrement TLS de bout en bout.\n'
+        'Vos données sont transmises avec chiffrement TLS de bout en bout.\n\n'
     ),
     'es': (
         '\n'
         'Este es un mensaje automático, no es necesario responder.\n'
-        'Tus datos se transmiten con cifrado TLS de extremo a extremo.\n'
+        'Tus datos se transmiten con cifrado TLS de extremo a extremo.\n\n'
     ),
     'pt': (
         '\n'
         'Esta é uma mensagem automática, você não precisa responder.\n'
-        'Seus dados são transmitidos com criptografia TLS de ponta a ponta.\n'
+        'Seus dados são transmitidos com criptografia TLS de ponta a ponta.\n\n'
     ),
     'zh': (
         '\n'
         '这是一封自动邮件，您无需回复。\n'
-        '您的数据通过端到端 TLS 加密传输。\n'
+        '您的数据通过端到端 TLS 加密传输。\n\n'
     ),
 }
 
@@ -1305,7 +1305,7 @@ def send_recommendation():
                 'For more information about the web interface, CLI, and Python package, see the full documentation at:\n'
                 'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'To report a bug or suggest a feature, please open an issue at:\n'
-                f'{issues_url}\n'
+                f'{issues_url}\n\n'
                 'For direct contact, please use the information provided below.\n\n'
             ),
         },
@@ -1334,7 +1334,7 @@ def send_recommendation():
                 'Pour plus d\'informations sur l\'interface web, le CLI et le package Python, consultez la documentation complète à l\'adresse:\n'
                 'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'Pour signaler un bug ou suggérer une fonctionnalité, veuillez ouvrir une issue à l\'adresse:\n'
-                f'{issues_url}\n'
+                f'{issues_url}\n\n'
                 'Pour me contacter directement, veuillez utiliser les coordonnées indiquées ci-dessous.\n\n'
             ),
         },
@@ -1363,7 +1363,7 @@ def send_recommendation():
                 'Para más información sobre la interfaz web, el CLI y el paquete Python, consulte la documentación completa en:\n'
                 'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'Para reportar un error o sugerir una funcionalidad, por favor abra una issue en:\n'
-                f'{issues_url}\n'
+                f'{issues_url}\n\n'
                 'Para contacto directo, utilice la información proporcionada a continuación.\n\n'
             ),
         },
@@ -1392,7 +1392,7 @@ def send_recommendation():
                 'Para mais informações sobre a interface web, o CLI e o pacote Python, acesse a documentação completa em:\n'
                 'https://github.com/madsondeluna/AMPidentifier\n\n'
                 'Para relatar um problema ou sugerir uma funcionalidade, por favor abra uma issue em:\n'
-                f'{issues_url}\n'
+                f'{issues_url}\n\n'
                 'Para contato direto, utilize as informações fornecidas abaixo.\n\n'
             ),
         },
@@ -1418,7 +1418,7 @@ def send_recommendation():
                 '如需了解更多关于 Web 界面、CLI 和 Python 包的信息，请访问完整文档：\n'
                 'https://github.com/madsondeluna/AMPidentifier\n\n'
                 '如需报告问题或提出功能建议，请通过以下地址提交 issue：\n'
-                f'{issues_url}\n'
+                f'{issues_url}\n\n'
                 '如需直接联系，请使用下方提供的联系方式。\n\n'
             ),
         },
