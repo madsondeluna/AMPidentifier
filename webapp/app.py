@@ -1193,7 +1193,7 @@ def send_csv():
     }
 
     subject = messages[lang]['subject']
-    body = messages[lang]['body'] + EMAIL_FOOTER[lang] + EMAIL_CLOSING[lang] + EMAIL_SIGNATURE
+    body = messages[lang]['body'] + EMAIL_CLOSING[lang] + EMAIL_SIGNATURE + '\n' + EMAIL_FOOTER[lang]
 
     payload = json.dumps({
         'from': from_addr,
@@ -1390,7 +1390,7 @@ def send_recommendation():
     }
 
     subject = messages[lang]['subject']
-    body = messages[lang]['body'] + EMAIL_FOOTER[lang] + EMAIL_CLOSING[lang] + signature
+    body = messages[lang]['body'] + EMAIL_CLOSING[lang] + signature + '\n' + EMAIL_FOOTER[lang]
 
     payload = json.dumps({
         'from': from_addr,
