@@ -4,6 +4,9 @@
 
 # AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction
 
+As antimicrobial resistance threatens to undo a century of medical progress, **AMPIdentifier** provides researchers with a rigorous computational framework to accelerate the discovery of next-generation antibiotic candidates.
+
+#
 
 ## Contents
 
