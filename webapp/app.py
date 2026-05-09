@@ -176,8 +176,9 @@ PAGE = """<!DOCTYPE html>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Roboto Mono', monospace; background: #ffffff; color: #1a1a1a; min-height: 100vh; padding: 28px 24px; }
   .wrap { max-width: 760px; margin: 0 auto; }
-  .title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   h1 { font-size: 1.4rem; font-weight: normal; letter-spacing: 0.1em; color: #0f0f0f; }
+  .brand-logo { height: 44px; width: auto; display: block; }
   @keyframes pulse-green {
     0%   { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.55); }
     70%  { box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
@@ -219,14 +220,14 @@ PAGE = """<!DOCTYPE html>
   .status-tooltip .tt-dot.c-gray   { background: #ddd; }
   .status-dot-wrapper:hover .status-tooltip { display: block; }
   .sub { font-size: 0.78rem; color: #888; margin-bottom: 10px; }
-  .stats-section { margin-top: 12px; margin-bottom: 16px; text-align: center; }
-  .stats-section-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 16px; align-items: center; justify-items: center; }
+  .stats-section { margin-top: 8px; margin-bottom: 12px; text-align: center; }
+  .stats-section-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 10px; align-items: center; justify-items: center; }
   @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-  .stats-item { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+  .stats-item { display: flex; flex-direction: row; align-items: center; gap: 8px; }
   .stats-val { font-size: 1.8rem; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; line-height: 1; flex-shrink: 0; }
   .stats-lbl { font-size: 0.62rem; color: #bbb; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; line-height: 1.3; }
-  .notice { font-size: 0.75rem; color: #999; border-left: 2px solid #ddd; padding: 6px 12px; margin-bottom: 18px; line-height: 1.6; }
+  .notice { font-size: 0.75rem; color: #999; border-left: 2px solid #ddd; padding: 6px 12px; margin-bottom: 12px; line-height: 1.6; }
   .notice a { color: #555; text-decoration: underline; }
   .notice a:hover { color: #111; }
   footer { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e8e8e8; font-size: 0.63rem; color: #aaa; line-height: 1.8; text-align: justify; }
@@ -241,8 +242,9 @@ PAGE = """<!DOCTYPE html>
     padding: 14px; resize: vertical; outline: none; border-radius: 4px;
   }
   textarea:focus { border-color: #bbb; }
-  .validation-err { font-size: 0.73rem; color: #dc2626; margin-top: 6px; min-height: 16px; }
-  .upload-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .validation-err { font-size: 0.73rem; color: #dc2626; margin-top: 4px; min-height: 0; }
+  .validation-err:empty { margin-top: 0; }
+  .upload-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
   .upload-btn {
     background: #555555; color: #ffffff; border: none;
     font-size: 0.82rem; padding: 10px 28px; font-weight: normal;
@@ -250,7 +252,7 @@ PAGE = """<!DOCTYPE html>
   }
   .upload-btn:hover { background: #444444; }
   #fileInput { display: none; }
-  .row { display: flex; gap: 12px; margin-top: 12px; align-items: center; flex-wrap: nowrap; }
+  .row { display: flex; gap: 12px; margin-top: 8px; align-items: center; flex-wrap: nowrap; }
   select {
     background: #f7f7f7; border: 1px solid #e0e0e0; color: #1a1a1a;
     font-family: 'Roboto Mono', monospace; font-size: 0.72rem; padding: 10px 14px;
@@ -370,7 +372,7 @@ PAGE = """<!DOCTYPE html>
   .email-csv-btn:disabled { background: #ccc; color: #888; cursor: not-allowed; }
   .email-csv-status { font-size: 0.72rem; margin-top: 10px; min-height: 16px; }
   .share-section {
-    margin-top: 20px; margin-bottom: 20px;
+    margin-top: 12px; margin-bottom: 14px;
     border: 1px solid #e0e0e0; border-left: 3px solid #1a1a1a;
     border-radius: 4px; padding: 16px 20px; background: #f9f9f9;
   }
@@ -415,7 +417,8 @@ PAGE = """<!DOCTYPE html>
     body { padding: 12px; }
     .wrap { max-width: 100%; }
     h1 { font-size: 1.4rem; }
-    .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+    .brand-logo { height: 38px; }
+    .stats-grid { grid-template-columns: 1fr; gap: 8px; }
     .stats-item { justify-content: center; }
     .status-tooltip { display: none; }
     .share-inner { flex-direction: column; align-items: stretch; gap: 10px; }
@@ -440,7 +443,7 @@ PAGE = """<!DOCTYPE html>
 <body>
 <div class="wrap">
   <div class="title-row">
-    <h1>AMPidentifier</h1>
+    <img src="/img/logo.png" alt="AMPidentifier" class="brand-logo">
     <span class="status-dot-wrapper">
       <span class="status-dot" id="statusDot"></span>
       <span class="status-tooltip">
@@ -450,7 +453,7 @@ PAGE = """<!DOCTYPE html>
       </span>
     </span>
   </div>
-  <p class="sub">A Python-based toolkit for predicting antimicrobial peptides using ensemble machine learning and physicochemical descriptors.</p>
+  <p class="sub"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide prediction using ensemble machine learning (AUC 0.950, Sens. 0.949, Spec. 0.784). Available as web app, CLI, and PyPI package.</p>
 
   <div class="stats-section">
     <div class="stats-grid">

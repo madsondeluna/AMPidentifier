@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="imgs/header.png" alt="AMPidentifier" width="520">
+</p>
+
 # AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction
 
 
