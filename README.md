@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="imgs/header.png" alt="AMPidentifier" width="520">
+  <img src="imgs/ampidentifier-brand-kit/head-logo-github.png" alt="AMPidentifier" width="520">
 </p>
 
 # AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction
