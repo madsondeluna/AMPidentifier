@@ -56,7 +56,7 @@ model_training/data/raw_downloads/
 .claude/
 
 # Runtime / local artifacts
-stats.db
+stats.db*
 *.drawio.bkp
 .$*.drawio.bkp
 paper/*.docx
