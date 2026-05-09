@@ -54,3 +54,9 @@ data-for-tests/results_*/
 
 model_training/data/raw_downloads/
 .claude/
+
+# Runtime / local artifacts
+stats.db
+*.drawio.bkp
+.$*.drawio.bkp
+paper/*.docx
