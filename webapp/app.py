@@ -176,7 +176,8 @@ PAGE = """<!DOCTYPE html>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Roboto Mono', monospace; background: #ffffff; color: #1a1a1a; min-height: 100vh; padding: 28px 24px; }
   .wrap { max-width: 760px; margin: 0 auto; }
-  .title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .status-row { display: flex; align-items: center; margin-bottom: 10px; font-size: 0.72rem; }
   h1 { font-size: 1.4rem; font-weight: normal; letter-spacing: 0.1em; color: #0f0f0f; }
   .brand-logo { height: 44px; width: auto; display: block; }
   @keyframes pulse-green {
@@ -184,14 +185,17 @@ PAGE = """<!DOCTYPE html>
     70%  { box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
     100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
   }
-  .status-dot-wrapper { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; }
+  .status-dot-wrapper { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; gap: 6px; vertical-align: middle; }
+  .status-label { font-size: inherit; color: #bbb; letter-spacing: 0.02em; transition: color 0.4s; }
+  .status-label.online  { color: #059669; }
+  .status-label.offline { color: #dc2626; }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.4s; cursor: default; }
   .status-dot.online  { background: #059669; animation: pulse-green 1.8s ease-out infinite; }
   .status-dot.offline { background: #dc2626; }
   .status-tooltip {
     display: none;
     position: absolute;
-    left: 16px;
+    left: calc(100% + 8px);
     top: 50%;
     transform: translateY(-50%);
     background: #1a1a1a;
@@ -444,12 +448,16 @@ PAGE = """<!DOCTYPE html>
 <div class="wrap">
   <div class="title-row">
     <img src="/img/logo.png" alt="AMPidentifier" class="brand-logo">
+  </div>
+  <div class="status-row">
     <span class="status-dot-wrapper">
       <span class="status-dot" id="statusDot"></span>
+      <span class="status-label" id="statusLabel">Checking</span>
       <span class="status-tooltip">
-        <span class="tt-row"><span class="tt-dot c-green"></span> Server online</span>
-        <span class="tt-row"><span class="tt-dot c-red"></span> Server offline or error</span>
-        <span class="tt-row"><span class="tt-dot c-gray"></span> Checking connection...</span>
+        <span class="tt-row"><span class="tt-dot c-green"></span> Online: model loaded, predictions ready</span>
+        <span class="tt-row"><span class="tt-dot c-red"></span> Offline: backend unreachable, try again shortly</span>
+        <span class="tt-row"><span class="tt-dot c-gray"></span> Checking server status...</span>
+        <span class="tt-row" style="color:#999;margin-top:4px;font-size:0.62rem;">(Xms) = current /health round-trip latency</span>
       </span>
     </span>
   </div>
@@ -617,15 +625,25 @@ let lastModel = null;
 
 async function checkServerStatus() {
   const dot = document.getElementById('statusDot');
+  const lbl = document.getElementById('statusLabel');
+  const t0 = performance.now();
   try {
     const r = await fetch('/health', { cache: 'no-cache' });
-    if (r.ok) { dot.classList.add('online'); }
-    else       { dot.classList.add('offline'); }
+    const ms = Math.round(performance.now() - t0);
+    if (r.ok) {
+      dot.classList.remove('offline'); dot.classList.add('online');
+      if (lbl) { lbl.textContent = 'Online (' + ms + 'ms)'; lbl.classList.remove('offline'); lbl.classList.add('online'); }
+    } else {
+      dot.classList.remove('online'); dot.classList.add('offline');
+      if (lbl) { lbl.textContent = 'Offline'; lbl.classList.remove('online'); lbl.classList.add('offline'); }
+    }
   } catch(e) {
-    dot.classList.add('offline');
+    dot.classList.remove('online'); dot.classList.add('offline');
+    if (lbl) { lbl.textContent = 'Offline'; lbl.classList.remove('online'); lbl.classList.add('offline'); }
   }
 }
 checkServerStatus();
+setInterval(checkServerStatus, 15000);
 
 async function loadStats() {
   try {
