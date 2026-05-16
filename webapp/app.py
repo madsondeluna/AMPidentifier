@@ -167,7 +167,41 @@ PAGE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AMPidentifier</title>
+<title>AMPidentifier | Antimicrobial Peptide Prediction Tool</title>
+<meta name="description" content="AMPidentifier is a free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences and classify AMPs in seconds.">
+<meta name="keywords" content="antimicrobial peptide prediction, AMP classifier, machine learning peptides, bioinformatics tool, AMP identification, peptide analysis, ensemble model">
+<meta name="author" content="Madson Aragao">
+<link rel="canonical" href="https://www.ampidentifier.com/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ampidentifier.com/">
+<meta property="og:title" content="AMPidentifier | Antimicrobial Peptide Prediction Tool">
+<meta property="og:description" content="Free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences, get predictions in seconds.">
+<meta property="og:image" content="https://www.ampidentifier.com/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://www.ampidentifier.com/">
+<meta name="twitter:title" content="AMPidentifier | Antimicrobial Peptide Prediction Tool">
+<meta name="twitter:description" content="Free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences, get predictions in seconds.">
+<meta name="twitter:image" content="https://www.ampidentifier.com/img/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "AMPidentifier",
+  "url": "https://www.ampidentifier.com/",
+  "description": "AMPidentifier is an ensemble machine learning toolkit for antimicrobial peptide (AMP) prediction. It accepts FASTA sequences and returns AMP classification scores using gradient boosting, XGBoost, LightGBM, and a soft-voting ensemble model.",
+  "applicationCategory": "Scientific Software",
+  "operatingSystem": "Web",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": {
+    "@type": "Person",
+    "name": "Madson Aragao",
+    "url": "https://github.com/madsondeluna"
+  },
+  "codeRepository": "https://github.com/madsondeluna/AMPidentifier",
+  "license": "https://github.com/madsondeluna/AMPidentifier/blob/main/LICENSE",
+  "keywords": ["antimicrobial peptide", "AMP prediction", "machine learning", "bioinformatics", "peptide classification"]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
@@ -1029,6 +1063,43 @@ def index():
     if not request.cookies.get('_amp_sid'):
         resp.set_cookie('_amp_sid', str(uuid.uuid4()), max_age=365 * 24 * 3600, samesite='Lax', httponly=True)
     return resp
+
+
+@app.route('/google2a0f51da71f41d93.html')
+def google_verify():
+    return make_response(
+        'google-site-verification: google2a0f51da71f41d93.html',
+        200,
+        {'Content-Type': 'text/html'}
+    )
+
+
+@app.route('/robots.txt')
+def robots():
+    content = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /predict\n"
+        "Disallow: /send_csv\n"
+        "Disallow: /send_recommendation\n"
+        "Sitemap: https://www.ampidentifier.com/sitemap.xml\n"
+    )
+    return make_response(content, 200, {'Content-Type': 'text/plain'})
+
+
+@app.route('/sitemap.xml')
+def sitemap():
+    content = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        '  <url>\n'
+        '    <loc>https://www.ampidentifier.com/</loc>\n'
+        '    <changefreq>monthly</changefreq>\n'
+        '    <priority>1.0</priority>\n'
+        '  </url>\n'
+        '</urlset>\n'
+    )
+    return make_response(content, 200, {'Content-Type': 'application/xml'})
 
 
 @app.route('/health')
