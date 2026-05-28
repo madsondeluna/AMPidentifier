@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="920" pageHeight="1120" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- TITLE -->
+    <mxCell id="title" value="AMPidentifier — Inference Workflow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=17;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="20" y="20" width="860" height="40" as="geometry" />
+    </mxCell>
+
+    <!-- 1. INPUT -->
+    <mxCell id="s1" value="&lt;b&gt;1. INPUT&lt;/b&gt;&lt;br&gt;FASTA file via CLI flag -i&lt;br&gt;Unique sequence ID per header" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;arcSize=10;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="260" y="80" width="300" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- 2. SEQUENCE PARSING -->
+    <mxCell id="s2" value="&lt;b&gt;2. SEQUENCE PARSING&lt;/b&gt;&lt;br&gt;BioPython SeqIO.parse()&lt;br&gt;Returns list of (seq, ID) pairs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;arcSize=10;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="260" y="210" width="300" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- 3. FEATURE EXTRACTION -->
+    <mxCell id="s3" value="&lt;b&gt;3. FEATURE EXTRACTION&lt;/b&gt;&lt;br&gt;modlamp + custom code;&lt;br&gt;computes 22 physicochemical descriptors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;arcSize=10;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="260" y="340" width="300" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- 4. FEATURE SCALING -->
+    <mxCell id="s4" value="&lt;b&gt;4. FEATURE SCALING&lt;/b&gt;&lt;br&gt;Per-model scaler loaded from .pkl artifact&lt;br&gt;RobustScaler (RF/GB/XGB/LGBM); StdScaler (SVM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;arcSize=10;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="260" y="470" width="300" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- 5. ENSEMBLE INFERENCE -->
+    <mxCell id="s5" value="&lt;b&gt;5. ENSEMBLE INFERENCE&lt;/b&gt;&lt;br&gt;VotingEnsemble.predict_proba() over&lt;br&gt;5 base classifiers; per-model scaling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;arcSize=10;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="260" y="600" width="300" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- 6. SOFT VOTING -->
+    <mxCell id="s6" value="&lt;b&gt;6. SOFT VOTING&lt;/b&gt;&lt;br&gt;Arithmetic mean of predict_proba[:,1]&lt;br&gt;across RF, SVM, GB, XGB, LGBM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;arcSize=10;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="260" y="730" width="300" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- 7. CLASSIFICATION -->
+    <mxCell id="s7" value="&lt;b&gt;7. CLASSIFICATION&lt;/b&gt;&lt;br&gt;prob &amp;ge; threshold &amp;rarr; AMP (1)&lt;br&gt;else &amp;rarr; non-AMP (0); default threshold=0.56" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;arcSize=10;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="260" y="860" width="300" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- 8. OUTPUT -->
+    <mxCell id="s8" value="&lt;b&gt;8. OUTPUT&lt;/b&gt;&lt;br&gt;CSV: ID, sequence, probability_AMP,&lt;br&gt;prediction, label (AMP / non-AMP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c9e6e0;strokeColor=#6baaa3;arcSize=10;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="260" y="990" width="300" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- EDGES -->
+    <mxCell id="e12" value="FASTA" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="s1" target="s2" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e23" value="parsed sequences" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="s2" target="s3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e34" value="22-dim descriptor vector" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="s3" target="s4" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e45" value="scaled features" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="s4" target="s5" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e56" value="per-model predict_proba" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="s5" target="s6" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e67" value="averaged probability" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="s6" target="s7" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e78" value="AMP label + score CSV" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;" edge="1" source="s7" target="s8" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- SIDE PANELS -->
+
+    <!-- Panel: Training Data -->
+    <mxCell id="p_train" value="&lt;b&gt;Training Data&lt;/b&gt;&lt;br&gt;Positive (AMP): 6,623 sequences&lt;br&gt;Negative (non-AMP): 6,623 sequences&lt;br&gt;Balanced 1:1 ratio&lt;br&gt;Split: 80% train / 20% test&lt;br&gt;CV: StratifiedKFold (n=5)&lt;br&gt;Scoring: AUC-ROC" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cccccc;strokeWidth=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="620" y="80" width="260" height="150" as="geometry" />
+    </mxCell>
+
+    <!-- Panel: Descriptors -->
+    <mxCell id="p_desc" value="&lt;b&gt;Descriptors (22 total)&lt;/b&gt;&lt;br&gt;Global (6): Charge, pI,&lt;br&gt;InstabilityInd, AliphaticInd,&lt;br&gt;BomanInd, HydrophRatio&lt;br&gt;Hydrophobic moment (1):&lt;br&gt;Eisenberg scale, angle=100° (helix)&lt;br&gt;Grouped AAC (9): acidic, basic,&lt;br&gt;polar, nonpolar, aliphatic,&lt;br&gt;aromatic, charged, small, tiny&lt;br&gt;FET local (3): low/mid/high D1&lt;br&gt;SA local (3): buried/exposed/inter D1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cccccc;strokeWidth=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="620" y="250" width="260" height="265" as="geometry" />
+    </mxCell>
+
+    <!-- Panel: Base Classifiers -->
+    <mxCell id="p_clf" value="&lt;b&gt;Base Classifiers&lt;/b&gt;&lt;br&gt;RF — RandomForestClassifier&lt;br&gt;SVM — SVC (RBF kernel)&lt;br&gt;GB — GradientBoostingClassifier&lt;br&gt;XGB — XGBClassifier&lt;br&gt;LGBM — LGBMClassifier&lt;br&gt;Tuning: RandomizedSearchCV&lt;br&gt;n_iter=50; scoring=roc_auc" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cccccc;strokeWidth=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="620" y="535" width="260" height="185" as="geometry" />
+    </mxCell>
+
+    <!-- Panel: Persistence + Distribution -->
+    <mxCell id="p_pers" value="&lt;b&gt;Persistence + Distribution&lt;/b&gt;&lt;br&gt;joblib: amp_model_{name}_tuned.pkl&lt;br&gt;joblib: scaler_robust.pkl&lt;br&gt;joblib: scaler_std.pkl&lt;br&gt;threshold_{name}.txt&lt;br&gt;selected_features.txt&lt;br&gt;PyPI: pip install ampidentifier (v2.0.3)&lt;br&gt;CLI: ampidentifier -i seqs.fasta -o out/&lt;br&gt;Web: Flask app (wsgi.py + Procfile)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cccccc;strokeWidth=1;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="620" y="740" width="260" height="215" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>
