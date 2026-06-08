@@ -72,6 +72,10 @@ AMPidentifier is available as a web application, a pip package, and a cloneable 
 
 The easiest way to run predictions is through the web interface at [ampidentifier.com](https://ampidentifier.com). No installation is required. Paste or upload FASTA sequences, select a model, and download the results as CSV.
 
+#### Usage map and privacy
+
+The web interface shows a usage map of where the tool has been run. Each prediction resolves the request IP to an approximate location through [ipapi.co](https://ipapi.co). The application stores only the aggregated city and country plus a per-location count, never the raw IP address. The single purpose is measuring the reach of the tool on the map. These are coarse estimates without geographic precision and are inaccurate for VPN or institutional-network traffic. Private, loopback, and local IPs are ignored, so they never generate a point.
+
 ### Command-line interface
 
 <img src="imgs/workflow.svg" alt="AMPidentifier prediction workflow" width="700">

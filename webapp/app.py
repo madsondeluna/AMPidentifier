@@ -4,7 +4,9 @@ AMPidentifier Web Portal — v2.0
 import base64
 import contextlib
 import io
+import ipaddress
 import json
+import logging
 import os
 import sqlite3
 import sys
@@ -24,23 +26,142 @@ from amp_identifier.data_io import load_fasta_sequences
 
 VERSION = "2.0.0"
 
-def _send_telegram(text):
+def _post_telegram(text):
+    """Synchronous Telegram send. No-op if not configured. Call from a worker thread."""
     token   = os.environ.get('TELEGRAM_BOT_TOKEN')
     chat_id = os.environ.get('TELEGRAM_CHAT_ID')
     if not token or not chat_id:
         return
-    def _post():
+    try:
+        payload = json.dumps({'chat_id': chat_id, 'text': text}).encode()
+        req = urllib.request.Request(
+            f'https://api.telegram.org/bot{token}/sendMessage',
+            data=payload,
+            headers={'Content-Type': 'application/json'},
+        )
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass
+
+def _send_telegram(text):
+    threading.Thread(target=lambda: _post_telegram(text), daemon=True).start()
+
+_geo_log = logging.getLogger('ampidentifier.geo')
+_geo_log.setLevel(logging.INFO)
+if not _geo_log.handlers:
+    _geo_handler = logging.StreamHandler()
+    _geo_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(name)s: %(message)s'))
+    _geo_log.addHandler(_geo_handler)
+_geo_log.propagate = False
+
+def _client_ip():
+    """Real client IP, honoring the proxy in front of the app.
+
+    Order: CF-Connecting-IP (Cloudflare), X-Real-IP (Nginx), first of
+    X-Forwarded-For (Render and most reverse proxies), then socket peer.
+    """
+    for h in ('CF-Connecting-IP', 'X-Real-IP'):
+        v = request.headers.get(h, '')
+        if v:
+            return v.strip()
+    fwd = request.headers.get('X-Forwarded-For', '')
+    if fwd:
+        return fwd.split(',')[0].strip()
+    return request.remote_addr or ''
+
+def _is_public_ip(ip):
+    """True only for globally routable addresses. Local/private builds are filtered out."""
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    return not (addr.is_private or addr.is_loopback or addr.is_link_local
+                or addr.is_reserved or addr.is_multicast or addr.is_unspecified)
+
+def _http_json(url, timeout=6):
+    req = urllib.request.Request(
+        url, headers={'User-Agent': 'AMPidentifier/2.0 (+https://www.ampidentifier.com)'})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode())
+
+def _geo_ipapi_co(ip):
+    data = _http_json(f'https://ipapi.co/{ip}/json/')
+    if not data or data.get('error'):
+        return None
+    return {'city': data.get('city') or '', 'region': data.get('region') or '',
+            'country': data.get('country_name') or '', 'country_code': data.get('country_code') or '',
+            'lat': data.get('latitude'), 'lon': data.get('longitude')}
+
+def _geo_ipwho_is(ip):
+    data = _http_json(f'https://ipwho.is/{ip}')
+    if not data or not data.get('success'):
+        return None
+    return {'city': data.get('city') or '', 'region': data.get('region') or '',
+            'country': data.get('country') or '', 'country_code': data.get('country_code') or '',
+            'lat': data.get('latitude'), 'lon': data.get('longitude')}
+
+def _geo_ip_api_com(ip):
+    # HTTP only on the free tier.
+    data = _http_json(f'http://ip-api.com/json/{ip}')
+    if not data or data.get('status') != 'success':
+        return None
+    return {'city': data.get('city') or '', 'region': data.get('regionName') or '',
+            'country': data.get('country') or '', 'country_code': data.get('countryCode') or '',
+            'lat': data.get('lat'), 'lon': data.get('lon')}
+
+# ipapi.co rate-limits and blocks cloud egress IPs (Render/Fly/Railway); ipwho.is and
+# ip-api.com are datacenter-friendly fallbacks. All free, no API key required.
+_GEO_PROVIDERS = (
+    ('ipapi.co',    _geo_ipapi_co),
+    ('ipwho.is',    _geo_ipwho_is),
+    ('ip-api.com',  _geo_ip_api_com),
+)
+
+def _geolocate(ip):
+    """Resolve an IP to approximate location, trying providers in order. Returns dict or None.
+
+    Each failure is logged (HTTP status when available) so the cause is never silently lost.
+    """
+    for name, fn in _GEO_PROVIDERS:
         try:
-            payload = json.dumps({'chat_id': chat_id, 'text': text}).encode()
-            req = urllib.request.Request(
-                f'https://api.telegram.org/bot{token}/sendMessage',
-                data=payload,
-                headers={'Content-Type': 'application/json'},
-            )
-            urllib.request.urlopen(req, timeout=5)
-        except Exception:
-            pass
-    threading.Thread(target=_post, daemon=True).start()
+            result = fn(ip)
+            if result and result.get('lat') is not None and result.get('lon') is not None:
+                return result
+            _geo_log.warning('geo provider %s returned no usable data', name)
+        except urllib.error.HTTPError as e:
+            _geo_log.warning('geo provider %s HTTP %s', name, e.code)
+        except Exception as e:
+            _geo_log.warning('geo provider %s failed: %s', name, e)
+    _geo_log.warning('geo: all providers exhausted')
+    return None
+
+def record_usage_location(ip, message_template):
+    """Fire-and-forget: resolve geo, store aggregate, send notification with location line.
+
+    message_template carries a literal '{location}' placeholder marking where the
+    'Location: ...' line should go. Notification is sent even if geo fails (without the line),
+    and the placeholder is always cleared so it never reaches the user literally.
+    """
+    def _worker():
+        location_line = ''
+        if not ip:
+            _geo_log.info('usage: empty client ip, skipping geo')
+        elif not _is_public_ip(ip):
+            _geo_log.info('usage: non-public client ip, skipping geo')
+        else:
+            geo = _geolocate(ip)
+            if geo:
+                city, region = geo['city'], geo['region']
+                country, cc  = geo['country'], geo['country_code']
+                try:
+                    upsert_location(city, country, cc, geo['lat'], geo['lon'])
+                except Exception as e:
+                    _geo_log.warning('usage: location upsert failed: %s', e)
+                parts = [p for p in (city, region, country) if p]
+                if parts:
+                    location_line = 'Location: ' + ', '.join(parts) + '\n'
+        _post_telegram(message_template.replace('{location}', location_line))
+    threading.Thread(target=_worker, daemon=True).start()
 
 _db_lock = threading.Lock()
 _USE_PG  = bool(os.environ.get('DATABASE_URL'))
@@ -78,6 +199,16 @@ def init_db():
         cur = c.cursor()
         cur.execute('CREATE TABLE IF NOT EXISTS stats (key TEXT PRIMARY KEY, value INTEGER DEFAULT 0)')
         cur.execute('CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY)')
+        _coord = 'DOUBLE PRECISION' if _USE_PG else 'REAL'
+        cur.execute(
+            'CREATE TABLE IF NOT EXISTS locations ('
+            'city_key TEXT PRIMARY KEY, '
+            'city TEXT, '
+            'country TEXT, '
+            f'lat {_coord}, '
+            f'lon {_coord}, '
+            'count INTEGER DEFAULT 0)'
+        )
         for k, v in seed.items():
             cur.execute(_INSERT_STAT, (k, v))
         c.commit()
@@ -106,6 +237,38 @@ def get_stats():
         cur.close()
         c.close()
         return {k: v for k, v in rows}
+
+def upsert_location(city, country, country_code, lat, lon):
+    city_key = f'{city}|{country_code}'
+    with _db_lock:
+        c = _conn()
+        cur = c.cursor()
+        if _USE_PG:
+            cur.execute(
+                'INSERT INTO locations (city_key, city, country, lat, lon, count) '
+                'VALUES (%s, %s, %s, %s, %s, 1) '
+                'ON CONFLICT (city_key) DO UPDATE SET count = locations.count + 1',
+                (city_key, city, country, lat, lon))
+        else:
+            cur.execute('UPDATE locations SET count = count + 1 WHERE city_key = ?', (city_key,))
+            if cur.rowcount == 0:
+                cur.execute(
+                    'INSERT OR IGNORE INTO locations (city_key, city, country, lat, lon, count) '
+                    'VALUES (?, ?, ?, ?, ?, 1)',
+                    (city_key, city, country, lat, lon))
+        c.commit()
+        cur.close()
+        c.close()
+
+def get_locations():
+    with _db_lock:
+        c = _conn()
+        cur = c.cursor()
+        cur.execute('SELECT city, country, lat, lon, count FROM locations ORDER BY count DESC')
+        rows = cur.fetchall()
+        cur.close()
+        c.close()
+    return [{'city': r[0], 'country': r[1], 'lat': r[2], 'lon': r[3], 'count': r[4]} for r in rows]
 
 app = Flask(__name__, static_folder='img', static_url_path='/img')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
@@ -205,6 +368,10 @@ PAGE = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
   html { font-size: 17px; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -268,6 +435,12 @@ PAGE = """<!DOCTYPE html>
   .notice { font-size: 0.75rem; color: #999; border-left: 2px solid #ddd; padding: 6px 12px; margin-bottom: 12px; line-height: 1.6; }
   .notice a { color: #555; text-decoration: underline; }
   .notice a:hover { color: #111; }
+  .usage-map-section { margin-top: 28px; }
+  .usage-map-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; margin-bottom: 10px; }
+  .usage-map-sub { font-size: 0.6rem; color: #ccc; text-align: center; margin-top: 8px; letter-spacing: 0.04em; }
+  #usageMap { height: 320px; width: 100%; border: 1px solid #e8e8e8; border-radius: 4px; background: #f7f7f7; z-index: 0; }
+  .continent-label { color: #c4c4c4; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; pointer-events: none; }
+  .leaflet-container { font-family: 'Roboto Mono', monospace; }
   footer { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e8e8e8; font-size: 0.63rem; color: #aaa; line-height: 1.8; text-align: justify; }
   footer a { color: #999; text-decoration: underline; }
   footer a:hover { color: #333; }
@@ -583,6 +756,12 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
     <p style="margin-top:8px;">This tool is officially registered with the <strong style="color:#555;">INPI &ndash; Instituto Nacional da Propriedade Industrial</strong> (Brazilian National Institute of Industrial Property), Registration No. <strong style="color:#555;">BR 51 2025 005859-4</strong>. It is a property of the <strong style="color:#555;">Universidade Federal de Pernambuco (UFPE)</strong> and the <strong style="color:#555;">Laboratório de Genética e Biotecnologia Vegetal (LGBV)</strong>.</p>
     <p style="margin-top:8px;">Developer: <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a> &nbsp;·&nbsp; <a href="https://madsondeluna.com" target="_blank">madsondeluna.com</a> &nbsp;·&nbsp; <button class="feedback-link" onclick="openFeedback()">Report issue / Suggest improvement</button> &nbsp;·&nbsp; <span style="color:#bbb;">v{{ version }}</span></p>
 
+    <div class="usage-map-section">
+      <div class="usage-map-label">Where AMPidentifier is being used</div>
+      <div id="usageMap"></div>
+      <div class="usage-map-sub" id="usageMapSub"></div>
+    </div>
+
     <div class="logo-strip">
       <div class="logo-group">
         <div class="logo-group-label">Institutions</div>
@@ -691,6 +870,63 @@ async function loadStats() {
   } catch(e) {}
 }
 loadStats();
+
+function initUsageMap() {
+  if (typeof L === 'undefined' || !document.getElementById('usageMap')) return;
+  const map = L.map('usageMap', {
+    worldCopyJump: true,
+    minZoom: 1,
+    maxZoom: 6,
+    scrollWheelZoom: false,
+    attributionControl: true,
+  }).setView([20, 0], 1);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 6,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  }).addTo(map);
+
+  const continents = [
+    ['North America',  54,  -100],
+    ['South America', -15,   -60],
+    ['Europe',         50,    15],
+    ['Africa',          2,    20],
+    ['Asia',           45,    90],
+    ['Oceania',       -25,   135],
+  ];
+  continents.forEach(function(c) {
+    L.marker([c[1], c[2]], {
+      interactive: false,
+      keyboard: false,
+      icon: L.divIcon({ className: 'continent-label', html: c[0], iconSize: null }),
+    }).addTo(map);
+  });
+
+  fetch('/locations', { cache: 'no-cache' })
+    .then(function(r) { return r.json(); })
+    .then(function(rows) {
+      if (!Array.isArray(rows)) return;
+      rows.forEach(function(d) {
+        if (d.lat == null || d.lon == null) return;
+        const r = Math.min(18, 4 + 2.2 * Math.sqrt(d.count));
+        const place = d.city ? (d.city + ', ' + d.country) : (d.country || 'Unknown');
+        L.circleMarker([d.lat, d.lon], {
+          radius: r,
+          color: '#2563eb',
+          weight: 1,
+          fillColor: '#3b82f6',
+          fillOpacity: 0.55,
+        }).bindPopup('<strong>' + place + '</strong><br>' + d.count + ' prediction' + (d.count === 1 ? '' : 's') + ' from this location').addTo(map);
+      });
+      const sub = document.getElementById('usageMapSub');
+      if (sub && rows.length) {
+        sub.textContent = rows.length + ' location' + (rows.length === 1 ? '' : 's');
+      }
+    })
+    .catch(function() {});
+}
+initUsageMap();
 
 function updateCounter() {
   const n = (document.getElementById('fasta').value.match(/^>/gm) || []).length;
@@ -1110,6 +1346,11 @@ def health():
 @app.route('/stats')
 def stats():
     return jsonify(get_stats())
+
+
+@app.route('/locations')
+def locations():
+    return jsonify(get_locations())
 
 
 @app.route('/send_csv', methods=['POST'])
@@ -1561,17 +1802,19 @@ def predict():
             n_amp = int(predictions_df['prediction'].sum()) if 'prediction' in predictions_df.columns else 0
             avg_prob = predictions_df['probability_AMP'].mean() if 'probability_AMP' in predictions_df.columns else None
             prob_line = f'Avg AMP prob: {avg_prob:.3f}\n' if avg_prob is not None else ''
-            _send_telegram(
+            message_template = (
                 f'[AMPidentifier] New prediction run\n'
                 f'Sequences: {len(sequences)} | AMPs: {n_amp} ({n_amp/len(sequences)*100:.0f}%)\n'
                 f'{prob_line}'
                 f'Model: {model_labels.get(model_choice, model_choice)}\n'
+                f'{{location}}'
                 f'Session: {session_id[:8]}...\n'
                 f'\n'
                 f'Total sequences classified: {stats_now.get("total_sequences", 0)}\n'
                 f'Total prediction runs: {stats_now.get("total_runs", 0)}\n'
                 f'Unique visitors: {stats_now.get("unique_sessions", 0)}'
             )
+            record_usage_location(_client_ip(), message_template)
 
             return jsonify({
                 'model': model_choice,
