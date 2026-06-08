@@ -60,3 +60,6 @@ stats.db*
 *.drawio.bkp
 .$*.drawio.bkp
 paper/*.docx
+
+# Local design source material (kept outside the code repo)
+imgs/ampidentifier-brand-kit/ampidentifier-id/
