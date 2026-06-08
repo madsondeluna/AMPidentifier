@@ -192,7 +192,7 @@ def init_db():
         'total_sequences':  int(os.environ.get('STATS_SEQUENCES', 0)),
         'total_runs':       int(os.environ.get('STATS_RUNS', 0)),
         'unique_sessions':  int(os.environ.get('STATS_SESSIONS', 0)),
-        'research_groups':  int(os.environ.get('STATS_RESEARCH_GROUPS', 3)),
+        'total_amps':       int(os.environ.get('STATS_AMPS', 0)),
     }
     with _db_lock:
         c = _conn()
@@ -215,11 +215,12 @@ def init_db():
         cur.close()
         c.close()
 
-def increment_stats(seq_count, session_id):
+def increment_stats(seq_count, amp_count, session_id):
     with _db_lock:
         c = _conn()
         cur = c.cursor()
         cur.execute(f'UPDATE stats SET value = value + {_PH} WHERE key = {_PH}', (seq_count, 'total_sequences'))
+        cur.execute(f'UPDATE stats SET value = value + {_PH} WHERE key = {_PH}', (amp_count, 'total_amps'))
         cur.execute(f'UPDATE stats SET value = value + 1 WHERE key = {_PH}', ('total_runs',))
         cur.execute(_INSERT_SESSION, (session_id,))
         if cur.rowcount > 0:
@@ -437,7 +438,6 @@ PAGE = """<!DOCTYPE html>
   .notice a:hover { color: #111; }
   .usage-map-section { margin-top: 28px; }
   .usage-map-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; margin-bottom: 10px; }
-  .usage-map-sub { font-size: 0.6rem; color: #ccc; text-align: center; margin-top: 8px; letter-spacing: 0.04em; }
   #usageMap { height: 320px; width: 100%; border: 1px solid #e8e8e8; border-radius: 4px; background: #f7f7f7; z-index: 0; }
   .continent-label { color: #c4c4c4; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; pointer-events: none; }
   .leaflet-container { font-family: 'Roboto Mono', monospace; }
@@ -685,8 +685,8 @@ PAGE = """<!DOCTYPE html>
         <span class="stats-lbl">unique users</span>
       </div>
       <div class="stats-item wide">
-        <span class="stats-val" id="statGroups">—</span>
-        <span class="stats-lbl">research groups using as main tool for AMP prediction</span>
+        <span class="stats-val" id="statAmps">—</span>
+        <span class="stats-lbl">AMPs classified</span>
       </div>
     </div>
   </div>
@@ -759,7 +759,6 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
     <div class="usage-map-section">
       <div class="usage-map-label">Where AMPidentifier is being used</div>
       <div id="usageMap"></div>
-      <div class="usage-map-sub" id="usageMapSub"></div>
     </div>
 
     <div class="logo-strip">
@@ -866,7 +865,7 @@ async function loadStats() {
     set('statSeq',      d.total_sequences);
     set('statRuns',     d.total_runs);
     set('statVisitors', d.unique_sessions);
-    set('statGroups',   d.research_groups);
+    set('statAmps',     d.total_amps);
   } catch(e) {}
 }
 loadStats();
@@ -919,10 +918,6 @@ function initUsageMap() {
           fillOpacity: 0.55,
         }).bindPopup('<strong>' + place + '</strong><br>' + d.count + ' prediction' + (d.count === 1 ? '' : 's') + ' from this location').addTo(map);
       });
-      const sub = document.getElementById('usageMapSub');
-      if (sub && rows.length) {
-        sub.textContent = rows.length + ' location' + (rows.length === 1 ? '' : 's');
-      }
     })
     .catch(function() {});
 }
@@ -1787,9 +1782,10 @@ def predict():
                 os.path.join(output_dir, f'predictions_{model_choice}.csv')
             )
 
+            n_amp = int(predictions_df['prediction'].sum()) if 'prediction' in predictions_df.columns else 0
             session_id = request.cookies.get('_amp_sid', str(uuid.uuid4()))
             try:
-                increment_stats(len(sequences), session_id)
+                increment_stats(len(sequences), n_amp, session_id)
             except Exception:
                 pass
 
@@ -1799,7 +1795,6 @@ def predict():
                 'xgb': 'XGBoost', 'lgbm': 'LightGBM',
             }
             stats_now = get_stats()
-            n_amp = int(predictions_df['prediction'].sum()) if 'prediction' in predictions_df.columns else 0
             avg_prob = predictions_df['probability_AMP'].mean() if 'probability_AMP' in predictions_df.columns else None
             prob_line = f'Avg AMP prob: {avg_prob:.3f}\n' if avg_prob is not None else ''
             message_template = (
