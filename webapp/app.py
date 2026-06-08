@@ -192,7 +192,6 @@ def init_db():
         'total_sequences':  int(os.environ.get('STATS_SEQUENCES', 0)),
         'total_runs':       int(os.environ.get('STATS_RUNS', 0)),
         'unique_sessions':  int(os.environ.get('STATS_SESSIONS', 0)),
-        'total_amps':       int(os.environ.get('STATS_AMPS', 0)),
     }
     with _db_lock:
         c = _conn()
@@ -215,12 +214,11 @@ def init_db():
         cur.close()
         c.close()
 
-def increment_stats(seq_count, amp_count, session_id):
+def increment_stats(seq_count, session_id):
     with _db_lock:
         c = _conn()
         cur = c.cursor()
         cur.execute(f'UPDATE stats SET value = value + {_PH} WHERE key = {_PH}', (seq_count, 'total_sequences'))
-        cur.execute(f'UPDATE stats SET value = value + {_PH} WHERE key = {_PH}', (amp_count, 'total_amps'))
         cur.execute(f'UPDATE stats SET value = value + 1 WHERE key = {_PH}', ('total_runs',))
         cur.execute(_INSERT_SESSION, (session_id,))
         if cur.rowcount > 0:
@@ -428,7 +426,7 @@ PAGE = """<!DOCTYPE html>
   .sub { font-size: 0.78rem; color: #888; margin-bottom: 10px; }
   .stats-section { margin-top: 8px; margin-bottom: 12px; text-align: center; }
   .stats-section-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 10px; align-items: center; justify-items: center; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 10px; align-items: center; justify-items: center; }
   @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
   .stats-item { display: flex; flex-direction: row; align-items: center; gap: 8px; }
   .stats-val { font-size: 1.8rem; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; line-height: 1; flex-shrink: 0; }
@@ -684,10 +682,6 @@ PAGE = """<!DOCTYPE html>
         <span class="stats-val" id="statVisitors">—</span>
         <span class="stats-lbl">unique users</span>
       </div>
-      <div class="stats-item wide">
-        <span class="stats-val" id="statAmps">—</span>
-        <span class="stats-lbl">AMPs classified</span>
-      </div>
     </div>
   </div>
 
@@ -865,7 +859,6 @@ async function loadStats() {
     set('statSeq',      d.total_sequences);
     set('statRuns',     d.total_runs);
     set('statVisitors', d.unique_sessions);
-    set('statAmps',     d.total_amps);
   } catch(e) {}
 }
 loadStats();
@@ -1785,7 +1778,7 @@ def predict():
             n_amp = int(predictions_df['prediction'].sum()) if 'prediction' in predictions_df.columns else 0
             session_id = request.cookies.get('_amp_sid', str(uuid.uuid4()))
             try:
-                increment_stats(len(sequences), n_amp, session_id)
+                increment_stats(len(sequences), session_id)
             except Exception:
                 pass
 
