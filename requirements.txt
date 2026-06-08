@@ -1,11 +1,14 @@
 # Core libraries for data science and machine learning
-numpy
-pandas
-scikit-learn
-joblib
-scipy
-xgboost>=1.6.0
-lightgbm>=4.0.0
+# Pinned: the serialized models (.pkl) are unpickled with these exact versions.
+# Leaving scikit-learn/joblib unpinned lets the deploy host pull an incompatible
+# release, which breaks model loading (e.g. "No module named '_loss'").
+numpy==2.4.0
+pandas==2.3.3
+scikit-learn==1.8.0
+joblib==1.5.3
+scipy==1.16.3
+xgboost==3.2.0
+lightgbm==4.6.0
 
 # Library for bioinformatics
 biopython
