@@ -899,17 +899,24 @@ function initUsageMap() {
     .then(function(r) { return r.json(); })
     .then(function(rows) {
       if (!Array.isArray(rows)) return;
-      rows.forEach(function(d) {
+      const total = rows.reduce(function(s, d) { return s + (d.count || 0); }, 0);
+      const palette = ['#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed',
+                       '#0891b2', '#db2777', '#65a30d', '#ea580c', '#4f46e5',
+                       '#0d9488', '#c026d3'];
+      rows.forEach(function(d, i) {
         if (d.lat == null || d.lon == null) return;
         const r = Math.min(18, 4 + 2.2 * Math.sqrt(d.count));
         const place = d.city ? (d.city + ', ' + d.country) : (d.country || 'Unknown');
+        const pctNum = total > 0 ? (d.count / total * 100) : 0;
+        const pct = pctNum < 1 ? '<1%' : Math.round(pctNum) + '%';
+        const color = palette[i % palette.length];
         L.circleMarker([d.lat, d.lon], {
           radius: r,
-          color: '#2563eb',
+          color: color,
           weight: 1,
-          fillColor: '#3b82f6',
+          fillColor: color,
           fillOpacity: 0.55,
-        }).bindPopup('<strong>' + place + '</strong><br>' + d.count + ' prediction' + (d.count === 1 ? '' : 's') + ' from this location').addTo(map);
+        }).bindPopup('<strong>' + place + '</strong><br>' + pct + ' of all predictions').addTo(map);
       });
     })
     .catch(function() {});
