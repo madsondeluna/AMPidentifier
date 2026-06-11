@@ -280,23 +280,23 @@ ISSUES_URL = 'https://github.com/madsondeluna/AMPidentifier/issues'
 EMAIL_FOOTER = {
     'en': (
         'This is an automated message, you do not need to reply.\n'
-        'Your data is transmitted with end-to-end TLS encryption.\n\n'
+        'Your data is encrypted during transfer (HTTPS/TLS protocol) and never shared. We do not store your sequences.\n\n'
     ),
     'fr': (
         'Ceci est un message automatique, vous n\'avez pas besoin de répondre.\n'
-        'Vos données sont transmises avec chiffrement TLS de bout en bout.\n\n'
+        'Vos données sont chiffrées pendant le transfert (protocole HTTPS/TLS) et ne sont jamais partagées. Nous ne conservons pas vos séquences.\n\n'
     ),
     'es': (
         'Este es un mensaje automático, no es necesario responder.\n'
-        'Tus datos se transmiten con cifrado TLS de extremo a extremo.\n\n'
+        'Tus datos se cifran durante la transferencia (protocolo HTTPS/TLS) y nunca se comparten. No almacenamos tus secuencias.\n\n'
     ),
     'pt': (
         'Esta é uma mensagem automática, você não precisa responder.\n'
-        'Seus dados são transmitidos com criptografia TLS de ponta a ponta.\n\n'
+        'Seus dados são criptografados durante a transferência (protocolo HTTPS/TLS) e nunca são compartilhados. Não armazenamos suas sequências.\n\n'
     ),
     'zh': (
         '这是一封自动邮件，您无需回复。\n'
-        '您的数据通过端到端 TLS 加密传输。\n\n'
+        '您的数据在传输过程中加密 (HTTPS/TLS 协议)，且绝不共享。我们不会存储您的序列。\n\n'
     ),
 }
 
@@ -435,7 +435,8 @@ PAGE = """<!DOCTYPE html>
   .notice a { color: #555; text-decoration: underline; }
   .notice a:hover { color: #111; }
   .usage-map-section { margin-top: 28px; }
-  .usage-map-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; margin-bottom: 10px; }
+  .usage-map-label { font-size: 0.65rem; color: #ccc; font-weight: bold; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; margin-bottom: 4px; }
+  .usage-map-note { font-size: 0.62rem; color: #999; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em; text-align: center; white-space: nowrap; margin-bottom: 10px; }
   #usageMap { height: 320px; width: 100%; border: 1px solid #e8e8e8; border-radius: 4px; background: #f7f7f7; z-index: 0; }
   .continent-label { color: #c4c4c4; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; pointer-events: none; }
   .leaflet-container { font-family: 'Roboto Mono', monospace; }
@@ -666,7 +667,7 @@ PAGE = """<!DOCTYPE html>
       </span>
     </span>
   </div>
-  <p class="sub"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide prediction using ensemble machine learning (AUC 0.950, Sens. 0.949, Spec. 0.784). Available as web app, CLI, and PyPI package.</p>
+  <p class="sub"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide prediction using ensemble machine learning (AUC 0.950, Sens. 0.949, Spec. 0.784). Free, no login required.</p>
 
   <div class="stats-section">
     <div class="stats-grid">
@@ -752,6 +753,7 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
 
     <div class="usage-map-section">
       <div class="usage-map-label">Where AMPidentifier is being used</div>
+      <div class="usage-map-note">Your data is encrypted during transfer (HTTPS/TLS protocol) and never shared. We do not store your sequences.</div>
       <div id="usageMap"></div>
     </div>
 
