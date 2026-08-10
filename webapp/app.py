@@ -3,6 +3,7 @@ AMPidentifier Web Portal — v2.0
 """
 import base64
 import contextlib
+import gzip
 import io
 import ipaddress
 import json
@@ -367,10 +368,6 @@ PAGE = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
   html { font-size: 17px; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -437,9 +434,20 @@ PAGE = """<!DOCTYPE html>
   .usage-map-section { margin-top: 28px; }
   .usage-map-label { font-size: 0.65rem; color: #ccc; font-weight: bold; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; margin-bottom: 4px; }
   .usage-map-note { font-size: 0.62rem; color: #999; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em; text-align: center; white-space: nowrap; margin-bottom: 10px; }
-  #usageMap { height: 320px; width: 100%; border: 1px solid #e8e8e8; border-radius: 4px; background: #f7f7f7; z-index: 0; }
-  .continent-label { color: #c4c4c4; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; pointer-events: none; }
-  .leaflet-container { font-family: 'Roboto Mono', monospace; }
+  #usageMap { position: relative; width: 100%; border: 1px solid #e8e8e8; border-radius: 4px; background: #fff; padding: 8px 10px; }
+  #usageMap svg { display: block; width: 100%; height: auto; }
+  #usageMap .land { fill: #f6f6f6; stroke: #e2e2e2; stroke-width: 0.6; }
+  #usageMap .ring { fill: #555555; fill-opacity: 0.13; stroke: #555555; stroke-width: 1.1; stroke-opacity: 0.7; transition: fill-opacity 0.15s ease, stroke-opacity 0.15s ease; }
+  #usageMap .pin  { fill: #555555; }
+  #usageMap .spot { cursor: default; }
+  #usageMap .spot:hover .ring { fill-opacity: 0.3; stroke-opacity: 1; }
+  .map-tip {
+    position: absolute; pointer-events: none; opacity: 0; transform: translate(-50%, -100%);
+    background: #ffffff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08); white-space: nowrap; transition: opacity 0.12s ease;
+  }
+  .map-tip .place { font-size: 0.7rem; color: #1a1a1a; }
+  .map-tip .value { font-size: 0.62rem; color: #999; margin-top: 2px; }
   footer { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e8e8e8; font-size: 0.63rem; color: #aaa; line-height: 1.8; text-align: justify; }
   footer a { color: #999; text-decoration: underline; }
   footer a:hover { color: #333; }
@@ -866,62 +874,101 @@ async function loadStats() {
 loadStats();
 
 function initUsageMap() {
-  if (typeof L === 'undefined' || !document.getElementById('usageMap')) return;
-  const map = L.map('usageMap', {
-    worldCopyJump: true,
-    minZoom: 1,
-    maxZoom: 6,
-    scrollWheelZoom: false,
-    attributionControl: true,
-  }).setView([20, 0], 1);
+  const host = document.getElementById('usageMap');
+  if (!host) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = function(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  };
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-    subdomains: 'abcd',
-    maxZoom: 6,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  }).addTo(map);
+  Promise.all([
+    fetch('/map-outline.json?v=1').then(function(r) { return r.json(); }),
+    fetch('/locations', { cache: 'no-cache' }).then(function(r) { return r.json(); }),
+  ]).then(function(res) {
+    const world = res[0];
+    let rows = res[1];
+    if (!world || !Array.isArray(rows)) return;
+    rows = rows.filter(function(d) { return d.lat != null && d.lon != null; });
 
-  const continents = [
-    ['North America',  54,  -100],
-    ['South America', -15,   -60],
-    ['Europe',         50,    15],
-    ['Africa',          2,    20],
-    ['Asia',           45,    90],
-    ['Oceania',       -25,   135],
-  ];
-  continents.forEach(function(c) {
-    L.marker([c[1], c[2]], {
-      interactive: false,
-      keyboard: false,
-      icon: L.divIcon({ className: 'continent-label', html: c[0], iconSize: null }),
-    }).addTo(map);
-  });
+    const scale = world.w / 360, latTop = 84;
+    const px = function(lon) { return (lon + 180) * scale; };
+    const py = function(lat) { return (latTop - lat) * scale; };
 
-  fetch('/locations', { cache: 'no-cache' })
-    .then(function(r) { return r.json(); })
-    .then(function(rows) {
-      if (!Array.isArray(rows)) return;
-      const total = rows.reduce(function(s, d) { return s + (d.count || 0); }, 0);
-      const palette = ['#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed',
-                       '#0891b2', '#db2777', '#65a30d', '#ea580c', '#4f46e5',
-                       '#0d9488', '#c026d3'];
-      rows.forEach(function(d, i) {
-        if (d.lat == null || d.lon == null) return;
-        const r = Math.min(18, 4 + 2.2 * Math.sqrt(d.count));
-        const place = d.city ? (d.city + ', ' + d.country) : (d.country || 'Unknown');
-        const pctNum = total > 0 ? (d.count / total * 100) : 0;
-        const pct = pctNum < 1 ? '<1%' : Math.round(pctNum) + '%';
-        const color = palette[i % palette.length];
-        L.circleMarker([d.lat, d.lon], {
-          radius: r,
-          color: color,
-          weight: 1,
-          fillColor: color,
-          fillOpacity: 0.55,
-        }).bindPopup('<strong>' + place + '</strong><br>' + pct + ' of all predictions').addTo(map);
+    const svg = el('svg', {
+      viewBox: '0 0 ' + world.w + ' ' + world.h,
+      role: 'img',
+      'aria-label': 'World map of AMPidentifier usage',
+    }, host);
+    el('path', { d: world.d, class: 'land' }, svg);
+
+    const tip = document.createElement('div');
+    tip.className = 'map-tip';
+    tip.innerHTML = '<div class="place"></div><div class="value"></div>';
+    host.appendChild(tip);
+
+    const showTip = function(target, place, value) {
+      tip.querySelector('.place').textContent = place;
+      tip.querySelector('.value').textContent = value;
+      tip.style.opacity = '1';
+      const hb = host.getBoundingClientRect();
+      const tb = target.getBoundingClientRect();
+      const half = tip.offsetWidth / 2;
+      let left = tb.left - hb.left + tb.width / 2;
+      left = Math.max(half + 2, Math.min(hb.width - half - 2, left));
+      tip.style.left = left + 'px';
+      tip.style.top  = Math.max(tip.offsetHeight + 2, tb.top - hb.top - 8) + 'px';
+    };
+    const hideTip = function() { tip.style.opacity = '0'; };
+    document.addEventListener('click', function(ev) {
+      if (!ev.target.closest || !ev.target.closest('.spot')) hideTip();
+    });
+
+    const total = rows.reduce(function(s, d) { return s + (d.count || 0); }, 0);
+    const max = rows.reduce(function(m, d) { return Math.max(m, d.count || 0); }, 1);
+    const rings = [];
+
+    // rings scale with the map, with a floor in screen pixels so the smallest
+    // ones stay visible when the SVG shrinks on narrow viewports
+    const sizeRings = function() {
+      const unit = (svg.getBoundingClientRect().width || world.w) / world.w;
+      if (!unit) return;
+      const floor = 3.5 / unit;
+      rings.forEach(function(item) {
+        item.node.setAttribute('r', Math.max(item.r, floor));
+        item.pin.setAttribute('r', Math.min(1.4, 1.2 / unit));
       });
-    })
-    .catch(function() {});
+    };
+
+    rows.slice().sort(function(a, b) { return a.count - b.count; }).forEach(function(d) {
+      const x = px(d.lon), y = py(d.lat);
+      const r = 4 + 14 * Math.sqrt(d.count / max);
+      const place = d.city ? (d.city + ', ' + d.country) : (d.country || 'Unknown');
+      const p = total > 0 ? (d.count / total * 100) : 0;
+      const pct = p < 1 ? '<1%' : Math.round(p) + '%';
+      const value = pct + ' of all predictions';
+      const g = el('g', { class: 'spot', tabindex: '0', role: 'img',
+                          'aria-label': place + ', ' + value }, svg);
+      const ring = el('circle', { cx: x, cy: y, r: r, class: 'ring' }, g);
+      const pin  = el('circle', { cx: x, cy: y, r: 1.4, class: 'pin' }, g);
+      rings.push({ node: ring, pin: pin, r: r });
+      const show = function() { showTip(ring, place, value); };
+      g.addEventListener('mouseenter', show);
+      g.addEventListener('focus',      show);
+      g.addEventListener('click',      show);
+      g.addEventListener('mouseleave', hideTip);
+      g.addEventListener('blur',       hideTip);
+    });
+
+    sizeRings();
+    let resizeTimer = null;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() { hideTip(); sizeRings(); }, 150);
+    });
+  }).catch(function() {});
 }
 initUsageMap();
 
@@ -1348,6 +1395,22 @@ def stats():
 @app.route('/locations')
 def locations():
     return jsonify(get_locations())
+
+
+_MAP_OUTLINE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'world-outline.json')
+_map_outline_gz = None
+
+@app.route('/map-outline.json')
+def map_outline():
+    global _map_outline_gz
+    if _map_outline_gz is None:
+        with open(_MAP_OUTLINE_PATH, 'rb') as fh:
+            _map_outline_gz = gzip.compress(fh.read(), 9)
+    resp = make_response(_map_outline_gz)
+    resp.headers['Content-Type']     = 'application/json'
+    resp.headers['Content-Encoding'] = 'gzip'
+    resp.headers['Cache-Control']    = 'public, max-age=31536000, immutable'
+    return resp
 
 
 @app.route('/send_csv', methods=['POST'])
