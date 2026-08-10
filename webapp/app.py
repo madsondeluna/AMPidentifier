@@ -433,7 +433,7 @@ PAGE = """<!DOCTYPE html>
   .notice a:hover { color: #111; }
   .usage-map-section { margin-top: 28px; }
   .usage-map-label { font-size: 0.65rem; color: #ccc; font-weight: bold; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; margin-bottom: 4px; }
-  .usage-map-note { font-size: 0.62rem; color: #999; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em; text-align: center; white-space: nowrap; margin-bottom: 10px; }
+  .usage-map-note { font-size: 0.62rem; color: #999; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em; text-align: center; line-height: 1.6; margin-bottom: 10px; }
   #usageMap { position: relative; width: 100%; border: 1px solid #e8e8e8; border-radius: 4px; background: #fff; padding: 8px 10px; }
   #usageMap svg { display: block; width: 100%; height: auto; }
   #usageMap .land { fill: #f6f6f6; stroke: #e2e2e2; stroke-width: 0.6; }
@@ -475,6 +475,7 @@ PAGE = """<!DOCTYPE html>
     background: #f7f7f7; border: 1px solid #e0e0e0; color: #1a1a1a;
     font-family: 'Roboto Mono', monospace; font-size: 0.72rem; padding: 10px 14px;
     border-radius: 4px; outline: none; min-width: 0; flex-shrink: 1;
+    text-overflow: ellipsis;
   }
   button {
     background: #1a1a1a; color: #ffffff; border: none; padding: 10px 28px;
@@ -636,8 +637,10 @@ PAGE = """<!DOCTYPE html>
     .wrap { max-width: 100%; }
     h1 { font-size: 1.4rem; }
     .brand-logo { height: 38px; }
-    .stats-grid { grid-template-columns: 1fr; gap: 8px; }
-    .stats-item { justify-content: center; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0 8px; align-items: start; }
+    .stats-item { flex-direction: column; align-items: center; gap: 3px; }
+    .stats-val { font-size: 1.15rem; }
+    .stats-lbl { text-align: center; font-size: 0.55rem; letter-spacing: 0.05em; }
     .status-tooltip { display: none; }
     .share-inner { flex-direction: column; align-items: stretch; gap: 10px; }
     .share-actions { width: 100%; justify-content: stretch; }
@@ -646,10 +649,17 @@ PAGE = """<!DOCTYPE html>
     .share-form select, .share-form input, .share-form .share-btn { width: 100%; min-width: 0; }
     .email-csv-fields { grid-template-columns: 1fr !important; gap: 10px; }
     .email-csv-btn { width: 100%; padding: 12px 20px; }
-    .row { flex-wrap: wrap; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .row select { grid-column: 1 / -1; width: 100%; }
+    .row button { width: 100%; padding: 11px 8px; }
+    .row .example-btn { grid-column: 1 / -1; }
     .upload-row { flex-wrap: wrap; }
-    table { font-size: 0.72rem; }
+    .upload-btn { width: 100%; }
+    table { font-size: 0.72rem; min-width: 520px; }
     th, td { padding: 6px 8px !important; }
+    td { word-break: normal; overflow-wrap: anywhere; }
+    th:first-child, td:first-child { min-width: 150px; }
+    th:nth-child(2), td:nth-child(2) { min-width: 120px; }
     .dl { flex-wrap: wrap; gap: 8px; }
     .dl button { flex: 1; min-width: 140px; }
     .filter-btn { padding: 6px 10px; font-size: 0.72rem; }
