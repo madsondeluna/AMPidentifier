@@ -637,13 +637,10 @@ PAGE = """<!DOCTYPE html>
     .wrap { max-width: 100%; }
     h1 { font-size: 1.4rem; }
     .brand-logo { height: 38px; }
-    .stats-grid { grid-template-columns: 1fr; gap: 10px; }
-    .stats-item {
-      display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      align-items: baseline; column-gap: 12px; width: 100%;
-    }
-    .stats-val { justify-self: end; font-size: 1.6rem; }
-    .stats-lbl { justify-self: start; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0 8px; align-items: start; }
+    .stats-item { flex-direction: column; align-items: center; gap: 3px; }
+    .stats-val { font-size: 1.15rem; }
+    .stats-lbl { text-align: center; font-size: 0.55rem; letter-spacing: 0.05em; }
     .status-tooltip { display: none; }
     .share-inner { flex-direction: column; align-items: stretch; gap: 10px; }
     .share-actions { width: 100%; justify-content: stretch; }
