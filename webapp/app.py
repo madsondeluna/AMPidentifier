@@ -885,7 +885,7 @@ function initUsageMap() {
   };
 
   Promise.all([
-    fetch('/map-outline.json').then(function(r) { return r.json(); }),
+    fetch('/map-outline.json?v=1').then(function(r) { return r.json(); }),
     fetch('/locations', { cache: 'no-cache' }).then(function(r) { return r.json(); }),
   ]).then(function(res) {
     const world = res[0];
@@ -912,31 +912,61 @@ function initUsageMap() {
     const showTip = function(target, place, value) {
       tip.querySelector('.place').textContent = place;
       tip.querySelector('.value').textContent = value;
+      tip.style.opacity = '1';
       const hb = host.getBoundingClientRect();
       const tb = target.getBoundingClientRect();
-      tip.style.left = (tb.left - hb.left + tb.width / 2) + 'px';
-      tip.style.top  = (tb.top - hb.top - 8) + 'px';
-      tip.style.opacity = '1';
+      const half = tip.offsetWidth / 2;
+      let left = tb.left - hb.left + tb.width / 2;
+      left = Math.max(half + 2, Math.min(hb.width - half - 2, left));
+      tip.style.left = left + 'px';
+      tip.style.top  = Math.max(tip.offsetHeight + 2, tb.top - hb.top - 8) + 'px';
     };
     const hideTip = function() { tip.style.opacity = '0'; };
+    document.addEventListener('click', function(ev) {
+      if (!ev.target.closest || !ev.target.closest('.spot')) hideTip();
+    });
 
     const total = rows.reduce(function(s, d) { return s + (d.count || 0); }, 0);
     const max = rows.reduce(function(m, d) { return Math.max(m, d.count || 0); }, 1);
+    const rings = [];
+
+    // rings scale with the map, with a floor in screen pixels so the smallest
+    // ones stay visible when the SVG shrinks on narrow viewports
+    const sizeRings = function() {
+      const unit = (svg.getBoundingClientRect().width || world.w) / world.w;
+      if (!unit) return;
+      const floor = 3.5 / unit;
+      rings.forEach(function(item) {
+        item.node.setAttribute('r', Math.max(item.r, floor));
+        item.pin.setAttribute('r', Math.min(1.4, 1.2 / unit));
+      });
+    };
+
     rows.slice().sort(function(a, b) { return a.count - b.count; }).forEach(function(d) {
       const x = px(d.lon), y = py(d.lat);
       const r = 4 + 14 * Math.sqrt(d.count / max);
       const place = d.city ? (d.city + ', ' + d.country) : (d.country || 'Unknown');
       const p = total > 0 ? (d.count / total * 100) : 0;
       const pct = p < 1 ? '<1%' : Math.round(p) + '%';
-      const value = d.count + (d.count === 1 ? ' run, ' : ' runs, ') + pct + ' of all predictions';
+      const value = pct + ' of all predictions';
       const g = el('g', { class: 'spot', tabindex: '0', role: 'img',
                           'aria-label': place + ', ' + value }, svg);
       const ring = el('circle', { cx: x, cy: y, r: r, class: 'ring' }, g);
-      el('circle', { cx: x, cy: y, r: 1.4, class: 'pin' }, g);
-      g.addEventListener('mouseenter', function() { showTip(ring, place, value); });
-      g.addEventListener('focus',      function() { showTip(ring, place, value); });
+      const pin  = el('circle', { cx: x, cy: y, r: 1.4, class: 'pin' }, g);
+      rings.push({ node: ring, pin: pin, r: r });
+      const show = function() { showTip(ring, place, value); };
+      g.addEventListener('mouseenter', show);
+      g.addEventListener('focus',      show);
+      g.addEventListener('click',      show);
       g.addEventListener('mouseleave', hideTip);
       g.addEventListener('blur',       hideTip);
+    });
+
+    sizeRings();
+    let resizeTimer = null;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() { hideTip(); sizeRings(); }, 150);
     });
   }).catch(function() {});
 }
