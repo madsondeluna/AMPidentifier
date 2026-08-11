@@ -277,6 +277,22 @@ def get_locations():
         c.close()
     return [{'city': r[0], 'country': r[1], 'lat': r[2], 'lon': r[3], 'count': r[4]} for r in rows]
 
+def count_cities():
+    """Cities that have run at least one prediction.
+
+    city_key is the primary key of locations, so one row is one city. The count
+    is a floor, not a total: geolocation resolves only part of the runs, and a
+    run whose IP does not resolve leaves no row here.
+    """
+    with _db_lock:
+        c = _conn()
+        cur = c.cursor()
+        cur.execute('SELECT COUNT(*) FROM locations')
+        n = cur.fetchone()[0]
+        cur.close()
+        c.close()
+    return int(n or 0)
+
 app = Flask(__name__, static_folder='img', static_url_path='/img')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 init_db()
@@ -433,11 +449,18 @@ PAGE = """<!DOCTYPE html>
   /* o primeiro numero comeca na borda esquerda do texto, o terceiro
      termina na direita e o do meio fica centrado: as tres colunas
      fecham na mesma largura do paragrafo acima. */
-  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 10px; align-items: center; }
-  .stats-item:nth-child(1) { justify-self: start; }
-  .stats-item:nth-child(2) { justify-self: center; }
-  .stats-item:nth-child(3) { justify-self: end; }
-  @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  /* o primeiro numero comeca na borda esquerda do texto, o ultimo termina
+     na direita e os do meio ficam centrados na propria coluna. */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 10px; align-items: center; }
+  .stats-item { justify-self: center; }
+  .stats-item:first-child { justify-self: start; }
+  .stats-item:last-child  { justify-self: end; }
+  /* em duas colunas as pontas deixam de fazer sentido: quatro numeros
+     viram 2x2 e cada um se centra na propria celula. */
+  @media (max-width: 720px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 14px 8px; }
+    .stats-item, .stats-item:first-child, .stats-item:last-child { justify-self: center; }
+  }
   .stats-item { display: flex; flex-direction: row; align-items: center; gap: 8px; }
   .stats-val { font-size: 1.8rem; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; line-height: 1; flex-shrink: 0; }
   .stats-lbl { font-size: 0.62rem; color: #bbb; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; line-height: 1.3; }
@@ -649,7 +672,7 @@ PAGE = """<!DOCTYPE html>
     .wrap { max-width: 100%; }
     h1 { font-size: 1.4rem; }
     .brand-logo { height: 38px; }
-    .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0 8px; align-items: start; }
+    .stats-grid { align-items: start; }
     .stats-item { flex-direction: column; align-items: center; gap: 3px; }
     .stats-val { font-size: 1.15rem; }
     .stats-lbl { text-align: center; font-size: 0.55rem; letter-spacing: 0.05em; }
@@ -708,6 +731,10 @@ PAGE = """<!DOCTYPE html>
       <div class="stats-item">
         <span class="stats-val" id="statRuns">—</span>
         <span class="stats-lbl">prediction runs</span>
+      </div>
+      <div class="stats-item">
+        <span class="stats-val" id="statCities">—</span>
+        <span class="stats-lbl">cities reached</span>
       </div>
       <div class="stats-item">
         <span class="stats-val" id="statVisitors">—</span>
@@ -890,6 +917,7 @@ async function loadStats() {
     const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v != null ? v.toLocaleString() : '—'; };
     set('statSeq',      d.total_sequences);
     set('statRuns',     d.total_runs);
+    set('statCities',   d.cities_reached);
     set('statVisitors', d.unique_sessions);
   } catch(e) {}
 }
@@ -1409,7 +1437,9 @@ def health():
 
 @app.route('/stats')
 def stats():
-    return jsonify(get_stats())
+    data = get_stats()
+    data['cities_reached'] = count_cities()
+    return jsonify(data)
 
 
 @app.route('/locations')
