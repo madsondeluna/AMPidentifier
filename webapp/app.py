@@ -450,10 +450,9 @@ PAGE = """<!DOCTYPE html>
   #usageMap { position: relative; width: 100%; border: 1px solid #e8e8e8; border-radius: 4px; background: #fff; padding: 8px 10px; }
   #usageMap svg { display: block; width: 100%; height: auto; }
   #usageMap .land { fill: #f6f6f6; stroke: #e2e2e2; stroke-width: 0.6; }
-  #usageMap .ring { fill: #555555; fill-opacity: 0.13; stroke: #555555; stroke-width: 1.1; stroke-opacity: 0.7; transition: fill-opacity 0.15s ease, stroke-opacity 0.15s ease; }
-  #usageMap .pin  { fill: #555555; }
+  #usageMap .ring { fill: #555555; fill-opacity: 0.28; stroke: #555555; stroke-width: 1.1; stroke-opacity: 0.9; transition: fill-opacity 0.15s ease, stroke-opacity 0.15s ease; }
   #usageMap .spot { cursor: default; }
-  #usageMap .spot:hover .ring { fill-opacity: 0.3; stroke-opacity: 1; }
+  #usageMap .spot:hover .ring { fill-opacity: 0.45; stroke-opacity: 1; }
   .map-tip {
     position: absolute; pointer-events: none; opacity: 0; transform: translate(-50%, -100%);
     background: #ffffff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px 10px;
@@ -961,7 +960,6 @@ function initUsageMap() {
       const floor = 3.5 / unit;
       rings.forEach(function(item) {
         item.node.setAttribute('r', Math.max(item.r, floor));
-        item.pin.setAttribute('r', Math.min(1.4, 1.2 / unit));
       });
     };
 
@@ -975,8 +973,7 @@ function initUsageMap() {
       const g = el('g', { class: 'spot', tabindex: '0', role: 'img',
                           'aria-label': place + ', ' + value }, svg);
       const ring = el('circle', { cx: x, cy: y, r: r, class: 'ring' }, g);
-      const pin  = el('circle', { cx: x, cy: y, r: 1.4, class: 'pin' }, g);
-      rings.push({ node: ring, pin: pin, r: r });
+      rings.push({ node: ring, r: r });
       const show = function() { showTip(ring, place, value); };
       g.addEventListener('mouseenter', show);
       g.addEventListener('focus',      show);
