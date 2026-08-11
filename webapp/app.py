@@ -430,7 +430,13 @@ PAGE = """<!DOCTYPE html>
   .sub { font-size: 0.78rem; color: #888; margin-bottom: 10px; }
   .stats-section { margin-top: 8px; margin-bottom: 12px; text-align: center; }
   .stats-section-label { font-size: 0.65rem; color: #ccc; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
-  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 10px; align-items: center; justify-items: center; }
+  /* o primeiro numero comeca na borda esquerda do texto, o terceiro
+     termina na direita e o do meio fica centrado: as tres colunas
+     fecham na mesma largura do paragrafo acima. */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 10px; align-items: center; }
+  .stats-item:nth-child(1) { justify-self: start; }
+  .stats-item:nth-child(2) { justify-self: center; }
+  .stats-item:nth-child(3) { justify-self: end; }
   @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
   .stats-item { display: flex; flex-direction: row; align-items: center; gap: 8px; }
   .stats-val { font-size: 1.8rem; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; line-height: 1; flex-shrink: 0; }
