@@ -216,14 +216,21 @@ def init_db():
         c.close()
 
 def increment_stats(seq_count, session_id):
+    """Count the run and its sequences always; count the visitor only when identified.
+
+    session_id is the browser's _amp_sid cookie. A request without it carries no
+    identity: minting one here would turn every cookieless call, curl, API script,
+    bot, into a fresh 'unique visitor'. The run still counts, the visitor does not.
+    """
     with _db_lock:
         c = _conn()
         cur = c.cursor()
         cur.execute(f'UPDATE stats SET value = value + {_PH} WHERE key = {_PH}', (seq_count, 'total_sequences'))
         cur.execute(f'UPDATE stats SET value = value + 1 WHERE key = {_PH}', ('total_runs',))
-        cur.execute(_INSERT_SESSION, (session_id,))
-        if cur.rowcount > 0:
-            cur.execute(f'UPDATE stats SET value = value + 1 WHERE key = {_PH}', ('unique_sessions',))
+        if session_id:
+            cur.execute(_INSERT_SESSION, (session_id,))
+            if cur.rowcount > 0:
+                cur.execute(f'UPDATE stats SET value = value + 1 WHERE key = {_PH}', ('unique_sessions',))
         c.commit()
         cur.close()
         c.close()
@@ -1229,7 +1236,7 @@ async function sendCsvByEmail() {
   const lang  = document.getElementById('csvEmailLang').value;
   const status = document.getElementById('emailCsvStatus');
   const btn = document.getElementById('sendCsvBtn');
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
     status.innerHTML = '<span class="err">Enter a valid email address.</span>';
     return;
   }
@@ -1292,7 +1299,7 @@ async function sendShareEmail() {
   const email = document.getElementById('shareFriendEmail').value.trim();
   const status = document.getElementById('shareFormStatus');
   const btn = document.getElementById('sendShareBtn');
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
     status.innerHTML = '<span class="err">Enter a valid email.</span>';
     return;
   }
@@ -1858,11 +1865,11 @@ def predict():
             )
 
             n_amp = int(predictions_df['prediction'].sum()) if 'prediction' in predictions_df.columns else 0
-            session_id = request.cookies.get('_amp_sid', str(uuid.uuid4()))
+            session_id = request.cookies.get('_amp_sid', '')
             try:
                 increment_stats(len(sequences), session_id)
-            except Exception:
-                pass
+            except Exception as e:
+                _geo_log.warning('stats: increment failed: %s', e)
 
             model_labels = {
                 'voting': 'Voting Ensemble', 'rf': 'Random Forest',
@@ -1878,7 +1885,7 @@ def predict():
                 f'{prob_line}'
                 f'Model: {model_labels.get(model_choice, model_choice)}\n'
                 f'{{location}}'
-                f'Session: {session_id[:8]}...\n'
+                f'Session: {session_id[:8] + "..." if session_id else "none (not counted)"}\n'
                 f'\n'
                 f'Total sequences classified: {stats_now.get("total_sequences", 0)}\n'
                 f'Total prediction runs: {stats_now.get("total_runs", 0)}\n'
@@ -1886,11 +1893,18 @@ def predict():
             )
             record_usage_location(_client_ip(), message_template)
 
-            return jsonify({
+            resp = jsonify({
                 'model': model_choice,
                 'num_sequences': len(sequences),
                 'predictions': predictions_df.to_dict(orient='records')
             })
+            # um navegador que chegou aqui sem cookie sai com um: a rodada
+            # atual nao conta como visitante, a proxima conta. curl e bot nao
+            # guardam cookie, entao continuam de fora.
+            if not session_id:
+                resp.set_cookie('_amp_sid', str(uuid.uuid4()),
+                                max_age=365 * 24 * 3600, samesite='Lax', httponly=True)
+            return resp
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
