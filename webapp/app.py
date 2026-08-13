@@ -772,6 +772,8 @@ PAGE = """<!DOCTYPE html>
 
   <p class="notice">For advanced parameter control use the <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a> or install via <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>: <code style="background:#f0f0f0;color:#444;padding:2px 8px;border-radius:4px;font-size:0.85em;">pip install ampidentifier</code></p>
 
+  <p class="notice">This is the stable layout: <a href="/beta">access the beta version</a></p>
+
   <div class="label-row">
     <label>FASTA sequences</label>
     <span class="seq-counter" id="seqCounter"></span>
