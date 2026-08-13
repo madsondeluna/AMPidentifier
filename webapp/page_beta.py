@@ -229,9 +229,9 @@ PAGE = """<!DOCTYPE html>
     cursor: default;
   }
   .changelog p { margin: 0; font-size: var(--text-15); line-height: var(--leading-normal); color: var(--text); }
-  .changelog ul { margin: 0; padding-left: var(--space-16); display: flex; flex-direction: column; gap: var(--space-6); }
-  .changelog li { font-size: var(--text-15); line-height: var(--leading-normal); color: var(--muted); }
-  .changelog li::marker { color: var(--muted); }
+  /* o corpo recua para --muted: a primeira frase diz o escopo em tinta
+     cheia e o detalhe tecnico fica um nivel abaixo, no mesmo corpo */
+  .changelog .changelog-body { color: var(--muted); }
 
   .metrics-grid { display: grid; gap: var(--space-8); }
   .metrics-3 { grid-template-columns: repeat(3, 1fr); }
@@ -616,13 +616,8 @@ PAGE = """<!DOCTYPE html>
     <div class="metrics-label">In testing</div>
     <div class="card-glass changelog">
       <p>This round changes the interface only. Models, thresholds and predictions are the same as the stable version.</p>
-      <ul>
-        <li>Single column layout, one width for every block</li>
-        <li>Benchmark and usage figures as cells instead of a text line</li>
-        <li>Four result states: empty, loaded, filtered and error, kept in the URL</li>
-        <li>Usage map without the centre dots</li>
-        <li>Institutional marks sized by their own ink</li>
-      </ul>
+      <p class="changelog-body prose-justify">The front end was rebuilt on a token-based design system: one type scale, one spacing scale and a single set of colour tokens shared by every component, with the layout on a single column and a concentric radius ladder. Controls and panels became glass surfaces with backdrop-filter, keyboard focus rings and reduced-motion fallbacks, the usage map became inline SVG instead of a tile layer, and the result panel carries its state in the URL.</p>
+      <p class="changelog-body prose-justify">Coming soon: a new batch of trained models will reach the beta before the stable version, and a prediction mode built on a protein language model (PLLM) goes into testing here.</p>
     </div>
   </div>
 
