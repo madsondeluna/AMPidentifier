@@ -186,8 +186,8 @@ PAGE = """<!DOCTYPE html>
   .sub strong { font-weight: var(--weight-medium); }
 
   /* a frase que explicava o CLI era copy de apoio: o que resta e o
-     comando e para onde ir, na mesma barra separada por ponto que o
-     rodape ja usa */
+     comando e para onde ir. Os grupos se separam por espaco: o ponto
+     entre eles era ruido numa linha que ja tem tres marcas de pontuacao */
   .install {
     display: flex;
     align-items: center;
@@ -204,9 +204,9 @@ PAGE = """<!DOCTYPE html>
     padding: var(--space-4) var(--space-10);
     border-radius: var(--radius-mark);
   }
-  /* o ponto herda a tinta do paragrafo, como a linha do rodape: em
-     --border ele sumia sobre o vidro e a barra ficava sem separador */
-  .install-sep { color: inherit; }
+  /* sem o ponto, o que separa um grupo do outro e o dobro do espaco
+     que separa rotulo e valor dentro do grupo */
+  .install-group { margin-left: var(--space-8); }
 
   /* ---------- numeros do modelo ---------- */
 
@@ -216,6 +216,22 @@ PAGE = """<!DOCTYPE html>
      clarear, e so entao o material aparece. */
   .metrics-band { background: var(--dim); border-radius: var(--radius-surface); padding: var(--space-12); }
   .metrics-label { font-family: var(--font-mono); font-size: var(--text-11); letter-spacing: var(--tracking-wide); color: var(--muted); margin: 0 0 var(--space-10) var(--space-4); }
+  /* o changelog e a mesma construcao da faixa de numeros: faixa em --dim
+     com o vidro dentro, raio concentrico, cursor default. O que muda e o
+     conteudo, prosa em vez de celula. */
+  .changelog {
+    border-radius: var(--radius-field);
+    padding: var(--space-10) var(--space-12);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+    cursor: default;
+  }
+  .changelog p { margin: 0; font-size: var(--text-15); line-height: var(--leading-normal); color: var(--text); }
+  .changelog ul { margin: 0; padding-left: var(--space-16); display: flex; flex-direction: column; gap: var(--space-6); }
+  .changelog li { font-size: var(--text-15); line-height: var(--leading-normal); color: var(--muted); }
+  .changelog li::marker { color: var(--muted); }
+
   .metrics-grid { display: grid; gap: var(--space-8); }
   .metrics-3 { grid-template-columns: repeat(3, 1fr); }
   .metrics-4 { grid-template-columns: repeat(4, 1fr); }
@@ -586,10 +602,25 @@ PAGE = """<!DOCTYPE html>
      <div class="card-glass intro">
       <p class="sub prose-justify"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide prediction using ensemble machine learning.</p>
 
-      <p class="install"><span class="install-lead">For <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>:</span> <code>pip install ampidentifier</code><span class="install-sep">·</span><span class="install-lead">For terminal use:</span> <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a></p>
+      <p class="install"><span class="install-lead">For <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>:</span> <code>pip install ampidentifier</code><span class="install-lead install-group">For terminal use:</span> <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a></p>
+      <p class="install"><span class="install-lead">This is the beta layout:</span> <a href="/">Access the stable version</a></p>
      </div>
     </div>
   </header>
+
+  <div class="metrics-band step-2">
+    <div class="metrics-label">In testing</div>
+    <div class="card-glass changelog">
+      <p>This round changes the interface only. Models, thresholds and predictions are the same as the stable version.</p>
+      <ul>
+        <li>Single column layout, one width for every block</li>
+        <li>Benchmark and usage figures as cells instead of a text line</li>
+        <li>Four result states: empty, loaded, filtered and error, kept in the URL</li>
+        <li>Usage map without the centre dots</li>
+        <li>Institutional marks sized by their own ink</li>
+      </ul>
+    </div>
+  </div>
 
   <div class="metrics-band step-2">
     <div class="metrics-label">Benchmark, voting ensemble (RF + SVM + GB + XGB + LGBM)</div>
