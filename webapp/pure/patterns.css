@@ -1,0 +1,1055 @@
+/* Pure Design 1.4.2 -- copia de /Volumes/promethion/pure-design-language/web/patterns.css
+   pure / patterns.css
+   Os componentes da linguagem, reescritos em cima dos tokens.
+   Nenhum valor literal aqui: todo numero vem de tokens.css.
+   Importar depois de tokens.css. */
+
+/* base */
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-16);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+* { box-sizing: border-box; }
+
+/* [hidden] e a forma declarada de tirar algo do fluxo, e qualquer
+   componente com display proprio o atropela sem este reforco. Sem ele
+   .empty[hidden] continua visivel e o corpo de um acordeao nunca fecha. */
+[hidden] { display: none !important; }
+
+a { color: inherit; text-decoration: none; }
+
+/* midia nunca estoura a coluna, e img mantem proporcao. Largura e altura
+   no atributo continuam obrigatorias: sao elas que reservam a caixa e
+   evitam o salto de layout enquanto o arquivo baixa. */
+img, svg, video, canvas, iframe { max-width: 100%; }
+img, video { height: auto; }
+
+/* ancora sob barra fixa: sem isto o titulo alvo para atras da nav */
+:where(h1, h2, h3, h4, h5, h6, section[id], [id][data-anchor]) {
+  scroll-margin-top: var(--scroll-offset);
+}
+
+/* toque: o realce cinza do iOS sai e o :active da linguagem responde no
+   lugar dele. touch-action derruba os 300ms de espera do duplo toque. */
+:where(a, button, summary, label, select, [role="button"], [role="tab"], [role="option"]) {
+  -webkit-tap-highlight-color: var(--tap-highlight);
+  touch-action: manipulation;
+}
+
+/* dd nasce com margin-inline-start de 40px no navegador, o que desalinha
+   qualquer lista de definicao usada como tabela de metadados */
+dl, dd { margin: 0; }
+
+::selection { background: var(--text); color: var(--bg); }
+
+/* foco: --accent passa de 3:1 contra --bg nos quatro modos, que e o piso
+   de indicador de foco. O anel so aparece quando o navegador julga que o
+   foco veio do teclado; remover outline sem substituto e proibido. */
+:focus-visible {
+  outline: var(--focus-ring) solid var(--accent);
+  outline-offset: var(--focus-offset);
+}
+
+/* sobre vidro o fundo e imprevisivel, entao o anel usa --text, pela mesma
+   razao que o texto sobre vidro usa --text e nunca --muted */
+.glass:focus-visible,
+.pill:focus-visible,
+.control-round:focus-visible {
+  outline-color: var(--text);
+}
+
+/* o grupo inteiro se acende quando o controle interno recebe foco */
+.field:focus-within .field-label { color: var(--text); }
+
+/* tipografia */
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-11);
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--muted);
+  text-transform: none;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-stretch: var(--font-display-stretch);
+  font-weight: var(--weight-light);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-display);
+  color: var(--text);
+}
+
+.display-section { font-size: var(--text-display-section); }
+.display-name    { font-size: var(--text-display-name); }
+
+.prose {
+  max-width: var(--measure-prose);
+  font-size: var(--text-15);
+  line-height: var(--leading-normal);
+  color: var(--muted);
+}
+
+/* justificado e opcional, nao base: em coluna estreita abre rios de espaco */
+.prose-justify { text-align: justify; }
+
+.mono { font-family: var(--font-mono); }
+
+/* cabecalho de secao: numero, titulo display, linha */
+
+.section-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding-bottom: var(--space-48);
+  border-bottom: var(--hairline) solid var(--border);
+  margin-bottom: var(--space-56);
+}
+
+/* superficies */
+
+.surface {
+  background: var(--surface);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-surface);
+}
+
+/* o !important existe porque os cartoes do site definem background por
+   style inline, que vence qualquer seletor. Ao migrar um componente para
+   estas classes, tire o background inline e o !important pode sair junto. */
+.hover-surface {
+  transition: background var(--duration-3) var(--ease-standard);
+  cursor: pointer;
+}
+.hover-surface:hover { background: var(--surface-hover) !important; }
+
+/* cartao de vidro: superficie translucida sobre conteudo */
+.card-glass {
+  border-radius: var(--radius-surface);
+  background-image: var(--glass-fill);
+  background-color: var(--surface-glass);
+  border: var(--hairline) solid var(--glass-edge);
+  backdrop-filter: blur(var(--blur-card)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--blur-card)) saturate(var(--glass-saturate));
+  box-shadow: var(--shadow-glass-rest);
+  isolation: isolate;
+  cursor: pointer;
+  transition:
+    background-image var(--duration-5) var(--ease-out-soft),
+    border-color var(--duration-5) var(--ease-out-soft),
+    box-shadow var(--duration-5) var(--ease-out-soft);
+}
+.card-glass:hover {
+  background-image: var(--glass-fill-hover);
+  border-color: var(--glass-edge-hover);
+  box-shadow: var(--shadow-glass-hover);
+}
+
+/* grade de cartoes: as celulas nao tem borda propria, o vao de 1px
+   sobre o fundo --border desenha a grade inteira. O raio fica na grade,
+   nao na celula: overflow recorta os cantos das quatro pontas. */
+.hairline-grid {
+  display: grid;
+  gap: var(--hairline);
+  background: var(--border);
+  border-radius: var(--radius-surface);
+  overflow: hidden;
+}
+
+/* ---------- vidro ----------
+
+   .glass e o material, nao um componente. Aplique em pilula, cartao,
+   barra, popover ou tooltip: o material e sempre o mesmo, so a forma muda.
+
+   O material tem cinco camadas e todas importam:
+   preenchimento em gradiente vertical, desfoque do fundo, saturacao,
+   realce especular na aresta de cima e refracao na de baixo.
+
+   O raio do desfoque nao e uma preferencia: ele precisa caber na caixa.
+   16px para pilula e tooltip, 32px para cartao e barra, 72px so sobre
+   canvas de tela cheia. Um raio grande num elemento baixo faz o Chrome
+   amostrar alem da caixa e desenhar um bloco fantasma no primeiro de
+   uma fileira de vizinhos de vidro. */
+
+.glass:not(.card-glass) {
+  background-image: var(--glass-fill);
+  background-color: transparent;
+  border: var(--hairline) solid var(--glass-edge);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--shadow-glass-rest);
+  /* isola o backdrop desta superficie do das vizinhas */
+  isolation: isolate;
+  /* vidro fica sobre conteudo, nao sobre superficie plana, entao o fundo
+     atras dele e imprevisivel. O texto usa a tinta forte por regra, nunca
+     a mudada: e a unica cor que garante leitura sobre qualquer fundo.
+     .card-glass fica de fora porque ele assenta numa superficie conhecida
+     e segue a hierarquia normal de prosa. */
+  color: var(--text);
+  transition:
+    background-image var(--duration-5) var(--ease-out-soft),
+    border-color var(--duration-5) var(--ease-out-soft),
+    box-shadow var(--duration-5) var(--ease-out-soft),
+    color var(--duration-4) var(--ease-out-soft);
+}
+
+.glass:not(.card-glass):hover {
+  background-image: var(--glass-fill-hover);
+  border-color: var(--glass-edge-hover);
+  box-shadow: var(--shadow-glass-hover);
+}
+
+/* Quatro texturas. A diferenca entre elas e quanto do fundo sobrevive.
+   Combine com qualquer forma: raio zero, raio 8, pilula ou circulo. */
+
+/* fino: o fundo passa quase inteiro, so a aresta denuncia o material */
+.glass-thin {
+  background-image: var(--glass-fill-thin);
+  backdrop-filter: blur(var(--glass-blur-thin)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-thin)) saturate(140%);
+}
+
+/* fosco: e o unico que leva granulado. Sem o feTurbulence por cima o
+   resultado e translucido, nao fosco. */
+.glass-frost {
+  position: relative;
+  background-image: var(--glass-fill-frost);
+  backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%) brightness(1.02);
+  -webkit-backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%) brightness(1.02);
+}
+.glass-frost::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--glass-grain);
+  opacity: var(--glass-grain-opacity);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* fundo: quase nada do que esta atras sobrevive, so a cor media */
+.glass-deep {
+  background-image: var(--glass-fill-deep);
+  backdrop-filter: blur(var(--glass-blur-deep)) saturate(200%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-deep)) saturate(200%);
+}
+
+/* tingido: o material assume a cor de acento sem virar preenchimento solido */
+.glass-accent {
+  background-image: var(--glass-tint-accent);
+  border-color: var(--glass-edge-accent);
+  color: var(--text);
+}
+.glass-accent:hover {
+  border-color: var(--glass-edge-accent);
+  filter: brightness(1.06);
+}
+
+/* o modificador so modifica se ganhar do componente que ele tinge, e
+   sozinho ele nao ganha: .pill, .card-glass e .glass declaram fundo depois
+   deste bloco, e no hover declaram com uma classe a mais. Sem o par
+   explicito, class="pill glass-accent" saia identico a class="pill", e a
+   acao primaria da tela perdia a prioridade sem nenhum aviso. Nomear os
+   tres aqui e o preco de manter o material no capitulo do material. */
+.pill.glass-accent,
+.card-glass.glass-accent,
+.glass.glass-accent {
+  background-image: var(--glass-tint-accent);
+  border-color: var(--glass-edge-accent);
+}
+.pill.glass-accent:hover,
+.card-glass.glass-accent:hover,
+.glass.glass-accent:hover {
+  background-image: var(--glass-tint-accent);
+  border-color: var(--glass-edge-accent);
+  filter: brightness(1.06);
+}
+
+/* formas: o material e o mesmo, so o raio muda. .glass-sq guarda o nome
+   antigo por compatibilidade, mas hoje carrega o raio de superficie:
+   nada na linguagem tem canto vivo. */
+.glass-sq { border-radius: var(--radius-surface); }
+.glass-soft { border-radius: var(--radius-media); }
+.glass-round { border-radius: var(--radius-control); }
+.glass-circle { border-radius: var(--radius-circle); aspect-ratio: 1; }
+
+/* painel flutuante: vidro com grade interna, para barra de ferramentas,
+   paleta de comandos ou controle sobreposto a um mapa ou grafico */
+.glass-panel {
+  display: grid;
+  gap: var(--hairline);
+  overflow: hidden;
+}
+.glass-panel > * {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: var(--space-12) var(--space-16);
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  line-height: var(--leading-snug);
+  color: var(--text);
+  box-shadow: 0 0 0 var(--hairline) var(--glass-edge);
+  transition: background-color var(--duration-3) var(--ease-out-soft);
+}
+.glass-panel > *:hover {
+  background-color: var(--glass-tint-hover);
+}
+
+/* Reacao ao ponteiro. O vidro nao muda de cor no hover: ele sobe.
+   A aresta de cima acende, a sombra abre e a superficie levanta 2px.
+   Sem isso o material parece uma imagem, nao um objeto. */
+.glass-lift {
+  transition:
+    background-image var(--duration-5) var(--ease-out-soft),
+    border-color var(--duration-5) var(--ease-out-soft),
+    box-shadow var(--duration-5) var(--ease-out-soft),
+    transform var(--duration-5) var(--ease-out-soft),
+    color var(--duration-4) var(--ease-out-soft);
+}
+.glass-lift:hover {
+  transform: translateY(calc(-1 * var(--nudge-1)));
+  border-color: var(--glass-edge-hover);
+  box-shadow: var(--shadow-glass-hover);
+}
+.glass-lift:active {
+  transform: translateY(0);
+  transition-duration: var(--duration-1);
+}
+
+/* palco: vidro sobre fundo liso nao mostra nada. Este container da ao
+   material algo para refratar. Use so em documentacao e demonstracao. */
+.glass-stage {
+  position: relative;
+  overflow: hidden;
+  background: var(--dim);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-surface);
+}
+.glass-stage > .stage-art { position: absolute; inset: 0; }
+.glass-stage > .stage-content {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: center;
+  padding: var(--space-32);
+}
+
+/* leitor do palco: diz qual textura esta sob o cursor e com que valores.
+   As texturas so se distinguem lado a lado; nomeadas, elas se aprendem. */
+.stage-readout {
+  position: absolute;
+  right: var(--space-16);
+  bottom: var(--space-16);
+  z-index: 3;
+  min-width: 232px;
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-surface);
+  background-image: var(--glass-fill-frost);
+  backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%);
+  border: var(--hairline) solid var(--glass-edge);
+  box-shadow: var(--shadow-glass-rest);
+  isolation: isolate;
+  font-family: var(--font-mono);
+  font-size: var(--text-11);
+  color: var(--muted);
+  pointer-events: none;
+  transition: opacity var(--duration-3) var(--ease-out-soft);
+}
+.stage-readout .name {
+  display: block;
+  color: var(--text);
+  font-size: var(--text-12);
+  letter-spacing: var(--tracking-wide);
+  padding-bottom: var(--space-6);
+  margin-bottom: var(--space-6);
+  border-bottom: var(--hairline) solid var(--glass-edge);
+}
+.stage-readout .row { display: flex; gap: var(--space-12); }
+.stage-readout .row span:last-child { margin-left: auto; color: var(--text); }
+
+/* ---------- pilulas ----------
+
+   .pill e de vidro por padrao: e a forma que a identidade usa.
+   .pill-solid existe para onde o vidro nao pode ir, como dentro de uma
+   tabela densa ou sobre uma superficie ja translucida. */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: var(--text-13);
+  line-height: var(--leading-snug);
+  color: var(--text);
+  user-select: none;
+  cursor: pointer;
+
+  background-image: var(--glass-fill);
+  background-color: transparent;
+  border: var(--hairline) solid var(--glass-edge);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--shadow-glass-rest);
+  isolation: isolate;
+
+  /* a transicao e longa e amortecida: o vidro assenta, nao salta */
+  transition:
+    background-image var(--duration-5) var(--ease-out-soft),
+    border-color var(--duration-5) var(--ease-out-soft),
+    box-shadow var(--duration-5) var(--ease-out-soft),
+    color var(--duration-4) var(--ease-out-soft);
+}
+
+.pill:hover {
+  color: var(--text);
+  background-image: var(--glass-fill-hover);
+  border-color: var(--glass-edge-hover);
+  box-shadow: var(--shadow-glass-hover);
+}
+
+.pill:active {
+  box-shadow: var(--shadow-glass-rest);
+  transition-duration: var(--duration-1);
+}
+
+.pill-solid {
+  color: var(--muted);
+  background-image: none;
+  background-color: var(--surface);
+  border-color: var(--border);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+.pill-solid:hover {
+  background-image: none;
+  background-color: var(--surface-hover);
+  border-color: var(--border-hover);
+  box-shadow: none;
+}
+
+/* variante pequena, usada como acao dentro de um cartao */
+.pill-sm {
+  padding: var(--space-4) var(--space-10);
+  font-size: var(--text-11);
+  gap: var(--space-4);
+}
+
+/* o cartao inteiro e o alvo do hover, a pilula so reage */
+.hover-surface:hover .pill-sm {
+  color: var(--text);
+  border-color: var(--border-hover);
+}
+
+/* links */
+
+.link-muted {
+  color: var(--muted);
+  transition: color var(--duration-3) var(--ease-standard);
+}
+.link-muted:hover { color: var(--text); }
+
+.link-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--text-14);
+  color: var(--text);
+  border-bottom: var(--hairline) solid var(--border);
+  padding-bottom: var(--space-2);
+  transition: border-color var(--duration-3) var(--ease-standard);
+}
+.link-cta:hover { border-color: var(--text); }
+
+.hover-fade { transition: opacity var(--duration-3) var(--ease-standard); }
+.hover-fade:hover { opacity: 0.7; }
+
+/* tags de evento */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-8);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: var(--text-11);
+  letter-spacing: var(--tracking-wide);
+  border: var(--hairline) solid transparent;
+}
+
+.tag-congress   { color: var(--tag-congress-color);   background: var(--tag-congress-bg);   border-color: var(--tag-congress-border); }
+.tag-conference { color: var(--tag-conference-color); background: var(--tag-conference-bg); border-color: var(--tag-conference-border); }
+.tag-symposium  { color: var(--tag-symposium-color);  background: var(--tag-symposium-bg);  border-color: var(--tag-symposium-border); }
+
+/* status: cor nunca sozinha, sempre com o rotulo ao lado */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-size: var(--text-13);
+}
+.status::before {
+  content: "";
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: var(--radius-circle);
+  background: currentColor;
+  flex-shrink: 0;
+}
+.status-good     { color: var(--status-good); }
+.status-warning  { color: var(--status-warning); }
+.status-serious  { color: var(--status-serious); }
+.status-critical { color: var(--status-critical); }
+
+/* midia */
+
+.media {
+  border-radius: var(--radius-media);
+  overflow: hidden;
+  background: var(--dim);
+}
+
+.avatar {
+  width: var(--photo-sm);
+  height: var(--photo-sm);
+  border-radius: var(--radius-circle);
+  object-fit: cover;
+}
+
+/* controle circular, usado nas setas de galeria */
+.control-round {
+  width: var(--control-lg);
+  height: var(--control-lg);
+  padding: 0;
+  border-radius: var(--radius-circle);
+  flex-shrink: 0;
+}
+.control-round:hover { transform: none; }
+
+/* visualização de dados */
+
+/* o gráfico e sua camada de interação moram no mesmo container */
+.viz { position: relative; }
+.viz svg { width: 100%; height: auto; display: block; }
+.viz text {
+  font-family: var(--font-mono);
+  fill: var(--chart-ink-muted);
+}
+
+/* linha guia que segue o cursor em série temporal */
+.viz-crosshair {
+  stroke: var(--border-hover);
+  stroke-width: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-2) var(--ease-standard);
+}
+.viz.is-active .viz-crosshair { opacity: 1; }
+
+/* marca destacada: anel na cor da superfície separa a marca do que está atrás */
+.viz-dot {
+  pointer-events: none;
+  opacity: 0;
+  stroke: var(--bg);
+  stroke-width: 2;
+  transition: opacity var(--duration-2) var(--ease-standard);
+}
+.viz.is-active .viz-dot { opacity: 1; }
+
+/* marca esmaecida enquanto outra está sob o cursor */
+.viz-mark {
+  transition: opacity var(--duration-2) var(--ease-standard);
+}
+.viz.is-dimmed .viz-mark { opacity: 0.28; }
+.viz.is-dimmed .viz-mark.is-hot { opacity: 1; }
+
+.viz-tip {
+  position: absolute;
+  z-index: 5;
+  min-width: 148px;
+  padding: var(--space-10) var(--space-12);
+  border-radius: var(--radius-surface);
+  background-image: var(--glass-fill);
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: var(--hairline) solid var(--glass-edge);
+  box-shadow: var(--shadow-glass-rest);
+  isolation: isolate;
+  font-family: var(--font-mono);
+  font-size: var(--text-11);
+  color: var(--muted);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(var(--nudge-3));
+  transition: opacity var(--duration-2) var(--ease-standard),
+              transform var(--duration-2) var(--ease-swift);
+}
+.viz.is-active .viz-tip { opacity: 1; transform: translateY(0); }
+
+.viz-tip .head {
+  color: var(--text);
+  letter-spacing: var(--tracking-wide);
+  padding-bottom: var(--space-6);
+  margin-bottom: var(--space-6);
+  border-bottom: var(--hairline) solid var(--border);
+}
+.viz-tip .line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-2) 0;
+}
+.viz-tip .line i {
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: var(--radius-circle);
+  flex-shrink: 0;
+}
+.viz-tip .line b {
+  margin-left: auto;
+  color: var(--text);
+  font-weight: var(--weight-regular);
+  font-variant-numeric: tabular-nums;
+}
+
+/* entrada do gráfico: mesma escada e mesmas curvas do resto da página.
+   O traço se desenha, a barra cresce a partir da base. */
+.viz-draw {
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  transition: stroke-dashoffset var(--duration-6) var(--ease-out-soft);
+  transition-delay: var(--delay, 0ms);
+}
+.viz.is-in .viz-draw { stroke-dashoffset: 0; }
+
+.viz-grow {
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform var(--duration-5) var(--ease-out-expo);
+  transition-delay: var(--delay, 0ms);
+}
+.viz.is-in .viz-grow { transform: scaleY(1); }
+
+.viz-appear {
+  opacity: 0;
+  transition: opacity var(--duration-4) var(--ease-standard);
+  transition-delay: var(--delay, 0ms);
+}
+.viz.is-in .viz-appear { opacity: 1; }
+
+.viz-legend {
+  display: flex;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-11);
+  color: var(--muted);
+}
+.viz-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  cursor: default;
+  transition: color var(--duration-2) var(--ease-standard);
+}
+.viz-legend span:hover { color: var(--text); }
+.viz-legend i {
+  width: var(--space-10);
+  height: var(--space-10);
+  border-radius: var(--radius-circle);
+}
+
+/* ---------- alvo de toque ----------
+
+   O piso e 24px de area clicavel, 44px em ponteiro grosso. O tamanho
+   VISUAL do controle pode ficar abaixo do piso; a AREA nao pode.
+   .hit projeta a area por um pseudo-elemento centrado, sem tocar no
+   desenho. Nao aplicar em .glass-frost, que ja usa ::after para o
+   granulado: naquele caso o alvo vai num invólucro. */
+
+.hit { position: relative; }
+.hit::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  min-width: var(--hit-min);
+  min-height: var(--hit-min);
+}
+
+@media (pointer: coarse) {
+  .hit::after {
+    min-width: var(--hit-min-touch);
+    min-height: var(--hit-min-touch);
+  }
+  .input, .textarea, .select { min-height: var(--field-height-touch); }
+}
+
+/* ---------- formulario ----------
+
+   Campo e superficie: raio 0. Botao e controle: raio full. O checkbox
+   fica em raio 0 por ser campo; so o radio e circulo. Sem isso os dois
+   viram a mesma marca e a escolha unica deixa de se ler como unica.
+
+   O tamanho do texto do campo e a unica excecao a regra de um tamanho
+   por classe de controle: abaixo de 16px o iOS da zoom ao focar e a
+   pagina inteira sai de escala. */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+/* --secondary e cor de borda no claro, no paper-like e no deep-blue, pela
+   propria tabela de contraste do README: como texto a 12px ele fica entre
+   2.63:1 e 4.25:1, abaixo do piso de 4.5 nos quatro modos. Rotulo de campo
+   e placeholder sao texto pequeno e ficam em --muted, que passa em todos. */
+.field-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  letter-spacing: var(--tracking-wide);
+  color: var(--muted);
+  transition: color var(--duration-3) var(--ease-standard);
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  min-height: var(--field-height);
+  padding: var(--space-10) var(--space-12);
+  font-family: var(--font-sans);
+  font-size: var(--text-field);
+  line-height: var(--leading-snug);
+  color: var(--text);
+  background-color: var(--surface);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-field);
+  transition:
+    border-color var(--duration-3) var(--ease-standard),
+    background-color var(--duration-3) var(--ease-standard);
+}
+
+.input::placeholder,
+.textarea::placeholder { color: var(--muted); }
+
+.input:hover,
+.textarea:hover,
+.select:hover { border-color: var(--border-hover); }
+
+.textarea {
+  min-height: calc(var(--field-height) * 2.5);
+  resize: vertical;
+}
+
+/* o select nativo herda cor do sistema no Windows e some no modo escuro.
+   Fundo e tinta explicitos resolvem, e a seta e desenhada por fora. */
+.select {
+  appearance: none;
+  padding-right: var(--space-32);
+  cursor: pointer;
+}
+
+.select-shell { position: relative; display: block; min-width: 0; }
+.select-shell::after {
+  content: "";
+  position: absolute;
+  right: var(--space-12);
+  top: 50%;
+  width: var(--space-6);
+  height: var(--space-6);
+  border-right: var(--hairline) solid var(--muted);
+  border-bottom: var(--hairline) solid var(--muted);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+/* rotulo e controle num alvo so: o label inteiro e clicavel, sem zona
+   morta entre a caixa e o texto */
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-10);
+  min-height: var(--hit-min);
+  padding: var(--space-6) 0;
+  font-size: var(--text-15);
+  color: var(--text);
+  cursor: pointer;
+}
+.check input {
+  flex-shrink: 0;
+  width: var(--space-16);
+  height: var(--space-16);
+  margin: 0;
+  accent-color: var(--accent);
+  border-radius: var(--radius-mark);
+}
+.check input[type="radio"] { border-radius: var(--radius-circle); }
+
+/* erro: fica ao lado do campo, nunca em caixa flutuante, e a cor vem
+   acompanhada de texto, jamais sozinha */
+.input[aria-invalid="true"],
+.textarea[aria-invalid="true"],
+.select[aria-invalid="true"] { border-color: var(--status-critical); }
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-size: var(--text-13);
+  line-height: var(--leading-snug);
+  color: var(--status-critical);
+}
+.field-error::before {
+  content: "";
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: var(--radius-circle);
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+}
+
+/* botao em carga: o rotulo permanece e o anel entra ao lado. Trocar o
+   texto por "carregando" apaga o que o botao faz e muda a largura. */
+[data-loading="true"] { pointer-events: none; }
+[data-loading="true"]::before {
+  content: "";
+  width: var(--space-12);
+  height: var(--space-12);
+  flex-shrink: 0;
+  border: var(--stroke) solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-circle);
+  animation: pure-spin var(--duration-6) linear infinite;
+}
+
+/* ---------- conteudo ----------
+
+   Todo container de texto recebe conteudo curto, medio e longo demais.
+   Em filho de flex a truncagem so funciona com min-width zero: sem ele
+   a caixa cresce ate o texto caber e empurra o vizinho para fora. */
+
+.truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clamp-2, .clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.clamp-2 { -webkit-line-clamp: 2; line-clamp: 2; }
+.clamp-3 { -webkit-line-clamp: 3; line-clamp: 3; }
+
+.break-words { overflow-wrap: anywhere; }
+.min-w-0 { min-width: 0; }
+
+/* numero que sera comparado com outro numero anda em coluna fixa */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* titulo curto nao deve deixar uma palavra sozinha na ultima linha */
+.balance { text-wrap: balance; }
+.pretty  { text-wrap: pretty; }
+
+/* ---------- estados ----------
+
+   Vazio, esparso, denso e erro sao quatro desenhos, nao um. O vazio
+   sempre oferece o proximo passo: pagina sem saida e defeito. */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-12);
+  padding: var(--space-32);
+  border: var(--hairline) dashed var(--border);
+  border-radius: var(--radius-surface);
+  color: var(--muted);
+  font-size: var(--text-15);
+}
+
+/* o esqueleto copia a caixa do conteudo final, senao ele proprio causa
+   o salto de layout que existia para evitar */
+.skeleton {
+  background: var(--dim);
+  animation: pure-pulse var(--duration-6) var(--ease-standard) infinite alternate;
+}
+.skeleton-line {
+  height: var(--space-12);
+  border-radius: var(--radius-mark);
+}
+.skeleton-line + .skeleton-line { margin-top: var(--space-10); }
+
+/* ---------- sobreposicao ----------
+
+   O scroll de um painel sobreposto para nele: sem contain, o dedo
+   continua rolando a pagina atras quando o painel chega ao fim. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: var(--space-24);
+  background-image: var(--glass-fill-deep);
+  backdrop-filter: blur(var(--blur-pill)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--blur-pill)) saturate(var(--glass-saturate));
+}
+
+.modal, .drawer {
+  overscroll-behavior: contain;
+  max-height: 100%;
+  overflow: auto;
+}
+
+/* arrasto: nada de selecao de texto, e o elemento arrastado sai da
+   arvore de eventos ate o gesto terminar */
+[data-dragging] {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grabbing;
+}
+[data-dragging] [inert] { pointer-events: none; }
+
+/* dica: a primeira espera, as vizinhas do mesmo grupo entram na hora */
+.tip { position: relative; }
+.tip [role="tooltip"] {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-2) var(--ease-standard);
+  transition-delay: var(--duration-6);
+}
+.tip:hover [role="tooltip"],
+.tip:focus-within [role="tooltip"] { opacity: 1; }
+
+/* o grupo fica quente enquanto uma dica dele acabou de abrir; ate esfriar,
+   as vizinhas entram sem espera. Quem marca data-warm e o script. */
+.tip-group[data-warm="true"] .tip [role="tooltip"] { transition-delay: 0ms; }
+
+/* ---------- acesso ----------
+
+   Nome acessivel existe mesmo quando o desenho dispensa rotulo. E a
+   primeira parada do teclado pula a navegacao e vai para o conteudo. */
+
+.sr-only {
+  position: absolute;
+  width: var(--hairline);
+  height: var(--hairline);
+  padding: 0;
+  margin: calc(var(--hairline) * -1);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: var(--space-8);
+  left: var(--space-8);
+  z-index: 100;
+  transform: translateY(calc(-100% - var(--space-16)));
+  transition: transform var(--duration-4) var(--ease-out-expo);
+}
+.skip-link:focus-visible { transform: translateY(0); }
+
+/* movimento */
+
+@keyframes pure-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pure-pulse {
+  from { opacity: 1; }
+  to   { opacity: 0.55; }
+}
+
+@keyframes pure-fade-up {
+  from { opacity: 0; transform: translateY(var(--space-12)); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pure-fade-scale {
+  from { opacity: 0; transform: scale(0.985); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.fade-up {
+  animation: pure-fade-up var(--duration-6) var(--ease-out-soft) both;
+}
+
+.fade-scale {
+  animation: pure-fade-scale var(--duration-4) var(--ease-out-expo) both;
+}
+
+/* escada de entrada: 60ms por item, no maximo seis degraus */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 60ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+.stagger > *:nth-child(5) { animation-delay: 240ms; }
+.stagger > *:nth-child(n + 6) { animation-delay: 300ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* carga e esqueleto sao excecao declarada: eles nao decoram, informam.
+     A rotacao vira pulso de opacidade, que nao desloca nada na tela. */
+  [data-loading="true"]::before {
+    border-top-color: currentColor;
+    animation: pure-pulse var(--duration-6) var(--ease-standard) infinite alternate !important;
+    animation-duration: var(--duration-6) !important;
+    animation-iteration-count: infinite !important;
+  }
+  .skeleton {
+    animation-duration: var(--duration-6) !important;
+    animation-iteration-count: infinite !important;
+  }
+}

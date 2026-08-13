@@ -18,12 +18,13 @@ import urllib.request
 from datetime import datetime, timezone
 import uuid
 
-from flask import Flask, make_response, request, jsonify, render_template_string
+from flask import Flask, make_response, request, jsonify, render_template_string, send_from_directory
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from amp_identifier.core import run_prediction_pipeline
 from amp_identifier.data_io import load_fasta_sequences
+from webapp.page_beta import PAGE as PAGE_BETA
 
 VERSION = "2.0.0"
 
@@ -1393,6 +1394,36 @@ def index():
     return resp
 
 
+_PURE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pure')
+
+
+def _pure_version():
+    """CSS mtime: the URL changes when the file changes, and only then."""
+    try:
+        return str(int(max(os.path.getmtime(os.path.join(_PURE_DIR, f))
+                           for f in ('tokens.css', 'patterns.css'))))
+    except OSError:
+        return VERSION
+
+
+@app.route('/pure/<path:filename>')
+def pure_assets(filename):
+    resp = make_response(send_from_directory(_PURE_DIR, filename))
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
+
+
+# Both rules point at the same view: with only the bare one, /beta/ is a 404.
+@app.route('/beta')
+@app.route('/beta/')
+def beta():
+    resp = make_response(render_template_string(PAGE_BETA, version=VERSION,
+                                                asset_v=_pure_version()))
+    if not request.cookies.get('_amp_sid'):
+        resp.set_cookie('_amp_sid', str(uuid.uuid4()), max_age=365 * 24 * 3600, samesite='Lax', httponly=True)
+    return resp
+
+
 @app.route('/google2a0f51da71f41d93.html')
 def google_verify():
     return make_response(
@@ -1410,6 +1441,7 @@ def robots():
         "Disallow: /predict\n"
         "Disallow: /send_csv\n"
         "Disallow: /send_recommendation\n"
+        "Disallow: /beta\n"
         "Sitemap: https://www.ampidentifier.com/sitemap.xml\n"
     )
     return make_response(content, 200, {'Content-Type': 'text/plain'})

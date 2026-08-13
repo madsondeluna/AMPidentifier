@@ -62,4 +62,5 @@ where = ["."]
 
 [tool.setuptools.package-data]
 amp_identifier = ["models/*.pkl", "models/*.txt"]
-webapp = ["data/*.json", "data/snapshots/*.json", "img/*.png", "img/*.jpeg"]
+webapp = ["data/*.json", "data/snapshots/*.json", "img/*.png", "img/*.jpeg",
+          "img/pure/*.png", "img/pure/*.jpeg", "pure/*.css"]

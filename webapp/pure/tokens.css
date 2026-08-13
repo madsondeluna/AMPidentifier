@@ -1,0 +1,515 @@
+/* Pure Design 1.4.1 -- copia de /Volumes/promethion/pure-design-language/web/tokens.css
+   pure / tokens.css
+   Fonte unica de verdade em CSS. Espelha tokens/tokens.json.
+   Convencao de tema: :root e o modo claro, :root.dark o escuro,
+   :root.paper a variante creme. Mesma convencao ja usada em
+   madsondeluna.github.io, entao este arquivo substitui o bloco de
+   variaveis do globals.css com um unico valor alterado de proposito:
+   --accent no modo escuro. Ver a secao "O que foi normalizado" no
+   README antes de trocar. */
+
+:root {
+  /* rampa slate: escala unica de onde saem todos os semanticos.
+     --slate-0 e um degrau local do AMPidentifier: o fundo do modo claro
+     e branco absoluto, e as superficies continuam saindo de --slate-50
+     em diante, entao card e painel seguem se destacando do fundo. */
+  --slate-0:   #ffffff;
+  --slate-50:  #f4f6f9;
+  --slate-100: #ebeef3;
+  --slate-150: #e1e5ec;
+  --slate-200: #dde1e9;
+  --slate-250: #ced3dc;
+  --slate-300: #adbcd0;
+  --slate-400: #8ca0ba;
+  --slate-500: #748cab;
+  --slate-600: #667e9c;
+  --slate-700: #3e5c76;
+  --slate-800: #2a3f5c;
+  --slate-820: #253752;
+  --slate-850: #1d2d44;
+  --slate-900: #141c2e;
+  --slate-950: #0d1321;
+
+  /* rampa paper: superficie quente opcional */
+  --paper-50:  #faf8f1;
+  --paper-100: #f0ebd8;
+  --paper-150: #e6e0ca;
+  --paper-250: #d6cfb6;
+
+  /* rampa graphite: neutros de cinza chumbo a quase preto, com um vies
+     frio minimo (croma 0.007 a 0.012). E a base do modo dark. */
+  --graphite-50:  #f3f6fb;
+  --graphite-100: #ebeef3;
+  --graphite-150: #e2e5ea;
+  --graphite-200: #dfe1e6;
+  --graphite-250: #d1d3d8;
+  --graphite-300: #b8babf;
+  --graphite-400: #9b9ea6;
+  --graphite-500: #868a92;
+  --graphite-600: #787c83;
+  --graphite-700: #555960;
+  --graphite-800: #3b3e45;
+  --graphite-820: #303339;
+  --graphite-850: #27282c;
+  --graphite-900: #18191d;
+  --graphite-950: #0e0f13;
+
+  /* semanticos, modo claro */
+  --bg:                  var(--slate-0);
+  --surface:             var(--slate-50);
+  --surface-hover:       var(--slate-150);
+  --surface-glass:       rgba(235, 238, 243, 0.96);
+  --surface-hover-glass: rgba(225, 229, 236, 0.98);
+  --dim:                 var(--slate-200);
+  --border:              var(--slate-250);
+  --border-hover:        var(--slate-500);
+  --text:                var(--slate-950);
+  --muted:               var(--slate-700);
+  --accent:              var(--slate-700);
+  --secondary:           var(--slate-500);
+
+  /* tags de evento */
+  --tag-congress-color:    #1a3a52;
+  --tag-congress-bg:       rgba(45, 90, 122, 0.12);
+  --tag-congress-border:   rgba(45, 90, 122, 0.35);
+  --tag-conference-color:  #3b2a5e;
+  --tag-conference-bg:     rgba(74, 63, 107, 0.12);
+  --tag-conference-border: rgba(74, 63, 107, 0.35);
+  --tag-symposium-color:   #1e4d3a;
+  --tag-symposium-bg:      rgba(30, 77, 58, 0.12);
+  --tag-symposium-border:  rgba(30, 77, 58, 0.35);
+
+  /* status: significado reservado, sempre com icone ou rotulo junto */
+  --status-good:     #376e48;
+  --status-warning:  #79601b;
+  --status-serious:  #844e31;
+  --status-critical: #864544;
+
+  /* vidro
+     Cinco camadas fazem o material, e nenhuma sozinha basta:
+     preenchimento em gradiente, desfoque do fundo, saturacao,
+     realce especular no topo e refracao na base.
+     O raio do desfoque e escolhido pelo TAMANHO da superficie, nunca
+     por gosto: ele precisa caber na caixa. Um raio grande num elemento
+     baixo faz o navegador amostrar muito alem dele, e o Chrome produz
+     artefato de composicao quando ha vizinhos de vidro. Ver a tabela
+     de raios logo abaixo de --blur-card. */
+  --glass-fill:        linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.16));
+  --glass-fill-hover:  linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.3));
+  --glass-blur:        16px;
+  --glass-saturate:    180%;
+  --glass-edge:        rgba(255, 255, 255, 0.5);
+  --glass-edge-hover:  rgba(255, 255, 255, 0.72);
+  --glass-specular:    rgba(255, 255, 255, 0.75);
+  --glass-refract:     rgba(255, 255, 255, 0.2);
+
+  --shadow-glass-rest:
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 -1px 0 var(--glass-refract),
+    0 1px 2px rgba(13, 19, 33, 0.06),
+    0 6px 18px rgba(13, 19, 33, 0.07);
+  --shadow-glass-hover:
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 -1px 0 var(--glass-refract),
+    0 2px 4px rgba(13, 19, 33, 0.08),
+    0 10px 28px rgba(13, 19, 33, 0.1);
+
+  /* quatro texturas de vidro. A diferenca entre elas e quanto do fundo
+     sobrevive: thin deixa quase tudo passar, deep quase nada. */
+  --glass-blur-thin:   4px;
+  --glass-blur-frost:  30px;
+  --glass-blur-deep:   56px;
+
+  --glass-fill-thin:   linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+  --glass-fill-frost:  linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62));
+  --glass-fill-deep:   linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.34));
+
+  /* granulado do vidro fosco: um feTurbulence dessaturado por cima do
+     preenchimento. E o que separa fosco de apenas translucido. */
+  --glass-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  --glass-grain-opacity: 0.85;
+
+  /* vidro com tinta: o material assume uma cor sem virar preenchimento sólido */
+  --glass-tint-accent: linear-gradient(180deg, rgba(62, 92, 118, 0.28), rgba(62, 92, 118, 0.12));
+  --glass-edge-accent: rgba(62, 92, 118, 0.42);
+
+  /* compatibilidade com quem ja usava os dois tints */
+  --glass-tint:        rgba(255, 255, 255, 0.16);
+  --glass-tint-hover:  rgba(255, 255, 255, 0.3);
+  --glass-border:      var(--glass-edge);
+
+  /* dados: 8 slots, ordem fixa, nunca ciclada */
+  --chart-1: #3973b1;
+  --chart-2: #9f8322;
+  --chart-3: #9e527f;
+  --chart-4: #4c985f;
+  --chart-5: #745ba5;
+  --chart-6: #ba6f3e;
+  --chart-7: #1990ad;
+  --chart-8: #ac5551;
+
+  /* rampa ordinal, modo claro (claro -> escuro) */
+  --seq-1: #7bb1e9;
+  --seq-2: #5b9ddf;
+  --seq-3: #3b89d2;
+  --seq-4: #1f74bf;
+  --seq-5: #0f61a5;
+  --seq-6: #064f89;
+  --seq-7: #063d6b;
+
+  /* divergente: azul <-> ambar, cinza neutro no meio */
+  --div-1: #0e4f86;
+  --div-2: #1f74bf;
+  --div-3: #6da3da;
+  --div-4: #b3ceeb;
+  --div-5: #e2e5e8;
+  --div-6: #eacab1;
+  --div-7: #dc9a6c;
+  --div-8: #c7692c;
+  --div-9: #9e4421;
+
+  --chart-grid: var(--slate-250);
+  --chart-ink: var(--slate-950);
+  --chart-ink-muted: var(--slate-700);
+
+  /* tipografia */
+  --font-sans:    "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    "Spline Sans Mono", "Sometype Mono", Menlo, monospace;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  /* o titulo se separa por largura, nao por familia serifada: Archivo no
+     eixo wdth 125. Quem usa --font-display declara os dois. */
+  --font-display-stretch: 125%;
+
+  --text-11: 0.6875rem;
+  --text-12: 0.75rem;
+  --text-13: 0.8125rem;
+  --text-14: 0.875rem;
+  --text-15: 0.9375rem;
+  --text-16: 1rem;
+  --text-18: 1.125rem;
+  --text-20: 1.25rem;
+  --text-24: 1.5rem;
+  --text-32: 2rem;
+  --text-40: 2.5rem;
+  --text-56: 3.5rem;
+  --text-display-section: clamp(2.25rem, 4vw, 3.5rem);
+  --text-display-name:    clamp(2rem, 11vw, 2.75rem);
+
+  --leading-none: 1;
+  --leading-tight: 1.2;
+  --leading-snug: 1.4;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+
+  --tracking-display: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-eyebrow: 0.12em;
+
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* espacamento, base 4 com meios-passos em 2, 6 e 10 */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-56: 56px;
+  --space-64: 64px;
+  --space-80: 80px;
+  --space-96: 96px;
+
+  /* raio por PAPEL, nao por gosto. Nada na linguagem e de canto vivo:
+     superficie 12, campo e midia 8, controle full. A escada e concentrica,
+     o filho nunca passa do pai. A escala numerica continua abaixo para
+     componente importado, e --radius-0 so sobrevive para esse caso. */
+  --radius-surface: var(--radius-12);
+  --radius-field:   var(--radius-8);
+  --radius-media:   var(--radius-8);
+  --radius-control: var(--radius-full);
+  /* marca: caixa nativa de checkbox e barra de esqueleto, pequenas
+     demais para o passo de campo */
+  --radius-mark:    var(--radius-4);
+
+  --radius-0: 0;
+  --radius-2: 2px;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-full: 999px;
+  --radius-circle: 50%;
+
+  /* desfoque, escolhido pelo TAMANHO da superficie e nao pelo gosto.
+     O raio do desfoque precisa caber na caixa: um raio grande num
+     elemento pequeno faz o navegador amostrar muito alem dele, o que
+     produz artefato de composicao quando ha vizinhos de vidro.
+
+     glass-blur (16px) = pilula, chip, tooltip, qualquer coisa baixa.
+     blur-card  (32px) = cartao, barra, painel, superficie grande.
+     blur-pill  (72px) = so sobre canvas animado em tela cheia. */
+  --blur-card: 32px;
+  --blur-pill: 72px;
+  --blur-saturate: 200%;
+
+  /* movimento */
+  --duration-1: 100ms;
+  --duration-2: 150ms;
+  --duration-3: 200ms;
+  --duration-4: 300ms;
+  --duration-5: 350ms;
+  --duration-6: 500ms;
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:      cubic-bezier(0, 0, 0.2, 1);
+  --ease-out-soft: cubic-bezier(0.25, 0, 0, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-swift:    cubic-bezier(0.23, 0.88, 0.26, 0.92);
+
+  --nudge-1: 2px;
+  --nudge-2: 3px;
+  --nudge-3: 4px;
+
+  /* layout */
+  --measure-prose: 480px;
+  --measure-wide: 640px;
+  --container-sm: 40rem;
+  --container-md: 48rem;
+  --container-lg: 64rem;
+  --container-xl: 80rem;
+  --breakpoint-stack: 768px;
+  --hairline: 1px;
+  --photo-sm: 96px;
+  --control-lg: 2.75rem;
+
+  /* interacao: alvo, foco, campo e ancora.
+     hit-min e o piso de area clicavel; o tamanho VISUAL pode ficar
+     abaixo dele, a area nao. Em ponteiro grosso o piso sobe para 44.
+     text-field e 16px de proposito: abaixo disso o iOS da zoom no
+     campo ao receber foco, e a pagina inteira sai de escala. */
+  --hit-min: 24px;
+  --hit-min-touch: 44px;
+  --focus-ring: 2px;
+  --focus-offset: 2px;
+  /* espessura de traco desenhado: anel do spinner, marca de checkbox */
+  --stroke: 2px;
+  --field-height: 40px;
+  --field-height-touch: 44px;
+  --text-field: 1rem;
+  /* altura da barra fixa + folga, usada por scroll-margin-top em ancora */
+  --scroll-offset: 88px;
+  /* o realce nativo de toque some: o :active da linguagem o substitui */
+  --tap-highlight: transparent;
+
+  /* camada de agente: cadencia de streaming, medidor, calha de estado
+     e grade do carregador. stream-step e o intervalo entre dois pedacos
+     de texto que chegam; caret-blink e o ciclo do cursor. */
+  --stream-step: 45ms;
+  --caret-blink: 1s;
+  --meter: 4px;
+  --rail: 28px;
+  --gutter-code: 36px;
+  --pixel: 3px;
+
+  /* o navegador precisa saber o modo para pintar scrollbar, caret,
+     controle nativo e a moldura da janela */
+  color-scheme: light;
+}
+
+/* ---------- paper-like ----------
+   Superficie quente, mesma tinta e mesma estrutura do modo claro.
+   Para leitura longa, material impresso e pagina de texto. */
+:root.paper-like {
+  color-scheme: light;
+
+  --bg:                  var(--paper-50);
+  --surface:             var(--paper-100);
+  --surface-hover:       var(--paper-150);
+  --surface-glass:       rgba(240, 235, 216, 0.96);
+  --surface-hover-glass: rgba(230, 224, 202, 0.98);
+  --dim:                 var(--paper-150);
+  --border:              var(--paper-250);
+  --border-hover:        var(--slate-500);
+  --text:                var(--slate-950);
+  --muted:               var(--slate-700);
+  --accent:              var(--slate-700);
+  --secondary:           var(--slate-500);
+}
+
+/* ---------- deep-blue ----------
+   O escuro azul da identidade original: Space Cadet sobre Prussian Blue.
+   Era o modo chamado de dark ate a versao 1.1. Quem migra do site
+   madsondeluna.github.io quer este, nao o dark neutro. */
+:root.deep-blue {
+  color-scheme: dark;
+
+  --bg:                  var(--slate-950);
+  --surface:             var(--slate-850);
+  --surface-hover:       var(--slate-820);
+  --surface-glass:       rgba(29, 45, 68, 0.96);
+  --surface-hover-glass: rgba(37, 55, 82, 0.98);
+  --dim:                 var(--slate-900);
+  --border:              var(--slate-800);
+  --border-hover:        var(--slate-700);
+  --text:                var(--slate-50);
+  --muted:               var(--slate-500);
+  /* accent sobe para 400 no escuro: em 700 o anel de foco fica em 2,65
+     contra --bg, abaixo do minimo de 3:1 para indicador de foco.
+     secondary permanece em 500, como no site, para nao regredir nada. */
+  --accent:              var(--slate-400);
+  --secondary:           var(--slate-500);
+
+  --tag-congress-color:    #7eb8d4;
+  --tag-congress-bg:       rgba(45, 90, 122, 0.28);
+  --tag-congress-border:   rgba(45, 90, 122, 0.55);
+  --tag-conference-color:  #b39ddb;
+  --tag-conference-bg:     rgba(74, 63, 107, 0.28);
+  --tag-conference-border: rgba(74, 63, 107, 0.55);
+  --tag-symposium-color:   #6dbf8f;
+  --tag-symposium-bg:      rgba(30, 77, 58, 0.28);
+  --tag-symposium-border:  rgba(30, 77, 58, 0.55);
+
+  --status-good:     #82bb90;
+  --status-warning:  #c9ae6d;
+  --status-serious:  #d89b7c;
+  --status-critical: #d18885;
+
+  /* no escuro o vidro nao clareia, ele revela: menos preenchimento,
+     realce mais fraco, sombra mais funda */
+  --glass-fill:        linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  --glass-fill-hover:  linear-gradient(180deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.07));
+  --glass-edge:        rgba(255, 255, 255, 0.14);
+  --glass-edge-hover:  rgba(255, 255, 255, 0.24);
+  --glass-specular:    rgba(255, 255, 255, 0.16);
+  --glass-refract:     rgba(255, 255, 255, 0.04);
+
+  --shadow-glass-rest:
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 -1px 0 var(--glass-refract),
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.32);
+  --shadow-glass-hover:
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 -1px 0 var(--glass-refract),
+    0 2px 4px rgba(0, 0, 0, 0.46),
+    0 12px 32px rgba(0, 0, 0, 0.4);
+
+  --glass-fill-thin:  linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.008));
+  --glass-fill-frost: linear-gradient(180deg, rgba(29, 45, 68, 0.9), rgba(29, 45, 68, 0.76));
+  --glass-fill-deep:  linear-gradient(180deg, rgba(29, 45, 68, 0.76), rgba(29, 45, 68, 0.54));
+  --glass-grain-opacity: 0.45;
+
+  --glass-tint-accent: linear-gradient(180deg, rgba(116, 140, 171, 0.24), rgba(116, 140, 171, 0.1));
+  --glass-edge-accent: rgba(116, 140, 171, 0.36);
+
+  --glass-tint:       rgba(255, 255, 255, 0.06);
+  --glass-tint-hover: rgba(255, 255, 255, 0.11);
+  --glass-border:     var(--glass-edge);
+
+  /* a rampa ordinal inverte a ancora no escuro: nao e o flip automatico
+     da versao clara, sao passos proprios validados contra --bg escuro */
+  --seq-1: #b6d5f4;
+  --seq-2: #95c1ee;
+  --seq-3: #73ade7;
+  --seq-4: #5398dd;
+  --seq-5: #3284d0;
+  --seq-6: #1870ba;
+  --seq-7: #105d9d;
+
+  --chart-grid: var(--slate-800);
+  --chart-ink: var(--slate-50);
+  --chart-ink-muted: var(--slate-500);
+}
+
+/* ---------- dark ----------
+   Cinza chumbo a quase preto, sem azul. A rampa graphite carrega tudo.
+   Todo par semantico aqui abre mais contraste que no deep-blue: muted
+   sobe de 5,37 para 7,15 e secondary deixa de ser so decoracao. */
+:root.dark {
+  color-scheme: dark;
+
+  --bg:                  var(--graphite-950);
+  --surface:             var(--graphite-850);
+  --surface-hover:       var(--graphite-820);
+  --surface-glass:       rgba(39, 40, 44, 0.96);
+  --surface-hover-glass: rgba(48, 51, 57, 0.98);
+  --dim:                 var(--graphite-900);
+  --border:              var(--graphite-800);
+  --border-hover:        var(--graphite-700);
+  --text:                var(--graphite-50);
+  --muted:               var(--graphite-400);
+  --accent:              var(--graphite-300);
+  --secondary:           var(--graphite-500);
+
+  --tag-congress-color:    #8fc0d8;
+  --tag-congress-bg:       rgba(45, 90, 122, 0.24);
+  --tag-congress-border:   rgba(45, 90, 122, 0.48);
+  --tag-conference-color:  #bba7de;
+  --tag-conference-bg:     rgba(74, 63, 107, 0.24);
+  --tag-conference-border: rgba(74, 63, 107, 0.48);
+  --tag-symposium-color:   #7fc79c;
+  --tag-symposium-bg:      rgba(30, 77, 58, 0.24);
+  --tag-symposium-border:  rgba(30, 77, 58, 0.48);
+
+  --status-good:     #82bb90;
+  --status-warning:  #c9ae6d;
+  --status-serious:  #d89b7c;
+  --status-critical: #d18885;
+
+  /* o vidro no neutro revela em vez de clarear, como no deep-blue,
+     mas sem o azul no preenchimento fosco */
+  --glass-fill:        linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  --glass-fill-hover:  linear-gradient(180deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.07));
+  --glass-edge:        rgba(255, 255, 255, 0.14);
+  --glass-edge-hover:  rgba(255, 255, 255, 0.24);
+  --glass-specular:    rgba(255, 255, 255, 0.16);
+  --glass-refract:     rgba(255, 255, 255, 0.04);
+
+  --shadow-glass-rest:
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 -1px 0 var(--glass-refract),
+    0 1px 2px rgba(0, 0, 0, 0.46),
+    0 8px 24px rgba(0, 0, 0, 0.38);
+  --shadow-glass-hover:
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 -1px 0 var(--glass-refract),
+    0 2px 4px rgba(0, 0, 0, 0.52),
+    0 12px 32px rgba(0, 0, 0, 0.46);
+
+  --glass-fill-thin:  linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.008));
+  --glass-fill-frost: linear-gradient(180deg, rgba(39, 40, 44, 0.9), rgba(39, 40, 44, 0.76));
+  --glass-fill-deep:  linear-gradient(180deg, rgba(39, 40, 44, 0.76), rgba(39, 40, 44, 0.54));
+  --glass-grain-opacity: 0.45;
+
+  --glass-tint-accent: linear-gradient(180deg, rgba(184, 186, 191, 0.2), rgba(184, 186, 191, 0.08));
+  --glass-edge-accent: rgba(184, 186, 191, 0.34);
+
+  --glass-tint:       rgba(255, 255, 255, 0.06);
+  --glass-tint-hover: rgba(255, 255, 255, 0.11);
+  --glass-border:     var(--glass-edge);
+
+  /* a rampa ordinal continua azul: e o unico canal de cor num modo neutro,
+     e passa 2,80:1 na ponta escura contra este fundo */
+  --seq-1: #b6d5f4;
+  --seq-2: #95c1ee;
+  --seq-3: #73ade7;
+  --seq-4: #5398dd;
+  --seq-5: #3284d0;
+  --seq-6: #1870ba;
+  --seq-7: #105d9d;
+
+  --chart-grid: var(--graphite-800);
+  --chart-ink: var(--graphite-50);
+  --chart-ink-muted: var(--graphite-400);
+}
