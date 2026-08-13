@@ -1441,7 +1441,6 @@ def robots():
         "Disallow: /predict\n"
         "Disallow: /send_csv\n"
         "Disallow: /send_recommendation\n"
-        "Disallow: /beta\n"
         "Sitemap: https://www.ampidentifier.com/sitemap.xml\n"
     )
     return make_response(content, 200, {'Content-Type': 'text/plain'})
