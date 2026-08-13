@@ -13,7 +13,7 @@ PAGE = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
-<title>AMPidentifier beta | Antimicrobial Peptide Prediction Tool</title>
+<title>AMPidentifier BETA | Antimicrobial Peptide Prediction Tool</title>
 <meta name="description" content="AMPidentifier is a free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences and classify AMPs in seconds.">
 <meta name="keywords" content="antimicrobial peptide prediction, AMP classifier, machine learning peptides, bioinformatics tool, AMP identification, peptide analysis, ensemble model">
 <meta name="author" content="Madson Aragao">
