@@ -204,9 +204,10 @@ PAGE = """<!DOCTYPE html>
     padding: var(--space-4) var(--space-10);
     border-radius: var(--radius-mark);
   }
-  /* sem o ponto, o que separa um grupo do outro e o dobro do espaco
-     que separa rotulo e valor dentro do grupo */
-  .install-group { margin-left: var(--space-8); }
+  /* as tres linhas sao o mesmo tipo de informacao, onde instalar e para
+     onde ir, entao andam juntas: gap menor entre elas que o do bloco,
+     que separa a definicao do grupo inteiro */
+  .install-stack { display: flex; flex-direction: column; gap: var(--space-6); }
 
   /* ---------- numeros do modelo ---------- */
 
@@ -602,8 +603,11 @@ PAGE = """<!DOCTYPE html>
      <div class="card-glass intro">
       <p class="sub prose-justify"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide prediction using ensemble machine learning.</p>
 
-      <p class="install"><span class="install-lead">For <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>:</span> <code>pip install ampidentifier</code><span class="install-lead install-group">For terminal use:</span> <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a></p>
-      <p class="install"><span class="install-lead">This is the beta layout:</span> <a href="/">Access the stable version</a></p>
+      <div class="install-stack">
+        <p class="install"><span class="install-lead">For <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>:</span> <code>pip install ampidentifier</code></p>
+        <p class="install"><span class="install-lead">For terminal use:</span> <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a></p>
+        <p class="install"><span class="install-lead">This is the beta layout:</span> <a href="/">Access the stable version</a></p>
+      </div>
      </div>
     </div>
   </header>
