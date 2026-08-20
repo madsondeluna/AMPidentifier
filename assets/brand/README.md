@@ -80,7 +80,7 @@ assets/brand/
 
 File names read `ampidentifier-<form>-<variant>-<treatment>.<ext>`, for example `ampidentifier-lockup-vote-color.svg` or `ampidentifier-symbol-motif-multi-cool-dark.svg`.
 
-Cards that carry a background: `ampidentifier-lockup-<variant>-on-white|on-teal|on-ink.png` at 2400x800, and `ampidentifier-icon-<variant>-on-white|on-teal|on-ink.png` at 1024x1024, the second set sized for favicons and avatars.
+Cards that carry a background: `ampidentifier-compact-<variant>-<colour>-on-white.png` at 2400x800, one per colour, for READMEs and slides where the page behind is dark and a transparent lockup would vanish; `ampidentifier-lockup-<variant>-on-white|on-teal|on-ink.png` at 2400x800, and `ampidentifier-icon-<variant>-on-white|on-teal|on-ink.png` at 1024x1024, the second set sized for favicons and avatars.
 
 Contact sheets, three per variant, nine in total: `preview-<variant>-forms.png`, `preview-<variant>-colors.png`, `preview-<variant>-combos.png`.
 
@@ -108,7 +108,7 @@ Do not place a `color` file on a dark background: use `color-dark`. Do not recol
 
 | Where | File |
 |---|---|
-| Repository README | `fan/colors/ampidentifier-compact-fan-slate.svg` |
+| Repository README | `fan/ampidentifier-compact-fan-slate-on-white.png`, the white card, so the mark holds on GitHub dark mode |
 | Web app header, `webapp/app.py` and `webapp/page_beta.py` | the same file, copied to `webapp/img/logo.svg` |
 
 The site serves its own copy, so after regenerating run:

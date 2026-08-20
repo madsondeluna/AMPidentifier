@@ -202,6 +202,15 @@ for variant in VARIANTS:
     card(sy + 'white.svg', os.path.join(vdir, 'ampidentifier-icon-%s-on-teal.png' % variant), 1024, 1024, teal, 520)
     card(sy + 'color-dark.svg', os.path.join(vdir, 'ampidentifier-icon-%s-on-ink.png' % variant), 1024, 1024, INK, 520)
 
+    # banners on a white card, one per colour, for READMEs and slides where the
+    # page behind is dark and a transparent lockup would disappear
+    for name in PALETTE:
+        src = (os.path.join(vdir, 'ampidentifier-compact-%s-color.svg' % variant) if name == 'teal'
+               else os.path.join(vdir, 'colors', 'ampidentifier-compact-%s-%s.svg' % (variant, name)))
+        out = os.path.join(vdir, 'ampidentifier-compact-%s-%s-on-white.png' % (variant, name))
+        card(src, out, 2400, 800, WHITE, 1560)
+        made.append(out)
+
 for v in VARIANTS:
     d = os.path.join(BASE, v)
     root = [f for f in os.listdir(d) if os.path.isfile(os.path.join(d, f))]
