@@ -707,7 +707,7 @@ PAGE = """<!DOCTYPE html>
 <body>
 <div class="wrap">
   <div class="title-row">
-    <img src="/img/logo.png" alt="AMPidentifier" class="brand-logo">
+    <img src="/img/logo.svg" alt="AMPidentifier" class="brand-logo">
   </div>
   <div class="status-row">
     <span class="status-dot-wrapper">

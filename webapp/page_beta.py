@@ -584,7 +584,7 @@ PAGE = """<!DOCTYPE html>
       <!-- a marca e a imagem; o titulo da pagina existe para leitor de tela
            e para a hierarquia do documento, que nao tinha nenhum h1 -->
       <h1 class="sr-only">AMPidentifier, antimicrobial peptide prediction</h1>
-      <img src="/img/logo.png" alt="AMPidentifier" class="brand-logo">
+      <img src="/img/logo.svg" alt="AMPidentifier" class="brand-logo">
       <div class="status-row">
         <span class="tip status-tip" tabindex="0" aria-describedby="statusTip">
           <span class="status-dot" id="statusDot"></span>
