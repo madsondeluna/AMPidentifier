@@ -1458,6 +1458,11 @@ def sitemap():
         '    <changefreq>monthly</changefreq>\n'
         '    <priority>1.0</priority>\n'
         '  </url>\n'
+        '  <url>\n'
+        '    <loc>https://www.ampidentifier.com/beta</loc>\n'
+        '    <changefreq>weekly</changefreq>\n'
+        '    <priority>0.8</priority>\n'
+        '  </url>\n'
         '</urlset>\n'
     )
     return make_response(content, 200, {'Content-Type': 'application/xml'})
