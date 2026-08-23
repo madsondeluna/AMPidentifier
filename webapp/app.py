@@ -356,7 +356,7 @@ PAGE = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AMPidentifier | Antimicrobial Peptide Prediction Tool</title>
 <meta name="description" content="AMPidentifier is a free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences and classify AMPs in seconds.">
-<meta name="keywords" content="antimicrobial peptide prediction, AMP classifier, machine learning peptides, bioinformatics tool, AMP identification, peptide analysis, ensemble model">
+<meta name="keywords" content="antimicrobial peptide prediction, antimicrobial peptide predictor, antimicrobial peptide classifier, antimicrobial peptide identification, antimicrobial peptide detection, antimicrobial peptide screening, antimicrobial peptide discovery, antimicrobial peptide database search, AMP prediction, AMP predictor, AMP classifier, AMP identification, AMP detection, AMP screening, AMP prediction tool, AMP prediction server, AMP prediction online, AMP prediction web server, AMP prediction machine learning, AMP prediction deep learning, machine learning antimicrobial peptides, deep learning antimicrobial peptides, ensemble learning peptides, XGBoost peptide classification, LightGBM peptide classification, gradient boosting bioinformatics, soft voting ensemble, peptide bioactivity prediction, peptide classification, peptide sequence analysis, peptide feature extraction, amino acid composition, physicochemical descriptors, FASTA input, batch peptide prediction, bioinformatics tool, bioinformatics web server, computational biology, immunoinformatics, proteomics, peptidomics, antibiotic resistance, antimicrobial resistance, AMR, novel antibiotics, drug discovery, peptide drug design, host defense peptides, defensins, cathelicidins, bacteriocins, antibacterial peptides, antifungal peptides, antiviral peptides, anticancer peptides, AMPidentifier, ampidentifier python package, pip install ampidentifier, open source AMP tool, free AMP prediction, new AMP prediction tool 2026">
 <meta name="author" content="Madson Aragao">
 <link rel="canonical" href="https://www.ampidentifier.com/">
 <meta property="og:type" content="website">
@@ -386,7 +386,34 @@ PAGE = """<!DOCTYPE html>
   },
   "codeRepository": "https://github.com/madsondeluna/AMPidentifier",
   "license": "https://github.com/madsondeluna/AMPidentifier/blob/main/LICENSE",
-  "keywords": ["antimicrobial peptide", "AMP prediction", "machine learning", "bioinformatics", "peptide classification"]
+  "keywords": ["antimicrobial peptide", "AMP prediction", "AMP predictor", "AMP classifier", "AMP identification", "machine learning", "deep learning", "ensemble learning", "XGBoost", "LightGBM", "bioinformatics", "peptide classification", "peptide bioactivity", "FASTA", "drug discovery", "antibiotic resistance", "host defense peptides"],
+  "isAccessibleForFree": true,
+  "softwareVersion": "1.0",
+  "installUrl": "https://pypi.org/project/ampidentifier/",
+  "sameAs": ["https://github.com/madsondeluna/AMPidentifier", "https://pypi.org/project/ampidentifier/"],
+  "citation": "de Luna-Aragao, M. A. et al. (2026). AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction."
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "What is AMPidentifier?",
+     "acceptedAnswer": {"@type": "Answer", "text": "AMPidentifier is a free web tool and Python package that predicts whether a peptide sequence is an antimicrobial peptide (AMP) using an ensemble of gradient boosting, XGBoost and LightGBM models."}},
+    {"@type": "Question", "name": "How do I predict antimicrobial peptides online?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Paste one or more sequences in FASTA format at https://www.ampidentifier.com/ and submit. The tool returns an AMP probability score for each sequence in seconds, with no login required."}},
+    {"@type": "Question", "name": "How accurate is AMPidentifier?",
+     "acceptedAnswer": {"@type": "Answer", "text": "On the held-out test set the soft-voting ensemble reaches AUC 0.950, sensitivity 0.949 and specificity 0.784."}},
+    {"@type": "Question", "name": "Can I run AMPidentifier locally or in batch?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes. Install it with pip install ampidentifier and use the command line interface, or clone the GitHub repository. The web version also accepts CSV export of results."}},
+    {"@type": "Question", "name": "Which types of antimicrobial peptides does it cover?",
+     "acceptedAnswer": {"@type": "Answer", "text": "The model is trained on experimentally validated AMPs from public databases, covering antibacterial, antifungal, antiviral and other host defense peptides, against non-AMP sequences."}},
+    {"@type": "Question", "name": "How does AMPidentifier differ from other AMP prediction tools?",
+     "acceptedAnswer": {"@type": "Answer", "text": "It combines gradient boosting, XGBoost and LightGBM in a soft-voting ensemble, runs as a web server, a command line tool and a Python package, and exposes the full training code and datasets on GitHub."}},
+    {"@type": "Question", "name": "Are submitted sequences stored?",
+     "acceptedAnswer": {"@type": "Answer", "text": "No. Sequences are processed in memory and are not stored on the server."}}
+  ]
 }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -397,6 +424,7 @@ PAGE = """<!DOCTYPE html>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Roboto Mono', monospace; background: #ffffff; color: #1a1a1a; min-height: 100vh; padding: 28px 24px; }
   .wrap { max-width: 760px; margin: 0 auto; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
   .status-row { display: flex; align-items: center; margin-bottom: 10px; font-size: 0.72rem; }
   h1 { font-size: 1.4rem; font-weight: normal; letter-spacing: 0.1em; color: #0f0f0f; }
@@ -721,7 +749,8 @@ PAGE = """<!DOCTYPE html>
       </span>
     </span>
   </div>
-  <p class="sub"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide prediction using ensemble machine learning (AUC 0.950, Sens. 0.949, Spec. 0.784). Free, no login required.</p>
+  <h1 class="sr-only">AMPidentifier, antimicrobial peptide prediction with ensemble machine learning</h1>
+  <p class="sub"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide (AMP) prediction and identification using ensemble machine learning: gradient boosting, XGBoost and LightGBM (AUC 0.950, Sens. 0.949, Spec. 0.784). Free, no login required, available as web server, CLI and Python package.</p>
 
   <div class="stats-section">
     <div class="stats-grid">
