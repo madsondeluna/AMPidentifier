@@ -17,10 +17,10 @@ PAGE = """<!DOCTYPE html>
 <meta name="description" content="AMPidentifier is a free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences and classify AMPs in seconds.">
 <meta name="keywords" content="antimicrobial peptide prediction, AMP classifier, machine learning peptides, bioinformatics tool, AMP identification, peptide analysis, ensemble model">
 <meta name="author" content="Madson Aragao">
-<meta name="robots" content="noindex, nofollow">
-<link rel="canonical" href="https://www.ampidentifier.com/">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.ampidentifier.com/beta">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://www.ampidentifier.com/">
+<meta property="og:url" content="https://www.ampidentifier.com/beta">
 <meta property="og:title" content="AMPidentifier | Antimicrobial Peptide Prediction Tool">
 <meta property="og:description" content="Free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences, get predictions in seconds.">
 <meta property="og:image" content="https://www.ampidentifier.com/img/og-image.png?v=2">
