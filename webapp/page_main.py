@@ -11,7 +11,8 @@ miolo desta pagina e o javascript dela.
 
 from webapp.page_shell import page
 
-BODY = """  <header>
+BODY = """
+<header>
     <div>
       <!-- a marca e a imagem; o titulo da pagina existe para leitor de tela
            e para a hierarquia do documento, que nao tinha nenhum h1 -->
@@ -27,43 +28,9 @@ BODY = """  <header>
       </p>
     </div>
 
-    <div class="metrics-band step-1">
-     <div class="card-glass intro">
-      <p class="sub prose-justify"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide prediction using ensemble machine learning.</p>
-
-      <div class="install-stack">
-        <p class="install"><span class="install-lead">For <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>:</span> <code>pip install ampidentifier</code></p>
-        <p class="install"><span class="install-lead">For terminal use:</span> <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a></p>
-        <p class="install"><span class="install-lead">In testing:</span> <a href="/beta">what is coming next</a></p>
-      <p class="install"><span class="install-lead">Previous layout:</span> <a href="/legacy">legacy version</a></p>
-      </div>
-     </div>
-    </div>
   </header>
 
-  <div class="metrics-band step-2">
-    <div class="metrics-label">Benchmark, voting ensemble (RF + SVM + GB + XGB + LGBM)</div>
-    <div class="metrics-grid metrics-4">
-      <div class="card-glass metric"><span class="num metric-val">0.950</span><span class="metric-lbl">AUC-ROC</span></div>
-      <div class="card-glass metric"><span class="num metric-val">0.742</span><span class="metric-lbl">MCC</span></div>
-      <div class="card-glass metric"><span class="num metric-val">94.9%</span><span class="metric-lbl">Sensitivity</span></div>
-      <div class="card-glass metric"><span class="num metric-val">78.4%</span><span class="metric-lbl">Specificity</span></div>
-    </div>
-  </div>
-
-  <div class="metrics-band step-1">
-    <div class="metrics-label">Usage</div>
-    <div class="metrics-grid metrics-4">
-      <div class="card-glass metric"><span class="num metric-val" id="statSeq">&mdash;</span><span class="metric-lbl">Sequences classified</span></div>
-      <div class="card-glass metric"><span class="num metric-val" id="statVisitors">&mdash;</span><span class="metric-lbl">Unique users</span></div>
-      <div class="card-glass metric"><span class="num metric-val" id="statRuns">&mdash;</span><span class="metric-lbl">Prediction runs</span></div>
-      <div class="card-glass metric"><span class="num metric-val">22</span><span class="metric-lbl">Descriptors</span></div>
-    </div>
-  </div>
-
   <main class="step-2" id="main" tabindex="-1">
-
-
     <div class="step-2">
       <div class="label-row">
         <label class="field-label" for="fasta">FASTA sequences</label>
@@ -96,6 +63,42 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
     </div>
 
     <div id="results" class="motion-lines"></div>
+  </main>
+
+    <div class="metrics-band step-1">
+     <div class="card-glass intro">
+      <p class="sub prose-justify"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide prediction using ensemble machine learning.</p>
+
+      <div class="install-stack">
+        <p class="install"><span class="install-lead">For <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>:</span> <code>pip install ampidentifier</code></p>
+        <p class="install"><span class="install-lead">For terminal use:</span> <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a></p>
+        <p class="install"><span class="install-lead">In testing:</span> <a href="/beta">what is coming next</a></p>
+      <p class="install"><span class="install-lead">Previous layout:</span> <a href="/legacy">legacy version</a></p>
+      </div>
+     </div>
+    </div>
+
+  <div class="metrics-band step-2">
+    <div class="metrics-label">Benchmark, voting ensemble (RF + SVM + GB + XGB + LGBM)</div>
+    <div class="metrics-grid metrics-4">
+      <div class="card-glass metric"><span class="num metric-val">0.950</span><span class="metric-lbl">AUC-ROC</span></div>
+      <div class="card-glass metric"><span class="num metric-val">0.742</span><span class="metric-lbl">MCC</span></div>
+      <div class="card-glass metric"><span class="num metric-val">94.9%</span><span class="metric-lbl">Sensitivity</span></div>
+      <div class="card-glass metric"><span class="num metric-val">78.4%</span><span class="metric-lbl">Specificity</span></div>
+    </div>
+  </div>
+
+
+  <div class="metrics-band step-1">
+    <div class="metrics-label">Usage</div>
+    <div class="metrics-grid metrics-4">
+      <div class="card-glass metric"><span class="num metric-val" id="statSeq">&mdash;</span><span class="metric-lbl">Sequences classified</span></div>
+      <div class="card-glass metric"><span class="num metric-val" id="statVisitors">&mdash;</span><span class="metric-lbl">Unique users</span></div>
+      <div class="card-glass metric"><span class="num metric-val" id="statRuns">&mdash;</span><span class="metric-lbl">Prediction runs</span></div>
+      <div class="card-glass metric"><span class="num metric-val">22</span><span class="metric-lbl">Descriptors</span></div>
+    </div>
+  </div>
+
 
     <div class="surface share-section step-2">
       <div class="share-inner">
@@ -124,7 +127,6 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
         <div class="share-form-status" id="shareFormStatus" aria-live="polite"></div>
       </div>
     </div>
-  </main>
 
   <footer class="step-2">
     <div>
@@ -153,7 +155,8 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
       <p>Your data is encrypted during transfer (HTTPS/TLS) and never shared. Sequences are not stored.</p>
       <p>Developer: <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a> &nbsp;·&nbsp; <a href="https://madsondeluna.com" target="_blank">madsondeluna.com</a> &nbsp;·&nbsp; <button class="feedback-link hit" onclick="openFeedback()">Report issue or suggestion</button> &nbsp;·&nbsp; <span class="version">v{{ version }}</span></p>
     </div>
-  </footer>"""
+  </footer>
+"""
 
 CSS = """
   /* A marca abre a pagina: leque em teal e a palavra na tinta do modo.
