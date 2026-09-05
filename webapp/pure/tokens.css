@@ -1,5 +1,6 @@
-/* Pure Design 1.4.1 -- copia de /Volumes/promethion/pure-design-language/web/tokens.css
-   pure / tokens.css
+/* Pure Design 1.6.1 -- copia de /Volumes/promethion/pure-design-language/web/tokens.css
+   Divergencia local: --slate-0 e o remapeamento de --bg e --surface.
+ pure / tokens.css
    Fonte unica de verdade em CSS. Espelha tokens/tokens.json.
    Convencao de tema: :root e o modo claro, :root.dark o escuro,
    :root.paper a variante creme. Mesma convencao ja usada em
@@ -20,7 +21,7 @@
   --slate-200: #dde1e9;
   --slate-250: #ced3dc;
   --slate-300: #adbcd0;
-  --slate-400: #8ca0ba;
+  --slate-400: #8ea2bc;
   --slate-500: #748cab;
   --slate-600: #667e9c;
   --slate-700: #3e5c76;
@@ -103,13 +104,26 @@
   --glass-specular:    rgba(255, 255, 255, 0.75);
   --glass-refract:     rgba(255, 255, 255, 0.2);
 
+  /* bisel e poco: as duas camadas que dao espessura ao material.
+     O bisel e um brilho interno difuso rente a borda, o poco e a
+     sombra que a luz deposita na base ao atravessar o corpo. Nenhum
+     dos dois tem spread: um anel de spread empurra uma segunda linha
+     rente ao contorno e o vidro passa a ler como dois fios. */
+  --glass-bezel:       rgba(255, 255, 255, 0.62);
+  --glass-pool:        rgba(13, 19, 33, 0.08);
+  --liquid-drop:       drop-shadow(0 1px 2px rgba(13, 19, 33, 0.08)) drop-shadow(0 6px 18px rgba(13, 19, 33, 0.1));
+
   --shadow-glass-rest:
     inset 0 1px 0 var(--glass-specular),
+    inset 0 0 8px -3px var(--glass-bezel),
+    inset 0 -10px 16px -12px var(--glass-pool),
     inset 0 -1px 0 var(--glass-refract),
     0 1px 2px rgba(13, 19, 33, 0.06),
     0 6px 18px rgba(13, 19, 33, 0.07);
   --shadow-glass-hover:
     inset 0 1px 0 var(--glass-specular),
+    inset 0 0 10px -3px var(--glass-bezel),
+    inset 0 -12px 18px -12px var(--glass-pool),
     inset 0 -1px 0 var(--glass-refract),
     0 2px 4px rgba(13, 19, 33, 0.08),
     0 10px 28px rgba(13, 19, 33, 0.1);
@@ -138,11 +152,55 @@
   --glass-tint-hover:  rgba(255, 255, 255, 0.3);
   --glass-border:      var(--glass-edge);
 
+  /* ---------- liquido ----------
+     O material liquido nao e uma quinta textura de vidro: e outra
+     arquitetura. O vidro filtra o proprio elemento, entao o texto que
+     ele carrega atravessa o desfoque junto. O liquido separa em duas
+     camadas: uma folha de silhueta, atras, leva o filtro goo e a
+     sombra; o conteudo real anda por cima, sem filtro nenhum, nitido.
+     E o que permite dois controles vizinhos se fundirem numa gota so
+     sem que a legenda deles derreta.
+
+     Os numeros do filtro (desvio do desfoque, inclinacao do contraste
+     alfa) NAO sao tokens: feColorMatrix nao le var(), e um token que
+     nada resolve e um token que mente. Eles vivem nas tres definicoes
+     de #pure-goo em templates/page.html, e a tabela do README diz
+     quais sao. Token aqui e so o que o CSS consome de verdade. */
+  --liquid-fill:        var(--surface-glass);
+  --liquid-fill-hover:  var(--surface-hover-glass);
+  --liquid-edge:        var(--glass-edge);
+
+  /* a folga entre dois blobs sob a qual eles fundem. Fundir e razao
+     entre o desvio do desfoque e o vao, e a travessia foi medida na
+     tela, nao estimada: a ponte fecha enquanto o vao fica ABAIXO do
+     desvio, e some um pixel acima dele. Cada variante do filtro tem
+     portanto a sua folga, e trocar de variante sem trocar a folga e o
+     jeito silencioso de o aglomerado sair como pilulas soltas.
+
+       #pure-goo-tight  desvio  4   funde ate  4px
+       #pure-goo        desvio  6   funde ate  6px
+       #pure-goo-wide   desvio 12   funde ate 10px */
+  --liquid-bridge-tight: 4px;
+  --liquid-bridge:       6px;
+  --liquid-bridge-wide:  10px;
+  /* folga da regiao do filtro: a gota transborda a caixa do grupo e
+     sem isto o navegador corta a ponte no contorno */
+  --liquid-pad:         24px;
+
+  /* ---------- contexto de superficie ----------
+     Todo componente que pinta fundo redeclara este token com o que ele
+     pinta. Serve a uma coisa so, e ela e a que a varredura de contraste
+     erra sozinha: o ancestral opaco nem sempre e quem pinta. No liquido
+     o fundo vem de um IRMAO do texto, entao andar pela ancestralidade
+     resolve o texto contra --bg e da aprovado com a pagina errada. A
+     varredura le --surface-context, que herda, em vez de adivinhar. */
+  --surface-context:    var(--bg);
+
   /* dados: 8 slots, ordem fixa, nunca ciclada */
   --chart-1: #3973b1;
   --chart-2: #9f8322;
   --chart-3: #9e527f;
-  --chart-4: #4c985f;
+  --chart-4: #49955c;
   --chart-5: #745ba5;
   --chart-6: #ba6f3e;
   --chart-7: #1990ad;
@@ -193,7 +251,7 @@
   --text-40: 2.5rem;
   --text-56: 3.5rem;
   --text-display-section: clamp(2.25rem, 4vw, 3.5rem);
-  --text-display-name:    clamp(2rem, 11vw, 2.75rem);
+  --text-display-name:    clamp(2rem, 11vw, 3.5rem);
 
   --leading-none: 1;
   --leading-tight: 1.2;
@@ -281,6 +339,42 @@
   --nudge-2: 3px;
   --nudge-3: 4px;
 
+  /* ---------- desfoque de movimento ----------
+     Tres raios, e eles nao sao vidro. O vidro desfoca o FUNDO com
+     backdrop-filter e fica parado; estes desfocam o PROPRIO elemento
+     com filter e so existem enquanto ele se move, zerando ao assentar.
+     Misturar as duas familias e o jeito de um cartao de vidro sair
+     borrado em repouso.
+
+     Nao ha token novo de duracao nem de curva nesta camada: as receitas
+     de motion.css usam os seis --duration-* e as cinco --ease-* que ja
+     existiam. O escalonamento de linha usa --duration-1 como passo. */
+  --motion-blur-1: 2px;   /* troca de icone, troca de texto, esqueleto */
+  --motion-blur-2: 3px;   /* deslize de pagina, subida de linha */
+  --motion-blur-3: 8px;   /* momento de enfase: confirmacao concluida */
+
+  /* ---------- camada de luz ----------
+     Geometria da reacao ao ponteiro, e so geometria: a cor da luz sai
+     dos tokens de vidro que ja existem (--glass-specular, --glass-bezel,
+     --glass-edge-hover). Uma camada que reage ao ponteiro nao e motivo
+     para paleta nova.
+
+     reach e a distancia em que a proximidade chega a zero: fora dela o
+     elemento esta em repouso e nao paga quadro nenhum. spec e o diametro
+     do realce especular, rim a espessura do aro que acende, pull o
+     deslocamento maximo do ima, tilt o angulo maximo da inclinacao e
+     depth a perspectiva do palco que a torna tridimensional.
+
+     Nao ha duracao nem curva propria aqui: a luz assenta com
+     --duration-3 e --ease-out-soft, como todo controle. */
+  --light-reach: 240px;
+  --light-spec:  180px;
+  --light-rim:   20px;
+  --light-pull:  6px;
+  --light-tilt:  8deg;
+  --light-depth: 800px;
+  --light-lens:  1.5rem;
+
   /* layout */
   --measure-prose: 480px;
   --measure-wide: 640px;
@@ -291,6 +385,14 @@
   --breakpoint-stack: 768px;
   --hairline: 1px;
   --photo-sm: 96px;
+  /* o retrato de identidade, maior que a miniatura de lista. 128 e o
+     tamanho em que o rosto le a um metro de distancia numa coluna de
+     identidade, e ele casa com duas linhas de --text-display-name. */
+  --photo-md: 128px;
+  /* e o retrato de abertura, quando a identidade E a tela. Tres degraus
+     e o teto: miniatura de lista, retrato de coluna, retrato de
+     abertura. Um quarto seria taste em vez de papel. */
+  --photo-lg: 160px;
   --control-lg: 2.75rem;
 
   /* interacao: alvo, foco, campo e ancora.
@@ -325,7 +427,106 @@
   /* o navegador precisa saber o modo para pintar scrollbar, caret,
      controle nativo e a moldura da janela */
   color-scheme: light;
+
+  /* cor da luz, por modo. Ela NAO e --glass-specular, e a diferenca foi
+     medida na tela: o especular do vidro e branco, e branco sobre uma
+     pagina quase branca nao aparece. Um realce que so existe nos dois
+     modos escuros nao e um realce, e uma regra que passa no teste
+     errado.
+
+     Nos modos claros a luz assume o matiz de slate-700, que e o mesmo
+     par de --glass-tint-accent e nao acrescenta cor nenhuma a paleta;
+     nos escuros ela e branca, como toda luz sobre fundo escuro.
+     Fisicamente e a luz pegando o tom do material que atravessa. */
+  --light-fill: rgba(62, 92, 118, 0.18);
+  --light-edge: rgba(62, 92, 118, 0.38);
+
+
+  /* sombra da lente: curta de proposito. A queda larga de
+     --shadow-glass-rest e desenhada para um cartao; num disco de 48px
+     ela le como borrao em volta do ponteiro em vez de peso. O disco
+     esta em 24px, e a sombra encolheu duas vezes junto com ele.
+
+     Aqui sobra o CONTATO e mais nada de queda: 1px de raio, e a metade
+     da opacidade que o vidro usa. O que da corpo e o bisel e o
+     especular, que sao internos e nao projetam sombra nenhuma na
+     pagina. O poco interno ficou curto pelo mesmo motivo: num disco
+     pequeno ele fechava o terco de baixo e a lente lia como pastilha. */
+  --shadow-lens:
+    0 1px 1px rgba(13, 19, 33, 0.03),
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 0 8px -3px var(--glass-bezel),
+    inset 0 -4px 6px -7px var(--glass-pool);
+
+
+  /* tinta da lente. Ela NAO e --light-fill: aquela e a luz que anda, e
+     esta e o corpo do disco. Um disco puramente translucido some sobre
+     area lisa, e o ponteiro se perde justo onde nao ha o que dobrar.
+
+     Chumbo nos modos claros e branco nos escuros, os dois de rampas que
+     ja existem: graphite-800 e o branco do vidro. Nenhuma cor nova.
+
+     As opacidades nao sao simetricas de proposito. No escuro o branco
+     aparece sozinho e 0,14 basta; no claro o chumbo precisa do dobro
+     para o disco ter corpo, e foi medido na tela: em 0,16 ele sumia. */
+  --lens-fill: rgba(59, 62, 69, 0.30);
+
 }
+
+/* ---------- tipos do transform liquido ----------
+
+   Uma custom property nao registrada e texto: ela troca de valor de um
+   quadro para o outro e nao interpola. O transform composto do liquido
+   ate aqui so mudava porque a transicao caia sobre `transform`, e por
+   isso nenhuma animacao podia escrever os tokens: um @keyframes que
+   escrevesse --liquid-swell saltava em vez de fluir.
+
+   Registrar da tipo aos quatro, e com tipo eles interpolam sozinhos.
+   E o que permite toda animacao de liquido escrever TOKEN e nunca
+   `transform`, mantendo a regra de uma declaracao de transform por
+   elemento enquanto o material ganha movimento.
+
+   inherits: false porque cada unidade tem o seu deslocamento: um blob
+   herdar o inchaco do vizinho e o oposto do que o aglomerado precisa.
+
+   --liquid-swell e o inchaco uniforme e --liquid-stretch-* MULTIPLICA
+   sobre ele por eixo. Multiplicar em vez de sobrescrever tem uma razao
+   pratica: uma propriedade registrada sempre tem valor, entao o
+   fallback de var() nunca dispara e um --liquid-swell-x registrado
+   apagaria o inchaco uniforme em silencio. */
+
+@property --liquid-shift-x  { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --liquid-shift-y  { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --liquid-swell    { syntax: "<number>"; inherits: false; initial-value: 1; }
+@property --liquid-stretch-x { syntax: "<number>"; inherits: false; initial-value: 1; }
+@property --liquid-stretch-y { syntax: "<number>"; inherits: false; initial-value: 1; }
+
+/* ---------- tipos da camada de luz ----------
+
+   Mesma razao do bloco acima e um motivo a mais: estes cinco sao
+   escritos por script a cada quadro do ponteiro. Sem registro o
+   navegador reanalisa o valor como texto em toda escrita, e o realce
+   salta em vez de escorrer atras do cursor.
+
+   --light-x e --light-y sao a posicao do ponteiro DENTRO da caixa,
+   normalizada de 0 a 1, entao a mesma regra serve a um botao de 40px e
+   a uma secao inteira sem nenhuma medida em CSS. --light-near e a
+   proximidade, 1 sob o ponteiro e 0 a --light-reach de distancia: e ela
+   que apaga o efeito sozinha quando o cursor sai, sem precisar de um
+   segundo estado.
+
+   --light-turn-* e --light-shift-* sao os componentes do transform
+   composto, e existem separados pelo motivo de sempre: inclinacao e ima
+   agem no mesmo elemento e nenhum dos dois pode escrever transform. */
+
+@property --light-x       { syntax: "<number>"; inherits: true;  initial-value: 0.5; }
+@property --light-y       { syntax: "<number>"; inherits: true;  initial-value: 0.5; }
+@property --light-near    { syntax: "<number>"; inherits: true;  initial-value: 0; }
+@property --light-turn-x  { syntax: "<angle>";  inherits: false; initial-value: 0deg; }
+@property --light-turn-y  { syntax: "<angle>";  inherits: false; initial-value: 0deg; }
+@property --light-shift-x { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --light-shift-y { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --light-grow    { syntax: "<number>"; inherits: false; initial-value: 1; }
 
 /* ---------- paper-like ----------
    Superficie quente, mesma tinta e mesma estrutura do modo claro.
@@ -345,6 +546,78 @@
   --muted:               var(--slate-700);
   --accent:              var(--slate-700);
   --secondary:           var(--slate-500);
+
+  /* o vidro do modo papel e quente. Sem este bloco ele herdaria o vidro
+     do modo claro e o fosco sairia branco frio sobre uma pagina creme:
+     a superficie mais visivel da pagina seria a unica que nao pertence
+     ao modo. Preenchimento e bisel sobem do papel, nao do branco. */
+  --glass-fill:        linear-gradient(180deg, rgba(255, 253, 246, 0.5), rgba(250, 248, 241, 0.2));
+  --glass-fill-hover:  linear-gradient(180deg, rgba(255, 253, 246, 0.7), rgba(250, 248, 241, 0.36));
+  --glass-edge:        rgba(255, 253, 246, 0.62);
+  --glass-edge-hover:  rgba(255, 253, 246, 0.82);
+  --glass-specular:    rgba(255, 253, 246, 0.8);
+  --glass-refract:     rgba(214, 207, 182, 0.34);
+  --glass-bezel:       rgba(255, 253, 246, 0.7);
+  --glass-pool:        rgba(90, 78, 46, 0.1);
+  --liquid-drop:       drop-shadow(0 1px 2px rgba(90, 78, 46, 0.1)) drop-shadow(0 6px 18px rgba(90, 78, 46, 0.12));
+
+  --shadow-glass-rest:
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 0 8px -3px var(--glass-bezel),
+    inset 0 -10px 16px -12px var(--glass-pool),
+    inset 0 -1px 0 var(--glass-refract),
+    0 1px 2px rgba(90, 78, 46, 0.08),
+    0 6px 18px rgba(90, 78, 46, 0.09);
+  --shadow-glass-hover:
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 0 10px -3px var(--glass-bezel),
+    inset 0 -12px 18px -12px var(--glass-pool),
+    inset 0 -1px 0 var(--glass-refract),
+    0 2px 4px rgba(90, 78, 46, 0.1),
+    0 10px 28px rgba(90, 78, 46, 0.12);
+
+  --glass-fill-thin:   linear-gradient(180deg, rgba(255, 253, 246, 0.14), rgba(255, 253, 246, 0.03));
+  --glass-fill-frost:  linear-gradient(180deg, rgba(250, 248, 241, 0.86), rgba(240, 235, 216, 0.68));
+  --glass-fill-deep:   linear-gradient(180deg, rgba(250, 248, 241, 0.62), rgba(240, 235, 216, 0.4));
+  --glass-grain-opacity: 0.7;
+
+  --glass-tint-accent: linear-gradient(180deg, rgba(62, 92, 118, 0.24), rgba(62, 92, 118, 0.1));
+  --glass-edge-accent: rgba(62, 92, 118, 0.4);
+
+  /* cor da luz, por modo. Ela NAO e --glass-specular, e a diferenca foi
+     medida na tela: o especular do vidro e branco, e branco sobre uma
+     pagina quase branca nao aparece. Um realce que so existe nos dois
+     modos escuros nao e um realce, e uma regra que passa no teste
+     errado.
+
+     Nos modos claros a luz assume o matiz de slate-700, que e o mesmo
+     par de --glass-tint-accent e nao acrescenta cor nenhuma a paleta;
+     nos escuros ela e branca, como toda luz sobre fundo escuro.
+     Fisicamente e a luz pegando o tom do material que atravessa. */
+  --light-fill: rgba(62, 92, 118, 0.15);
+  --light-edge: rgba(62, 92, 118, 0.32);
+
+
+  /* sombra da lente: curta de proposito. A queda larga de
+     --shadow-glass-rest e desenhada para um cartao; num disco de 64px
+     ela le como borrao em volta do ponteiro em vez de peso. O disco
+     esta em 24px, e a sombra encolheu duas vezes junto com ele. Aqui fica
+     so o contato, mais o bisel e o especular que dao corpo ao vidro. */
+  --shadow-lens:
+    0 1px 1px rgba(90, 82, 58, 0.04),
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 0 8px -3px var(--glass-bezel),
+    inset 0 -4px 6px -7px var(--glass-pool);
+
+
+  /* tinta da lente. Ela NAO e --light-fill: aquela e a luz que anda, e
+     esta e o corpo do disco. Um disco puramente translucido some sobre
+     area lisa, e o ponteiro se perde justo onde nao ha o que dobrar.
+
+     Chumbo nos modos claros e branco nos escuros, os dois de rampas que
+     ja existem: graphite-700 e o branco do vidro. Nenhuma cor nova. */
+  --lens-fill: rgba(59, 62, 69, 0.26);
+
 }
 
 /* ---------- deep-blue ----------
@@ -363,11 +636,16 @@
   --border:              var(--slate-800);
   --border-hover:        var(--slate-700);
   --text:                var(--slate-50);
-  --muted:               var(--slate-500);
-  /* accent sobe para 400 no escuro: em 700 o anel de foco fica em 2,65
-     contra --bg, abaixo do minimo de 3:1 para indicador de foco.
-     secondary permanece em 500, como no site, para nao regredir nada. */
-  --accent:              var(--slate-400);
+  /* muted subiu de 500 para 400 em 1.5.1: em 500 ele ficava em 4,02
+     sobre --surface, abaixo do piso de 4,5 para texto pequeno, e a
+     camada de agente inteira poe texto de 12px em muted sobre cartao.
+     O proprio passo 400 clareou dois pontos de RGB (#8CA0BA para
+     #8EA2BC) para fechar 4,5 tambem sobre --surface-hover, onde ficava
+     em 4,49. accent sobe junto para o 300, mantendo-se um passo mais
+     claro que muted, como no dark (graphite-300 sobre graphite-400).
+     secondary permanece em 500: e cor de borda, nao de texto. */
+  --muted:               var(--slate-400);
+  --accent:              var(--slate-300);
   --secondary:           var(--slate-500);
 
   --tag-congress-color:    #7eb8d4;
@@ -394,13 +672,21 @@
   --glass-specular:    rgba(255, 255, 255, 0.16);
   --glass-refract:     rgba(255, 255, 255, 0.04);
 
+  --glass-bezel:       rgba(255, 255, 255, 0.18);
+  --glass-pool:        rgba(0, 0, 0, 0.45);
+  --liquid-drop:       drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45)) drop-shadow(0 8px 24px rgba(0, 0, 0, 0.36));
+
   --shadow-glass-rest:
     inset 0 1px 0 var(--glass-specular),
+    inset 0 0 8px -3px var(--glass-bezel),
+    inset 0 -10px 16px -12px var(--glass-pool),
     inset 0 -1px 0 var(--glass-refract),
     0 1px 2px rgba(0, 0, 0, 0.4),
     0 8px 24px rgba(0, 0, 0, 0.32);
   --shadow-glass-hover:
     inset 0 1px 0 var(--glass-specular),
+    inset 0 0 10px -3px var(--glass-bezel),
+    inset 0 -12px 18px -12px var(--glass-pool),
     inset 0 -1px 0 var(--glass-refract),
     0 2px 4px rgba(0, 0, 0, 0.46),
     0 12px 32px rgba(0, 0, 0, 0.4);
@@ -430,6 +716,54 @@
   --chart-grid: var(--slate-800);
   --chart-ink: var(--slate-50);
   --chart-ink-muted: var(--slate-500);
+
+  /* cor da luz, por modo. Ela NAO e --glass-specular, e a diferenca foi
+     medida na tela: o especular do vidro e branco, e branco sobre uma
+     pagina quase branca nao aparece. Um realce que so existe nos dois
+     modos escuros nao e um realce, e uma regra que passa no teste
+     errado.
+
+     Nos modos claros a luz assume o matiz de slate-700, que e o mesmo
+     par de --glass-tint-accent e nao acrescenta cor nenhuma a paleta;
+     nos escuros ela e branca, como toda luz sobre fundo escuro.
+     Fisicamente e a luz pegando o tom do material que atravessa. */
+  --light-fill: rgba(255, 255, 255, 0.14);
+  --light-edge: rgba(255, 255, 255, 0.30);
+
+
+  /* sombra da lente: curta de proposito. A queda larga de
+     --shadow-glass-rest e desenhada para um cartao; num disco de 64px
+     ela le como borrao em volta do ponteiro em vez de peso. O disco
+     esta em 24px, e a sombra encolheu duas vezes junto com ele. Aqui fica
+     so o contato, mais o bisel e o especular que dao corpo ao vidro. */
+  --shadow-lens:
+    0 1px 1px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 0 8px -3px var(--glass-bezel),
+    inset 0 -4px 6px -7px var(--glass-pool);
+
+
+  /* tinta da lente. Ela NAO e --light-fill: aquela e a luz que anda, e
+     esta e o corpo do disco. Um disco puramente translucido some sobre
+     area lisa, e o ponteiro se perde justo onde nao ha o que dobrar.
+
+     Chumbo nos modos claros e branco nos escuros, os dois de rampas que
+     ja existem: graphite-700 e o branco do vidro. Nenhuma cor nova. */
+  --lens-fill: rgba(255, 255, 255, 0.16);
+
+
+  /* Paleta categorica do escuro. Os oito slots eram um conjunto so para os
+     quatro modos, calibrado para pagina clara, e quatro deles caiam abaixo do
+     piso de 3:1 sobre --surface, que e onde o cartao pinta. Mesmo matiz, mesma
+     ordem, luminosidade subida ate 3,5:1 sobre --surface-hover. */
+  --chart-1: #4882c1;
+  --chart-2: #af9235;
+  --chart-3: #ae618e;
+  --chart-4: #59a56b;
+  --chart-5: #836ab5;
+  --chart-6: #cb7e4d;
+  --chart-7: #31a0bd;
+  --chart-8: #bd645f;
 }
 
 /* ---------- dark ----------
@@ -476,13 +810,21 @@
   --glass-specular:    rgba(255, 255, 255, 0.16);
   --glass-refract:     rgba(255, 255, 255, 0.04);
 
+  --glass-bezel:       rgba(255, 255, 255, 0.18);
+  --glass-pool:        rgba(0, 0, 0, 0.5);
+  --liquid-drop:       drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 8px 24px rgba(0, 0, 0, 0.42));
+
   --shadow-glass-rest:
     inset 0 1px 0 var(--glass-specular),
+    inset 0 0 8px -3px var(--glass-bezel),
+    inset 0 -10px 16px -12px var(--glass-pool),
     inset 0 -1px 0 var(--glass-refract),
     0 1px 2px rgba(0, 0, 0, 0.46),
     0 8px 24px rgba(0, 0, 0, 0.38);
   --shadow-glass-hover:
     inset 0 1px 0 var(--glass-specular),
+    inset 0 0 10px -3px var(--glass-bezel),
+    inset 0 -12px 18px -12px var(--glass-pool),
     inset 0 -1px 0 var(--glass-refract),
     0 2px 4px rgba(0, 0, 0, 0.52),
     0 12px 32px rgba(0, 0, 0, 0.46);
@@ -512,4 +854,55 @@
   --chart-grid: var(--graphite-800);
   --chart-ink: var(--graphite-50);
   --chart-ink-muted: var(--graphite-400);
+
+  /* cor da luz, por modo. Ela NAO e --glass-specular, e a diferenca foi
+     medida na tela: o especular do vidro e branco, e branco sobre uma
+     pagina quase branca nao aparece. Um realce que so existe nos dois
+     modos escuros nao e um realce, e uma regra que passa no teste
+     errado.
+
+     Nos modos claros a luz assume o matiz de slate-700, que e o mesmo
+     par de --glass-tint-accent e nao acrescenta cor nenhuma a paleta;
+     nos escuros ela e branca, como toda luz sobre fundo escuro.
+     Fisicamente e a luz pegando o tom do material que atravessa. */
+  --light-fill: rgba(255, 255, 255, 0.12);
+  --light-edge: rgba(255, 255, 255, 0.26);
+
+
+  /* sombra da lente: curta de proposito. A queda larga de
+     --shadow-glass-rest e desenhada para um cartao; num disco de 64px
+     ela le como borrao em volta do ponteiro em vez de peso. O disco
+     esta em 24px, e a sombra encolheu duas vezes junto com ele. Aqui fica
+     so o contato, mais o bisel e o especular que dao corpo ao vidro. */
+  --shadow-lens:
+    0 1px 1px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 0 8px -3px var(--glass-bezel),
+    inset 0 -4px 6px -7px var(--glass-pool);
+
+
+  /* tinta da lente. Ela NAO e --light-fill: aquela e a luz que anda, e
+     esta e o corpo do disco. Um disco puramente translucido some sobre
+     area lisa, e o ponteiro se perde justo onde nao ha o que dobrar.
+
+     Chumbo nos modos claros e branco nos escuros, os dois de rampas que
+     ja existem: graphite-700 e o branco do vidro. Nenhuma cor nova. */
+  --lens-fill: rgba(255, 255, 255, 0.14);
+
+
+  /* Paleta categorica dos modos escuros. Ate 1.6.0 os oito slots eram um
+     conjunto so para os quatro modos, calibrado para pagina clara, e quatro
+     deles ficavam entre 2,65 e 2,99 sobre --surface, abaixo do piso de 3:1.
+     Mesmos oito matizes, mesma ordem, cada um deslocado pelo MESMO passo de
+     luminosidade (+0,050 em OKLCH): sao as diferencas relativas de luminosidade
+     que carregam a paleta sob deuteranopia, onde o matiz colapsa. */
+  --chart-1: #4882c1;
+  --chart-2: #af9235;
+  --chart-3: #ae618e;
+  --chart-4: #59a56b;
+  --chart-5: #836ab5;
+  --chart-6: #cb7e4d;
+  --chart-7: #31a0bd;
+  --chart-8: #bd645f;
+
 }

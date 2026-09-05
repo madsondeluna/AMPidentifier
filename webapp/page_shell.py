@@ -1,30 +1,32 @@
-"""Beta front end: the Pure Design page, served at /beta.
+"""Shell compartilhado das paginas Pure Design servidas sob /beta.
 
-The production page lives in app.py and is not touched by this file. Both
-render against the same API routes (/predict, /stats, /locations, /health,
-/send_csv, /send_recommendation), so only the markup differs. Assets that
-diverge from production carry their own path: the ink-cropped logos under
-/img/pure/ and the design tokens under /pure/.
+Uma so fonte para o que as tres paginas dividem: o head, a folha de
+estilo, a barra fixa de cima, a barra fixa de baixo e o modal de
+feedback. Pagina nova fornece o proprio miolo e o proprio javascript, e
+nao copia nada disto: markup repetido em tres arquivos diverge no
+segundo commit.
+
+O head e gabarito de %(nome)s, nao de Jinja: as chaves duplas do Jinja
+continuam intactas e sao resolvidas depois, por render_template_string.
 """
 
-PAGE = """<!DOCTYPE html>
-<html lang="en">
+HEAD = """<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
-<title>AMPidentifier BETA | Antimicrobial Peptide Prediction Tool</title>
-<meta name="description" content="AMPidentifier is a free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences and classify AMPs in seconds.">
+<title>%(title)s</title>
+<meta name="description" content="%(description)s">
 <meta name="keywords" content="antimicrobial peptide prediction, antimicrobial peptide predictor, antimicrobial peptide classifier, antimicrobial peptide classification, antimicrobial peptide identification, antimicrobial peptide detection, antimicrobial peptide screening, antimicrobial peptide discovery, antimicrobial peptide annotation, antimicrobial peptide mining, antimicrobial peptide search, antimicrobial activity prediction, peptide bioactivity prediction, peptide function prediction, bioactive peptide prediction, in silico peptide screening, virtual screening peptides, high throughput peptide screening, AMP prediction, AMP predictor, AMP classifier, AMP identification, AMP detection, AMP screening, AMP discovery, AMP annotation, AMP prediction tool, AMP prediction software, AMP prediction server, AMP prediction web server, AMP prediction online, AMP prediction free, AMP prediction API, AMP prediction pipeline, AMP prediction benchmark, AMP prediction accuracy, AMP prediction machine learning, AMP prediction deep learning, AMP finder, AMP scanner, AMP toolkit, machine learning antimicrobial peptides, deep learning antimicrobial peptides, machine learning bioinformatics, deep learning bioinformatics, ensemble learning, ensemble model, soft voting classifier, stacking ensemble, gradient boosting, extreme gradient boosting, XGBoost, LightGBM, random forest, support vector machine, logistic regression, neural network, multilayer perceptron, convolutional neural network, recurrent neural network, BiLSTM, transformer protein model, protein language model, PLLM, embeddings, feature engineering, feature selection, cross validation, hyperparameter tuning, class imbalance, ROC AUC, sensitivity specificity, Matthews correlation coefficient, confusion matrix, model interpretability, SHAP, amino acid composition, AAC, dipeptide composition, DPC, pseudo amino acid composition, CTD descriptors, composition transition distribution, physicochemical descriptors, net charge, hydrophobicity, hydrophobic moment, isoelectric point, aliphatic index, instability index, molecular weight, helical wheel, amphipathicity, peptide length, sequence descriptors, protein descriptors, iFeature, propy, peptides package, bioinformatics tool, bioinformatics web server, computational biology, structural bioinformatics, proteomics, peptidomics, genomics, transcriptomics, metagenomics, immunoinformatics, molecular biology software, sequence analysis, FASTA, FASTA input, multi FASTA, batch prediction, CSV export, command line interface, CLI tool, Python package, pip install ampidentifier, open source bioinformatics, reproducible research, Google Colab notebook, antibiotic resistance, antimicrobial resistance, AMR, multidrug resistant bacteria, superbugs, ESKAPE pathogens, novel antibiotics, antibiotic alternatives, drug discovery, peptide drug design, therapeutic peptides, host defense peptides, innate immunity, defensins, cathelicidins, bacteriocins, lantibiotics, cecropins, magainins, LL-37, antibacterial peptides, antifungal peptides, antiviral peptides, antiparasitic peptides, antibiofilm peptides, anticancer peptides, cell penetrating peptides, hemolytic activity, cytotoxicity prediction, minimum inhibitory concentration, MIC prediction, plant antimicrobial peptides, insect antimicrobial peptides, marine antimicrobial peptides, APD3, DBAASP, DRAMP, CAMPR3, LAMP database, UniProt, SwissProt, AMP database, curated peptide dataset, training dataset, benchmark dataset, AMPidentifier, ampidentifier, AMPidentifier web, AMPidentifier CLI, AMPidentifier Python, free AMP prediction tool, online AMP predictor, no login bioinformatics tool, AMP prediction 2026, new AMP prediction tool, predição de peptídeos antimicrobianos, peptídeo antimicrobiano, identificação de peptídeos antimicrobianos, classificador de peptídeos antimicrobianos, ferramenta de bioinformática, aprendizado de máquina, aprendizado profundo, resistência antimicrobiana, resistência a antibióticos, descoberta de fármacos, análise de sequências, peptídeos bioativos, peptídeos de defesa, ferramenta gratuita online, 抗菌肽预测, 抗菌肽, 抗菌肽识别, 抗菌肽分类器, 生物信息学工具, 机器学习, 深度学习, 抗生素耐药性, 药物发现, 序列分析, 在线预测工具, 免费工具, रोगाणुरोधी पेप्टाइड भविष्यवाणी, रोगाणुरोधी पेप्टाइड, पेप्टाइड वर्गीकरण, जैव सूचना विज्ञान उपकरण, मशीन लर्निंग, डीप लर्निंग, एंटीबायोटिक प्रतिरोध, दवा खोज, अनुक्रम विश्लेषण, मुफ्त ऑनलाइन उपकरण">
 <meta name="author" content="Madson Aragao">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://www.ampidentifier.com/beta">
+<link rel="canonical" href="https://www.ampidentifier.com%(path)s">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="pt_BR">
 <meta property="og:locale:alternate" content="zh_CN">
 <meta property="og:locale:alternate" content="hi_IN">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://www.ampidentifier.com/beta">
+<meta property="og:url" content="https://www.ampidentifier.com%(path)s">
 <meta property="og:title" content="AMPidentifier | Antimicrobial Peptide Prediction Tool">
 <meta property="og:description" content="Free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences, get predictions in seconds.">
 <meta property="og:image" content="https://www.ampidentifier.com/img/og-image.png?v=2">
@@ -82,13 +84,16 @@ PAGE = """<!DOCTYPE html>
   ]
 }
 </script>
+<link rel="icon" type="image/svg+xml" href="/img/symbol.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,300..400&family=Public+Sans:wght@300;400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/pure/tokens.css?v={{ asset_v }}">
 <link rel="stylesheet" href="/pure/patterns.css?v={{ asset_v }}">
-<style>
-  /* =========================================================
+<link rel="stylesheet" href="/pure/motion.css?v={{ asset_v }}">
+<link rel="stylesheet" href="/pure/light.css?v={{ asset_v }}">"""
+
+STYLE = """  /* =========================================================
      Pure Design 1.4.2. Nenhum literal de cor, tipo, raio, sombra
      ou curva abaixo desta linha: falta de valor vira token em
      pure/tokens.css, nunca literal aqui.
@@ -144,7 +149,7 @@ PAGE = """<!DOCTYPE html>
      linha estica o espaco entre as palavras, e a linha do registro INPI
      chegava a quase o dobro do espaco normal. Hifenizar devolve o espaco
      de palavra ao tamanho de sempre, que e o que justifica justificar. */
-  .prose-justify { -webkit-hyphens: auto; hyphens: auto; }
+  .prose-justify { -webkit-hyphens: auto; hyphens: auto; text-wrap: pretty; }
 
   /* ---------- cabecalho ---------- */
 
@@ -303,6 +308,7 @@ PAGE = """<!DOCTYPE html>
     color: var(--text);
     word-break: break-all;
   }
+  .share-url-box.open { display: block; }
   .share-form { display: none; margin-top: var(--space-12); gap: var(--space-8); align-items: center; flex-wrap: wrap; }
   .share-form .pill { align-self: stretch; }
   .share-form.open { display: flex; }
@@ -476,6 +482,10 @@ PAGE = """<!DOCTYPE html>
   #usageMap .gloss-mid { stop-color: var(--glass-specular); stop-opacity: 0.25; }
   #usageMap .gloss-out { stop-color: var(--glass-specular); stop-opacity: 0; }
   #usageMap .spot:hover .ring { fill-opacity: 0.36; stroke-opacity: 0.95; }
+  /* o anel desenhado tem o tamanho do dado; o alvo do ponteiro tem o
+     tamanho da mao. O segundo circulo e invisivel e so recebe o toque. */
+  #usageMap .ring-hit { fill: var(--text); fill-opacity: 0; pointer-events: all; }
+
   .map-tip {
     position: absolute;
     pointer-events: none;
@@ -529,13 +539,21 @@ PAGE = """<!DOCTYPE html>
   .logo-strip { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-24) var(--space-16); }
   .logo-group { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-10); }
   .logo-group-label { font-family: var(--font-mono); font-size: var(--text-11); letter-spacing: var(--tracking-wide); color: var(--muted); }
-  .logo-row { display: flex; align-items: center; flex-wrap: nowrap; gap: var(--space-6); }
+  /* a fileira tem altura propria e as marcas se centram nela: sem isso
+     cada grupo fecha na altura do proprio item mais alto e as quatro
+     fileiras do rodape saem em quatro linhas de centro diferentes. */
+  .logo-row { display: flex; align-items: center; flex-wrap: nowrap; gap: var(--space-6); min-height: var(--space-48); }
   /* altura igual nao e tamanho igual. Os arquivos ja vem cortados na
      propria tinta, entao o que sobra de diferenca e a forma da marca:
      um logotipo de uma linha gasta a altura toda numa fileira de letras,
      um empilhado divide a mesma altura entre marca e legenda e sai com
-     metade do tamanho aparente. Quem tem proporcao abaixo de 1.6 sobe
-     um degrau. */
+     metade do tamanho aparente.
+
+     Tres degraus em vez de dois, pela proporcao medida de cada arquivo:
+     acima de 2.4 e logotipo de uma linha e fica no piso; entre 1.3 e 2.4
+     e marca com legenda curta; abaixo de 1.3 e empilhado de verdade. A
+     regua nao e continua porque altura aqui sai da escala de espaco, e
+     inventar um degrau entre 32 e 40 seria inventar token. */
   .logo-row img {
     display: block;
     height: var(--space-32);
@@ -545,7 +563,8 @@ PAGE = """<!DOCTYPE html>
     opacity: 0.6;
     transition: opacity var(--duration-3) var(--ease-standard);
   }
-  .logo-row img.logo-stacked { height: var(--space-40); }
+  .logo-row img.logo-lockup  { height: var(--space-40); }
+  .logo-row img.logo-stacked { height: var(--space-48); }
   .logo-row img:hover { opacity: 1; }
 
   /* ---------- modal ---------- */
@@ -605,198 +624,372 @@ PAGE = """<!DOCTYPE html>
       transition-duration: var(--duration-1);
     }
   }
-</style>
-</head>
-<body>
-<a class="skip-link pill" href="#main">Skip to content</a>
 
-<div class="shell">
+  /* =========================================================
+     Camada de chrome fixo. Acrescentada quando /beta deixou de ser
+     pagina unica: a navbar da acesso as outras rotas e o rodape carrega
+     as marcas em toda pagina, sem repetir markup em tres arquivos.
+     ========================================================= */
 
-  <header>
-    <div>
-      <!-- a marca e a imagem; o titulo da pagina existe para leitor de tela
-           e para a hierarquia do documento, que nao tinha nenhum h1 -->
-      <h1 class="sr-only">AMPidentifier, antimicrobial peptide prediction</h1>
-      <img src="/img/logo.svg" alt="AMPidentifier" class="brand-logo">
-      <div class="status-row">
-        <span class="tip status-tip" tabindex="0" aria-describedby="statusTip">
-          <span class="status-dot" id="statusDot"></span>
-          <span class="status-label" id="statusLabel">Checking</span>
-          <span id="statusTip" role="tooltip">
-            <span class="tt-row"><span class="tt-dot c-good"></span> Online: model loaded, predictions ready</span>
-            <span class="tt-row"><span class="tt-dot c-crit"></span> Offline: backend unreachable, try again shortly</span>
-            <span class="tt-row"><span class="tt-dot c-idle"></span> Checking server status</span>
-            <span class="tt-row tt-note">(Xms) = current /health round-trip latency</span>
-          </span>
+  /* As duas barras saem do fluxo, entao quem reserva o espaco delas e o
+     corpo. As alturas sao token e sao lidas nos dois lugares, para nao
+     poderem divergir: mudar a barra e mudar o respiro na mesma linha. */
+  :root {
+    --chrome-top: var(--space-64);
+    --chrome-bottom: var(--space-96);
+  }
+
+  body {
+    padding: calc(var(--chrome-top) + var(--space-48)) 0
+             calc(var(--chrome-bottom) + var(--space-48));
+  }
+
+  /* indice abaixo de 80, que e onde mora o veu do modal: barra acima
+     dele cobriria o dialogo e o clique de fora deixaria de fechar. */
+  /* as duas barras sao vidro, e vidro carrega texto na tinta cheia */
+  .navbar .status-label { color: var(--text); }
+
+  .navbar, .footer-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    border-radius: 0;
+  }
+
+  .navbar { top: 0; height: var(--chrome-top); border-bottom: var(--hairline) solid var(--border); }
+
+  /* a regra generica de footer da pagina carrega padding-top, e ela pega
+     nesta barra tambem: com ele a fita descia 24px e encostava na borda
+     de baixo em vez de se centrar. */
+  .footer-bar { bottom: 0; height: var(--chrome-bottom); border-top: var(--hairline) solid var(--border); padding: 0; margin: 0; }
+
+  /* a barra acompanha a coluna da pagina: mesma largura, mesma margem
+     lateral, mesmo eixo esquerdo do cabecalho ao rodape. */
+  .nav-inner {
+    max-width: var(--container-md);
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 var(--space-24);
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+  }
+
+  .nav-brand { display: flex; align-items: center; gap: var(--space-8); text-decoration: none; }
+  /* a barra estreita nao tem largura para a marca nominal, e encolher a
+     marca ate caber a deixa ilegivel: abaixo do ponto de quebra entra o
+     simbolo sozinho, que e a mesma marca sem a parte que nao cabe. */
+  .nav-wordmark { display: block; height: var(--space-32); width: auto; }
+  .nav-symbol { display: none; height: var(--space-32); width: auto; }
+
+  .nav-links { display: flex; align-items: center; gap: var(--space-4); margin-left: var(--space-16); }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--hit-min);
+    padding: var(--space-6) var(--space-10);
+    border-radius: var(--radius-control);
+    font-size: var(--text-12);
+    /* texto sobre vidro usa --text, sem excecao: --muted esta abaixo do
+       piso de 4,5 sobre a superficie de vidro em todos os modos. O que
+       separa a rota corrente das outras nao e cor, e peso. */
+    color: var(--text);
+    text-decoration: none;
+    opacity: 0.72;
+    transition: opacity var(--duration-5) var(--ease-out-soft);
+  }
+
+  .nav-link:hover { opacity: 1; }
+
+  /* a rota corrente e estado, entao ela tambem se le sem cor: o rotulo
+     sobe para a tinta cheia e ganha peso, e aria-current diz o mesmo
+     para quem nao ve nenhum dos dois. */
+  .nav-link[aria-current="page"] { opacity: 1; font-weight: var(--weight-medium); }
+
+  .nav-side { display: flex; align-items: center; gap: var(--space-8); margin-left: auto; }
+
+  /* o aglomerado liquido tem folga propria de 24px para a massa fundida
+     caber; dentro de uma barra de 56 isso estoura, entao a folga cai e o
+     tamanho da unidade desce junto. */
+  .nav-actions { padding: var(--space-4); --liquid-size: var(--space-32); }
+
+  .footer-bar-inner {
+    height: 100%;
+    padding: 0 var(--space-24);
+    display: flex;
+    align-items: center;
+    gap: var(--space-24);
+  }
+
+  /* doze marcas numa linha so nao cabem em tela estreita, e o corpo da
+     pagina nunca rola na horizontal: quem rola e a fita. */
+  /* Um bloco centrado, nao quatro ilhas coladas nas bordas da tela: com
+     space-between numa barra de largura total os grupos ficam a 500px de
+     distancia e param de se ler como uma fita so. O vao entre grupos e
+     fixo e maior que o vao entre marcas do mesmo grupo, que e o que faz
+     o agrupamento aparecer sem precisar de linha divisoria. */
+  .footer-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-64);
+    flex-wrap: nowrap;
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .footer-strip .logo-group { flex: 0 0 auto; gap: var(--space-6); }
+  .footer-strip .logo-group-label { white-space: nowrap; color: var(--text); opacity: 0.72; }
+
+  /* cada marca leva ao site da propria instituicao. O alvo e a imagem,
+     entao o link nao acrescenta caixa: display block e o raio de marca
+     so existem para o anel de foco nao sair quadrado num contorno que
+     ninguem ve. */
+  .logo-link {
+    display: block;
+    border-radius: var(--radius-mark);
+    line-height: 0;
+  }
+
+  /* A altura de cada marca sai de area de caixa constante, nao da altura
+     igual: h = raiz(A / proporcao), com A fechada para a marca mais
+     quadrada cair no degrau mais alto. Altura igual faz um logotipo de
+     uma linha gastar tudo numa fileira de letras e um empilhado dividir
+     a mesma altura entre marca e legenda, saindo com metade do tamanho
+     aparente. Area de CAIXA, nao de tinta: area de tinta mede espessura
+     de traco e infla uma marca de traco fino ate ela virar a maior da
+     fita. Os tres degraus sao os que a escala de espaco oferece perto
+     dos valores calculados, e o calculo esta em cada arquivo. */
+  .footer-strip .logo-row { min-height: var(--space-40); gap: var(--space-16); }
+  .footer-strip .logo-row img { height: var(--space-24); }
+  .footer-strip .logo-row img.logo-lockup { height: var(--space-32); }
+  .footer-strip .logo-row img.logo-stacked { height: var(--space-40); }
+
+  /* o pulo de teclado passa por cima da barra de cima */
+  .skip-link { z-index: 100; }
+
+  /* ancora sob barra fixa: o alvo para na borda de baixo da navbar em
+     vez de escorregar para tras dela. */
+  #main, [id] { scroll-margin-top: calc(var(--chrome-top) + var(--space-16)); }
+
+  /* Os dois icones ficam no DOM e trocam por opacidade e escala, nunca
+     por display: alternar display nao anima e a caixa do botao pula. Um
+     e absoluto sobre o outro, dentro da unidade liquida de tamanho fixo. */
+  .mode-btn { position: relative; border: none; background: none; cursor: pointer; }
+
+  .mode-btn .icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transition:
+      opacity   var(--duration-3) var(--ease-out-expo),
+      transform var(--duration-3) var(--ease-out-expo),
+      filter    var(--duration-3) var(--ease-out-expo);
+    --icon-swap-x: -50%;
+    --icon-swap-y: -50%;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .mode-btn .icon-moon { opacity: 0; transform: translate(-50%, -50%) scale(0.25); filter: blur(var(--motion-blur-2)); }
+  .mode-btn .icon-sun  { opacity: 1; filter: blur(0); }
+
+  :root.dark .mode-btn .icon-sun  { opacity: 0; transform: translate(-50%, -50%) scale(0.25); filter: blur(var(--motion-blur-2)); }
+  :root.dark .mode-btn .icon-moon { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
+
+  /* As marcas institucionais sao tinta escura sobre fundo transparente:
+     no modo escuro elas desaparecem no proprio fundo. Inverter devolve a
+     mesma marca em tinta clara, que e como cada instituicao publica a
+     versao monocromatica dela para fundo escuro. */
+  :root.dark .footer-strip .logo-row img,
+  :root.dark .nav-wordmark,
+  :root.dark .nav-symbol { filter: grayscale(1) invert(1); }
+
+  :root.dark .footer-strip .logo-row img { opacity: 0.72; }
+  :root.dark .footer-strip .logo-row img:hover { opacity: 1; }
+
+  @media (max-width: 768px) {
+    .nav-wordmark { display: none; }
+    .nav-symbol { display: block; }
+    .nav-links { margin-left: var(--space-8); gap: 0; }
+    .nav-link { padding: var(--space-6); }
+    .status-label { display: none; }
+  }"""
+
+DEFS = """<svg class="pure-defs" aria-hidden="true" focusable="false" width="0" height="0"><defs>
+
+  <filter id="pure-goo-tight" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+    <feColorMatrix in="blur" type="matrix"
+      values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -7.83" result="goo"/>
+    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+  </filter>
+
+  <filter id="pure-goo" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+    <feColorMatrix in="blur" type="matrix"
+      values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo"/>
+    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+  </filter>
+
+  <filter id="pure-goo-wide" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur"/>
+    <feColorMatrix in="blur" type="matrix"
+      values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 16 -6.17" result="goo"/>
+    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+  </filter>
+
+  <!-- ---------- lente ----------
+
+       O vidro desta linguagem desfoca o fundo. A lente o DOBRA, e a
+       diferenca e visivel: dentro dela o que esta atras aparece maior e
+       entortado, como atraves de vidro grosso de verdade.
+
+       Nada disso e escala em CSS: e amostragem. feDisplacementMap le a
+       posicao de cada pixel do fundo num MAPA, onde o canal R carrega o
+       deslocamento horizontal, o G o vertical e 128 e o repouso. Um
+       degrade de 255 a 0 atravessando o circulo faz cada ponto amostrar
+       de mais perto do centro, e amostrar de mais perto E ampliar.
+
+       Sao DOIS passes encadeados, e serem dois e o ponto:
+
+         corpo  plano no miolo e ingreme na beirada, entao o centro
+                amplia limpo. Escala 0,52.
+         anel   exatamente 128 nos 80 por cento centrais e vertical nas
+                pontas. Nao amplia nada: so entorta o que passa rente a
+                borda. Escala 0,18.
+
+       As duas escalas sao a leitura "gota", escolhida na tela entre
+       cinco: pequena, muito curva, aumento forte no miolo. As outras
+       quatro (lupa, vidro grosso, anel, bolha) mudavam so este par e o
+       diametro, entao trocar de leitura e trocar dois numeros aqui e um
+       token, nunca reescrever o filtro.
+
+       Num mapa so, subir a beirada arrasta o miolo junto. Separados, um
+       se ajusta sem o outro.
+
+       Os numeros e os mapas NAO sao tokens, pela mesma razao dos filtros
+       goo logo acima: feImage e feDisplacementMap nao leem var(), e um
+       token que nada resolve e um token que mente. Os dois mapas saem de
+       tools/lens-map.mjs, entao eles sao reproduziveis em vez de string
+       opaca colada aqui.
+
+       primitiveUnits objectBoundingBox e o que faz a lente servir a
+       qualquer tamanho: as escalas viram fracao da propria caixa, entao
+       trocar --light-lens nao pede filtro novo.
+
+       A regiao vai a 200 por cento porque o deslocamento amostra FORA da
+       caixa. Sem a folga, a beirada puxa de uma area que o filtro nao
+       tem e devolve um entalhe transparente rente ao contorno. -->
+  <filter id="pure-lens" x="-50%" y="-50%" width="200%" height="200%"
+          primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+    <feImage href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22r%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22rgb(255%2C0%2C0)%22%2F%3E%3Cstop%20offset%3D%220.06%22%20stop-color%3D%22rgb(190%2C0%2C0)%22%2F%3E%3Cstop%20offset%3D%220.3%22%20stop-color%3D%22rgb(136%2C0%2C0)%22%2F%3E%3Cstop%20offset%3D%220.5%22%20stop-color%3D%22rgb(128%2C0%2C0)%22%2F%3E%3Cstop%20offset%3D%220.7%22%20stop-color%3D%22rgb(120%2C0%2C0)%22%2F%3E%3Cstop%20offset%3D%220.94%22%20stop-color%3D%22rgb(66%2C0%2C0)%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22rgb(0%2C0%2C0)%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22rgb(0%2C255%2C0)%22%2F%3E%3Cstop%20offset%3D%220.06%22%20stop-color%3D%22rgb(0%2C190%2C0)%22%2F%3E%3Cstop%20offset%3D%220.3%22%20stop-color%3D%22rgb(0%2C136%2C0)%22%2F%3E%3Cstop%20offset%3D%220.5%22%20stop-color%3D%22rgb(0%2C128%2C0)%22%2F%3E%3Cstop%20offset%3D%220.7%22%20stop-color%3D%22rgb(0%2C120%2C0)%22%2F%3E%3Cstop%20offset%3D%220.94%22%20stop-color%3D%22rgb(0%2C66%2C0)%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22rgb(0%2C0%2C0)%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22rgb(128%2C128%2C0)%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%22100%22%20fill%3D%22url(%23r)%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%22100%22%20fill%3D%22url(%23g)%22%20style%3D%22mix-blend-mode%3Ascreen%22%2F%3E%3C%2Fsvg%3E" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="lens-body"/>
+    <feImage href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22r%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22rgb(255%2C0%2C0)%22%2F%3E%3Cstop%20offset%3D%220.1%22%20stop-color%3D%22rgb(128%2C0%2C0)%22%2F%3E%3Cstop%20offset%3D%220.9%22%20stop-color%3D%22rgb(128%2C0%2C0)%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22rgb(0%2C0%2C0)%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22rgb(0%2C255%2C0)%22%2F%3E%3Cstop%20offset%3D%220.1%22%20stop-color%3D%22rgb(0%2C128%2C0)%22%2F%3E%3Cstop%20offset%3D%220.9%22%20stop-color%3D%22rgb(0%2C128%2C0)%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22rgb(0%2C0%2C0)%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22rgb(128%2C128%2C0)%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%22100%22%20fill%3D%22url(%23r)%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%22100%22%20fill%3D%22url(%23g)%22%20style%3D%22mix-blend-mode%3Ascreen%22%2F%3E%3C%2Fsvg%3E" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="lens-rim"/>
+    <feDisplacementMap in="SourceGraphic" in2="lens-body" scale="0.52" xChannelSelector="R" yChannelSelector="G" result="lens-warp"/>
+    <feDisplacementMap in="lens-warp" in2="lens-rim" scale="0.18" xChannelSelector="R" yChannelSelector="G" result="lens-bent"/>
+    <feGaussianBlur in="lens-bent" stdDeviation="0.005"/>
+  </filter>
+
+</defs></svg>
+<div class="lit-cursor" aria-hidden="true"></div>"""
+
+NAV = """<nav class="navbar glass-deep" aria-label="Main">
+  <div class="nav-inner">
+    <a class="nav-brand" href="/" aria-label="AMPidentifier, home">
+      <img src="/img/logo.svg" alt="AMPidentifier" class="nav-wordmark">
+      <img src="/img/symbol.svg" alt="AMPidentifier" class="nav-symbol">
+    </a>
+
+    <div class="nav-links">
+      <a class="nav-link lit lit-edge" href="/" data-nav="predict">Predict</a>
+      <a class="nav-link lit lit-edge" href="/about" data-nav="about">About</a>
+      <a class="nav-link lit lit-edge" href="/suggestions" data-nav="suggestions">Suggestions</a>
+      <a class="nav-link lit lit-edge" href="/beta" data-nav="beta">Beta Version</a>
+    </div>
+
+    <div class="nav-side">
+      <span class="tip status-tip" tabindex="0" aria-describedby="statusTip">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-label" id="statusLabel">Checking</span>
+        <span id="statusTip" role="tooltip">
+          <span class="tt-row"><span class="tt-dot c-good"></span> Online: model loaded, predictions ready</span>
+          <span class="tt-row"><span class="tt-dot c-crit"></span> Offline: backend unreachable, try again shortly</span>
+          <span class="tt-row"><span class="tt-dot c-idle"></span> Checking server status</span>
+          <span class="tt-row tt-note">(Xms) = current /health round-trip latency</span>
         </span>
+      </span>
+
+      <!-- aglomerado liquido: duas unidades de tamanho fixo, que e o unico
+           formato que o material espelha sem medir texto em javascript -->
+      <div class="liquid liquid-tight nav-actions">
+        <div class="liquid-sheet" aria-hidden="true">
+          <span class="liquid-blob"></span>
+          <span class="liquid-blob"></span>
+          <span class="liquid-blob"></span>
+        </div>
+        <div class="liquid-content">
+          <a class="liquid-item" href="https://github.com/madsondeluna/AMPidentifier" target="_blank" rel="noopener" aria-label="Source on GitHub">
+            <svg class="icon" aria-hidden="true"><use href="/pure/icons.svg#branch"></use></svg>
+          </a>
+          <a class="liquid-item" href="https://pypi.org/project/ampidentifier/" target="_blank" rel="noopener" aria-label="Package on PyPI">
+            <svg class="icon" aria-hidden="true"><use href="/pure/icons.svg#code"></use></svg>
+          </a>
+          <button class="liquid-item mode-btn" type="button" id="modeBtn" aria-label="Switch to dark mode" aria-pressed="false">
+            <svg class="icon icon-sun" aria-hidden="true"><use href="/pure/icons.svg#sun"></use></svg>
+            <svg class="icon icon-moon" aria-hidden="true"><use href="/pure/icons.svg#moon"></use></svg>
+          </button>
+        </div>
       </div>
-    </div>
-
-    <div class="metrics-band step-1">
-     <div class="card-glass intro">
-      <p class="sub prose-justify"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide prediction using ensemble machine learning.</p>
-
-      <div class="install-stack">
-        <p class="install"><span class="install-lead">For <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>:</span> <code>pip install ampidentifier</code></p>
-        <p class="install"><span class="install-lead">For terminal use:</span> <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a></p>
-        <p class="install"><span class="install-lead">This is the beta layout:</span> <a href="/">Access the stable version</a></p>
-      </div>
-     </div>
-    </div>
-  </header>
-
-  <div class="metrics-band step-2">
-    <div class="metrics-label">In testing</div>
-    <div class="card-glass changelog">
-      <p>This round changes the interface only. Models, thresholds and predictions are the same as the stable version.</p>
-      <p class="changelog-body prose-justify">The front end was rebuilt on a token-based design system: one type scale, one spacing scale and a single set of colour tokens shared by every component, with the layout on a single column and a concentric radius ladder. Controls and panels became glass surfaces with backdrop-filter, keyboard focus rings and reduced-motion fallbacks, the usage map became inline SVG instead of a tile layer, and the result panel carries its state in the URL.</p>
-      <p class="changelog-body prose-justify">Coming soon: a new batch of trained models will reach the beta before the stable version, and a prediction mode built on a protein language model (PLLM) goes into testing here.</p>
     </div>
   </div>
+</nav>"""
 
-  <div class="metrics-band step-2">
-    <div class="metrics-label">Benchmark, voting ensemble (RF + SVM + GB + XGB + LGBM)</div>
-    <div class="metrics-grid metrics-4">
-      <div class="card-glass metric"><span class="num metric-val">0.950</span><span class="metric-lbl">AUC-ROC</span></div>
-      <div class="card-glass metric"><span class="num metric-val">0.742</span><span class="metric-lbl">MCC</span></div>
-      <div class="card-glass metric"><span class="num metric-val">94.9%</span><span class="metric-lbl">Sensitivity</span></div>
-      <div class="card-glass metric"><span class="num metric-val">78.4%</span><span class="metric-lbl">Specificity</span></div>
-    </div>
+FOOTER_BAR = """<footer class="footer-bar glass-deep">
+  <div class="footer-bar-inner">
+      <!-- a categoria de cada marca sai do alt, que continua completo: o
+           rotulo visivel repetia o que a imagem ja diz e cobrava altura -->
+      <div class="footer-strip">
+        <div class="logo-group">
+          <div class="logo-group-label">Institutions</div>
+          <div class="logo-row">
+            <a class="logo-link" href="https://www.ufpe.br" target="_blank" rel="noopener" title="Universidade Federal de Pernambuco"><img src="/img/pure/ufpe.png"     alt="Universidade Federal de Pernambuco" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.ufmg.br" target="_blank" rel="noopener" title="Universidade Federal de Minas Gerais"><img src="/img/pure/ufmg.png"     alt="Universidade Federal de Minas Gerais"></a>
+            <a class="logo-link" href="https://upe.br" target="_blank" rel="noopener" title="Universidade de Pernambuco"><img src="/img/pure/upe-logo.png" alt="Universidade de Pernambuco" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.gov.br/lncc/pt-br" target="_blank" rel="noopener" title="Laboratório Nacional de Computação Científica"><img src="/img/pure/lncc.png"     alt="Laboratório Nacional de Computação Científica"></a>
+          </div>
+        </div>
+        <div class="logo-group">
+          <div class="logo-group-label">Departments</div>
+          <div class="logo-row">
+            <a class="logo-link" href="https://www.ufpe.br/dqf" target="_blank" rel="noopener" title="Departamento de Química Fundamental, UFPE"><img src="/img/pure/dqf.png"   alt="Departamento de Química Fundamental, UFPE" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.ufpe.br/dep-genetica" target="_blank" rel="noopener" title="Departamento de Genética, UFPE"><img src="/img/pure/dgen.png" alt="Departamento de Genética, UFPE" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.icb.ufmg.br" target="_blank" rel="noopener" title="Instituto de Ciências Biológicas, UFMG"><img src="/img/pure/icb.png"   alt="Instituto de Ciências Biológicas, UFMG" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.pgbioinfo.icb.ufmg.br" target="_blank" rel="noopener" title="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG"><img src="/img/pure/ppgbioinfo.png" alt="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG" class="logo-stacked"></a>
+          </div>
+        </div>
+        <div class="logo-group">
+          <div class="logo-group-label">Funding</div>
+          <div class="logo-row">
+            <a class="logo-link" href="https://www.facepe.br" target="_blank" rel="noopener" title="FACEPE"><img src="/img/pure/facepe.png"  alt="FACEPE"></a>
+            <a class="logo-link" href="https://fapemig.br" target="_blank" rel="noopener" title="FAPEMIG"><img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-lockup"></a>
+          </div>
+        </div>
+        <div class="logo-group">
+          <div class="logo-group-label">Research groups</div>
+          <div class="logo-row">
+            <a class="logo-link" href="https://lgbv-ufpe.net" target="_blank" rel="noopener" title="Laboratório de Genética e Biotecnologia Vegetal"><img src="/img/pure/lgbv.png" alt="Laboratório de Genética e Biotecnologia Vegetal"></a>
+            <img src="/img/pure/lcm3.png" alt="LCM3">
+          </div>
+        </div>
+      </div>
   </div>
+</footer>"""
 
-  <div class="metrics-band step-1">
-    <div class="metrics-label">Usage</div>
-    <div class="metrics-grid metrics-4">
-      <div class="card-glass metric"><span class="num metric-val" id="statSeq">&mdash;</span><span class="metric-lbl">Sequences classified</span></div>
-      <div class="card-glass metric"><span class="num metric-val" id="statVisitors">&mdash;</span><span class="metric-lbl">Unique users</span></div>
-      <div class="card-glass metric"><span class="num metric-val" id="statRuns">&mdash;</span><span class="metric-lbl">Prediction runs</span></div>
-      <div class="card-glass metric"><span class="num metric-val">22</span><span class="metric-lbl">Descriptors</span></div>
-    </div>
-  </div>
-
-  <main class="step-2" id="main" tabindex="-1">
-
-    <div class="surface share-section step-2">
-      <div class="share-inner">
-        <div class="share-heading">Find AMPidentifier useful?</div>
-        <div class="share-actions">
-          <button class="pill" onclick="copyLink()" id="copyLinkBtn">Copy link</button>
-          <button class="pill" onclick="toggleShareForm()" id="shareEmailBtn">Share by email</button>
-        </div>
-      </div>
-      <div class="share-url-box mono" id="shareUrlBox"></div>
-      <div class="share-form" id="shareForm">
-        <span class="select-shell">
-          <select class="select" id="shareLang" title="Email language">
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-            <option value="es">Español</option>
-            <option value="pt">Português</option>
-            <option value="zh">中文</option>
-          </select>
-        </span>
-        <label class="field">
-          <span class="sr-only">Recipient email</span>
-          <input class="input" type="email" id="shareFriendEmail" placeholder="friend@example.com" autocomplete="email" spellcheck="false">
-        </label>
-        <button class="pill" onclick="sendShareEmail()" id="sendShareBtn">Send</button>
-        <div class="share-form-status" id="shareFormStatus" aria-live="polite"></div>
-      </div>
-    </div>
-
-    <div class="step-2">
-      <div class="label-row">
-        <label class="field-label" for="fasta">FASTA sequences</label>
-        <span class="seq-counter" id="seqCounter"></span>
-      </div>
-      <textarea class="textarea" id="fasta" spellcheck="false" placeholder=">SequenceID
-KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
-      <div id="validationErr" aria-live="polite"></div>
-
-      <input type="file" id="fileInput" accept=".fasta,.fa,.txt" onchange="handleFileUpload(event)">
-
-      <div class="row">
-        <span class="select-shell">
-          <select class="select" id="model" aria-label="Model">
-            <option value="voting">Voting ensemble</option>
-            <option value="rf">Random forest</option>
-            <option value="svm">SVM</option>
-            <option value="gb">Gradient boosting</option>
-            <option value="xgb">XGBoost</option>
-            <option value="lgbm">LightGBM</option>
-          </select>
-        </span>
-        <button class="pill glass-accent" id="runBtn" onclick="runPrediction()">Run</button>
-        <button class="pill" onclick="clearAll()">Clear</button>
-        <button class="pill" onclick="loadExample()">Load example</button>
-        <button class="pill" onclick="document.getElementById('fileInput').click()">Upload .fasta</button>
-      </div>
-
-      <div id="status" aria-live="polite"></div>
-    </div>
-
-    <div id="results"></div>
-  </main>
-
-  <footer class="step-2">
-    <div>
-      <div class="usage-map-title">Where AMPidentifier is being used</div>
-      <div id="usageMap"></div>
-    </div>
-
-    <div class="step-2 prose-justify">
-      <p>Luna-Aragão, M. A., da Silva, R. L., Bezerra Neto, J. P., dos Santos-Silva, C. A., da Silva Santos, D. E. &amp; Benko&#8209;Iseppon, A. M. (2026).
-      AMPidentifier: A Cross-Platform Ensemble Toolkit for Antimicrobial Peptide Prediction.
-      GitHub repository: <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">https://github.com/madsondeluna/AMPIdentifier</a></p>
-      <!-- a pagina e em ingles e os nomes proprios sao em portugues: sem o
-           lang, o navegador tenta hifenizar "Universidade" e "Biotecnologia"
-           pelo dicionario errado, desiste, e a linha justificada estica o
-           espaco entre as palavras para fechar a margem -->
-      <p>This tool is officially registered with the <strong lang="pt-BR">INPI &ndash; Instituto Nacional da Propriedade Industrial</strong> (Brazilian National Institute of Industrial Property), Registration No. <strong>BR 51 2025 005859-4</strong>. It is a property of the <strong lang="pt-BR">Universidade Federal de Pernambuco (UFPE)</strong> and the <strong lang="pt-BR">Laboratório de Genética e Biotecnologia Vegetal (LGBV)</strong>.</p>
-      <p>Your data is encrypted during transfer (HTTPS/TLS) and never shared. Sequences are not stored.</p>
-      <p>Developer: <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a> &nbsp;·&nbsp; <a href="https://madsondeluna.com" target="_blank">madsondeluna.com</a> &nbsp;·&nbsp; <button class="feedback-link" onclick="openFeedback()">Report issue or suggestion</button> &nbsp;·&nbsp; <span class="version">v{{ version }}</span></p>
-    </div>
-    <!-- a categoria de cada marca sai do alt, que continua completo: o
-         rotulo visivel repetia o que a imagem ja diz e cobrava altura -->
-    <div class="logo-strip step-1">
-      <div class="logo-group">
-        <div class="logo-group-label">Institutions</div>
-        <div class="logo-row">
-          <img src="/img/pure/ufpe.png"     alt="Universidade Federal de Pernambuco">
-          <img src="/img/pure/ufmg.png"     alt="Universidade Federal de Minas Gerais">
-          <img src="/img/pure/upe-logo.png" alt="Universidade de Pernambuco" class="logo-stacked">
-        </div>
-      </div>
-      <div class="logo-group">
-        <div class="logo-group-label">Departments</div>
-        <div class="logo-row">
-          <img src="/img/pure/dqf.png"   alt="Departamento de Química Fundamental, UFPE" class="logo-stacked">
-          <img src="/img/pure/dgen.jpeg" alt="Departamento de Genética, UFPE"            class="logo-stacked">
-        </div>
-      </div>
-      <div class="logo-group">
-        <div class="logo-group-label">Funding</div>
-        <div class="logo-row">
-          <img src="/img/pure/facepe.png"  alt="FACEPE">
-          <img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-stacked">
-        </div>
-      </div>
-      <div class="logo-group">
-        <div class="logo-group-label">Research groups</div>
-        <div class="logo-row">
-          <img src="/img/pure/lgbv.png" alt="Laboratório de Genética e Biotecnologia Vegetal">
-          <img src="/img/pure/lcm3.png" alt="LCM3">
-        </div>
-      </div>
-    </div>
-
-  </footer>
-
-</div>
-
-<!-- Feedback modal -->
-<div class="modal-overlay" id="feedbackOverlay" onclick="closeFeedbackOutside(event)">
-  <div class="modal modal-card surface" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+MODAL = """<!-- Feedback modal -->
+<div class="modal-overlay motion-scrim" id="feedbackOverlay" onclick="closeFeedbackOutside(event)">
+  <div class="modal modal-card surface motion-modal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
     <h2 id="feedbackTitle">Report issue or suggestion</h2>
     <div class="field">
       <label class="field-label" for="feedbackType">Type</label>
@@ -817,27 +1010,50 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
       <button class="pill glass-accent" onclick="submitFeedback()">Open on GitHub</button>
     </div>
   </div>
-</div>
+</div>"""
 
-{% raw %}<script>
-const EXAMPLE = [
-  ">Magainin-2|Xenopus_laevis|Cationic_amphipathic_helix",
-  "GIGKFLHSAKKFGKAFVGEIMNS",
-  ">LL-37|Homo_sapiens|Cathelicidin_family",
-  "LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES",
-  ">Melittin|Apis_mellifera|Venom_peptide",
-  "GIGAVLKVLTTGLPALISWIKRKRQQ",
-  ">Insulin_Chain_B|Homo_sapiens|Peptide_hormone",
-  "FVNQHLCGSHLVEALYLVCGERGFFYTPKT",
-  ">Glucagon|Homo_sapiens|Peptide_hormone",
-  "HSQGTFTSDYSKYLDSRRAQDFVQWLMNT",
-  ">Vasoactive_intestinal_peptide|Homo_sapiens|Neuropeptide",
-  "HSDAVFTDNYTRLRKQMAVKKYLNSILN"
-].join("\\n");
+SHELL_JS = """/* ---------- modo: o estado mora no endereco ----------
+   Dois modos, claro e escuro. Sem ?mode o navegador decide pela
+   preferencia do sistema, e a escolha explicita sobrescreve. A moldura
+   do navegador acompanha, lendo --bg computado em vez de um literal. */
 
-const VALID_AA = /^[ACDEFGHIKLMNPQRSTVWYBXZUOJ*-]+$/i;
-let lastData = null;
-let lastModel = null;
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+const modeProbe = document.createElement('div');
+modeProbe.style.cssText = 'position:absolute;visibility:hidden';
+document.body.appendChild(modeProbe);
+
+function resolveToken(name) {
+  modeProbe.style.color = 'var(' + name + ')';
+  const m = getComputedStyle(modeProbe).color.match(/\d+(\.\d+)?/g);
+  if (!m) return null;
+  return '#' + m.slice(0, 3).map(c => (+c).toString(16).padStart(2, '0')).join('');
+}
+
+function applyMode(mode, record) {
+  document.documentElement.className = mode === 'dark' ? 'dark' : '';
+  const btn = document.getElementById('modeBtn');
+  if (btn) {
+    btn.setAttribute('aria-pressed', String(mode === 'dark'));
+    btn.setAttribute('aria-label', mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  }
+  const bg = resolveToken('--bg');
+  if (themeMeta && bg) themeMeta.setAttribute('content', bg);
+  if (!record) return;
+  const url = new URL(location.href);
+  if (mode === 'dark') url.searchParams.set('mode', 'dark');
+  else url.searchParams.delete('mode');
+  history.replaceState(null, '', url);
+}
+
+(function initMode() {
+  const asked = new URL(location.href).searchParams.get('mode');
+  const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
+  applyMode(asked === 'dark' || asked === '' ? asked : system, false);
+  const btn = document.getElementById('modeBtn');
+  if (btn) btn.addEventListener('click', function () {
+    applyMode(document.documentElement.classList.contains('dark') ? '' : 'dark', true);
+  });
+})();
 
 async function checkServerStatus() {
   const dot = document.getElementById('statusDot');
@@ -861,546 +1077,47 @@ async function checkServerStatus() {
 checkServerStatus();
 setInterval(checkServerStatus, 15000);
 
-async function loadStats() {
-  try {
-    const r = await fetch('/stats', { cache: 'no-cache' });
-    const d = await r.json();
-    const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v != null ? v.toLocaleString() : '—'; };
-    set('statSeq',      d.total_sequences);
-    set('statRuns',     d.total_runs);
-    set('statVisitors', d.unique_sessions);
-  } catch(e) {}
+/* Abrir e fechar com as receitas de pure/motion.css. O display continua
+   sendo a chave: a superficie sai do fluxo fechada, entao o teclado nao
+   a alcanca. O reflow entre ligar o display e ligar is-open e o que faz
+   a transicao correr em vez de saltar. A saida le a duracao do token,
+   nunca um numero escrito aqui. */
+function motionExitMs() {
+  const v = getComputedStyle(document.documentElement).getPropertyValue('--duration-2');
+  return parseFloat(v) || 0;
 }
-loadStats();
-
-function initUsageMap() {
-  const host = document.getElementById('usageMap');
-  if (!host) return;
-  const NS = 'http://www.w3.org/2000/svg';
-  const el = function(tag, attrs, parent) {
-    const n = document.createElementNS(NS, tag);
-    for (const k in attrs) n.setAttribute(k, attrs[k]);
-    if (parent) parent.appendChild(n);
-    return n;
-  };
-
-  /* vazio, cheio e erro sao tres desenhos aqui tambem: o mapa sem dado
-     nenhum nao pode ser o mesmo mundo cinza do mapa que falhou. */
-  const showNote = function(text) {
-    host.classList.add('is-note');
-    host.innerHTML = '';
-    const box = document.createElement('div');
-    box.className = 'empty';
-    box.textContent = text;
-    host.appendChild(box);
-  };
-
-  Promise.all([
-    fetch('/map-outline.json?v=1').then(function(r) { return r.json(); }),
-    fetch('/locations', { cache: 'no-cache' }).then(function(r) { return r.json(); }),
-  ]).then(function(res) {
-    const world = res[0];
-    let rows = res[1];
-    if (!world || !Array.isArray(rows)) { showNote('Usage map unavailable.'); return; }
-    rows = rows.filter(function(d) { return d.lat != null && d.lon != null; });
-    if (!rows.length) { showNote('No usage recorded yet.'); return; }
-
-    const scale = world.w / 360, latTop = 84;
-    const px = function(lon) { return (lon + 180) * scale; };
-    const py = function(lat) { return (latTop - lat) * scale; };
-
-    const svg = el('svg', {
-      viewBox: '0 0 ' + world.w + ' ' + world.h,
-      role: 'img',
-      'aria-label': 'World map of AMPidentifier usage',
-    }, host);
-
-    /* vidro num <circle> nao existe: backdrop-filter nao se aplica a
-       elemento SVG em nenhum motor. O que faz a bolha ler como vidro sem
-       o desfoque e a geometria: corpo translucido, aro claro e um brilho
-       especular no alto. O brilho e um gradiente radial deslocado, e sai
-       do mesmo --glass-specular que a linguagem ja usa nos controles. */
-    const defs = el('defs', {}, svg);
-    const gloss = el('radialGradient', { id: 'ringGloss', cx: '0.35', cy: '0.28', r: '0.72' }, defs);
-    el('stop', { offset: '0',    class: 'gloss-in'  }, gloss);
-    el('stop', { offset: '0.62', class: 'gloss-mid' }, gloss);
-    el('stop', { offset: '1',    class: 'gloss-out' }, gloss);
-
-    el('path', { d: world.d, class: 'land' }, svg);
-
-    const tip = document.createElement('div');
-    tip.className = 'map-tip';
-    tip.innerHTML = '<div class="place"></div><div class="value"></div>';
-    host.appendChild(tip);
-
-    const showTip = function(target, place, value) {
-      tip.querySelector('.place').textContent = place;
-      tip.querySelector('.value').textContent = value;
-      tip.style.opacity = '1';
-      const hb = host.getBoundingClientRect();
-      const tb = target.getBoundingClientRect();
-      const half = tip.offsetWidth / 2;
-      let left = tb.left - hb.left + tb.width / 2;
-      left = Math.max(half + 2, Math.min(hb.width - half - 2, left));
-      tip.style.left = left + 'px';
-      tip.style.top  = Math.max(tip.offsetHeight + 2, tb.top - hb.top - 8) + 'px';
-    };
-    const hideTip = function() { tip.style.opacity = '0'; };
-    document.addEventListener('click', function(ev) {
-      if (!ev.target.closest || !ev.target.closest('.spot')) hideTip();
-    });
-
-    const total = rows.reduce(function(s, d) { return s + (d.count || 0); }, 0);
-    const max = rows.reduce(function(m, d) { return Math.max(m, d.count || 0); }, 1);
-    const rings = [];
-
-    // rings scale with the map, with a floor in screen pixels so the smallest
-    // ones stay visible when the SVG shrinks on narrow viewports
-    const sizeRings = function() {
-      const unit = (svg.getBoundingClientRect().width || world.w) / world.w;
-      if (!unit) return;
-      const floor = 4.5 / unit;
-      rings.forEach(function(item) {
-        const r = Math.max(item.r, floor);
-        item.node.setAttribute('r', r);
-        item.gloss.setAttribute('r', r);
-      });
-    };
-
-    rows.slice().sort(function(a, b) { return a.count - b.count; }).forEach(function(d) {
-      const x = px(d.lon), y = py(d.lat);
-      const r = 5.5 + 19 * Math.sqrt(d.count / max);
-      const place = d.city ? (d.city + ', ' + d.country) : (d.country || 'Unknown');
-      const p = total > 0 ? (d.count / total * 100) : 0;
-      const pct = p < 1 ? '<1%' : Math.round(p) + '%';
-      const value = pct + ' of all predictions';
-      const g = el('g', { class: 'spot', tabindex: '0', role: 'img',
-                          'aria-label': place + ', ' + value }, svg);
-      const ring = el('circle', { cx: x, cy: y, r: r, class: 'ring' }, g);
-      const lit  = el('circle', { cx: x, cy: y, r: r, class: 'gloss' }, g);
-      rings.push({ node: ring, gloss: lit, r: r });
-      const show = function() { showTip(ring, place, value); };
-      g.addEventListener('mouseenter', show);
-      g.addEventListener('focus',      show);
-      g.addEventListener('click',      show);
-      g.addEventListener('mouseleave', hideTip);
-      g.addEventListener('blur',       hideTip);
-    });
-
-    sizeRings();
-    let resizeTimer = null;
-    window.addEventListener('resize', function() {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function() { hideTip(); sizeRings(); }, 150);
-    });
-  }).catch(function() { showNote('Usage map unavailable.'); });
+function motionOpen(el) {
+  el.classList.remove('is-closing');
+  el.classList.add('open');
+  void el.offsetWidth;
+  el.classList.add('is-open');
 }
-initUsageMap();
-
-function updateCounter() {
-  const n = (document.getElementById('fasta').value.match(/^>/gm) || []).length;
-  document.getElementById('seqCounter').textContent =
-    n > 0 ? n + ' sequence' + (n === 1 ? '' : 's') : '';
-}
-
-function setValidationError(msg) {
-  const el = document.getElementById('validationErr');
-  el.textContent = msg;
-  el.className = msg ? 'field-error' : '';
-}
-
-function validateFasta() {
-  const text  = document.getElementById('fasta').value.trim();
-  if (!text) { setValidationError(''); return true; }
-
-  const lines = text.split('\\n').map(l => l.trim()).filter(Boolean);
-  if (!lines[0].startsWith('>')) {
-    setValidationError('Invalid format: first line must start with >.');
-    return false;
-  }
-
-  let seq = '', headers = 0;
-  for (const line of lines) {
-    if (line.startsWith('>')) {
-      if (seq) {
-        if (seq.length < 5) { setValidationError('Sequence too short (min 5 residues).'); return false; }
-        if (!VALID_AA.test(seq)) { setValidationError('Invalid characters in sequence.'); return false; }
-      }
-      seq = ''; headers++;
-    } else {
-      seq += line;
-    }
-  }
-  if (seq) {
-    if (seq.length < 5) { setValidationError('Sequence too short (min 5 residues).'); return false; }
-    if (!VALID_AA.test(seq)) { setValidationError('Invalid characters in sequence.'); return false; }
-  }
-  if (!headers) { setValidationError('No valid FASTA sequences found.'); return false; }
-  setValidationError('');
-  return true;
-}
-
-function handleFileUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('fasta').value = ev.target.result;
-    updateCounter();
-    setValidationError('');
-  };
-  reader.readAsText(file);
-}
-
-function loadExample() {
-  document.getElementById('fasta').value = EXAMPLE;
-  updateCounter();
-  setValidationError('');
-}
-
-function clearAll() {
-  document.getElementById('fasta').value = '';
-  document.getElementById('status').textContent = '';
-  document.getElementById('seqCounter').textContent = '';
-  setValidationError('');
-  document.getElementById('fileInput').value = '';
-  lastData = null;
-  lastModel = null;
-  showEmptyResults();
-}
-
-/* vazio, carregando, cheio e erro sao quatro desenhos. O vazio oferece o
-   proximo passo, mas nao repete um botao: "Load example" ja esta na fila
-   de acoes logo acima, visivel ao mesmo tempo que este aviso. */
-function showEmptyResults() {
-  document.getElementById('results').innerHTML =
-    '<div class="empty">' +
-      '<div><div class="empty-head">No predictions yet</div>' +
-      '<div>Paste FASTA sequences above, or start from the example.</div></div>' +
-    '</div>';
-}
-
-function showResultsSkeleton() {
-  const stat = '<div><div class="skeleton sk-val"></div><div class="skeleton skeleton-line"></div></div>';
-  const row  = '<div class="skeleton sk-row"></div>';
-  document.getElementById('results').innerHTML =
-    '<div class="summary surface">' +
-      '<div class="skeleton skeleton-line"></div>' +
-      '<div class="sk-grid">' + stat + stat + stat + '</div>' +
-    '</div>' +
-    '<div class="sk-rows">' + row + row + row + row + '</div>';
-}
-
-async function runPrediction() {
-  const fasta  = document.getElementById('fasta').value.trim();
-  const model  = document.getElementById('model').value;
-  const btn    = document.getElementById('runBtn');
-  const status = document.getElementById('status');
-  const field  = document.getElementById('fasta');
-
-  /* formulario incompleto nao trava o envio: o erro aparece no campo e o
-     foco vai para ele, em vez de sair num aviso solto abaixo do bloco. */
-  if (!fasta) {
-    setValidationError('Paste at least one FASTA sequence.');
-    field.focus();
-    return;
-  }
-  if (!validateFasta()) { field.focus(); return; }
-
-  btn.disabled = true;
-  status.textContent = 'Running prediction...';
-  showResultsSkeleton();
-
-  const form = new FormData();
-  form.append('fasta_sequence', fasta);
-  form.append('model', model);
-
-  try {
-    const res  = await fetch('/predict', { method: 'POST', body: form });
-    const data = await res.json();
-    if (data.error) {
-      status.innerHTML = '<span class="err">Error: ' + data.error + '</span>';
-      showEmptyResults();
-    } else {
-      lastData = data.predictions;
-      lastModel = data.model;
-      status.textContent = '';
-      renderResults(data);
-      loadStats();
-    }
-  } catch (e) {
-    status.innerHTML = '<span class="err">Request failed: ' + e.message + '</span>';
-    showEmptyResults();
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-function renderResults(data) {
-  const preds  = data.predictions;
-  const ampKey  = 'prediction';
-  const probKey = 'probability_AMP';
-
-  const amps  = preds.filter(r => r[ampKey] === 1).length;
-  const total = preds.length;
-
-  function makeRow(r) {
-    const isAmp  = r[ampKey] === 1;
-    const prob   = r[probKey] != null ? r[probKey] : null;
-    const pct    = prob !== null ? (prob * 100).toFixed(1) + '%' : '—';
-    const series = isAmp ? 'is-amp' : 'is-non';
-    const fill   = prob !== null ? prob.toFixed(3) : '0';
-    const barHtml = prob !== null
-      ? '<span class="prob-bar"><span class="prob-fill ' + series + '" style="--fill:' + fill + '"></span></span><span class="num prob-text">' + pct + '</span>'
-      : '—';
-    const label =
-      '<span class="pred"><span class="pred-dot ' + series + '"></span>' +
-      (isAmp ? 'AMP' : 'non-AMP') + '</span>';
-    return '<tr class="' + (isAmp ? 'r-amp' : 'r-non') + '"><td class="seq-id">' +
-      (r.ID || r.id || '—') + '</td><td class="seq-id">' +
-      (r.sequence || '—') + '</td><td>' +
-      label + '</td><td class="prob-cell">' +
-      barHtml + '</td></tr>';
-  }
-
-  const modelLabels = {
-    voting: 'Voting ensemble',
-    rf: 'Random forest',
-    svm: 'SVM',
-    gb: 'Gradient boosting',
-    xgb: 'XGBoost',
-    lgbm: 'LightGBM'
-  };
-
-  document.getElementById('results').innerHTML =
-    '<div class="summary surface">' +
-      '<div class="summary-title">Results, ' + (modelLabels[data.model] || data.model) + '</div>' +
-      '<div class="summary-grid">' +
-        '<div class="stat"><div class="num stat-val">' + total + '</div><div class="stat-label">Sequences</div></div>' +
-        '<div class="stat"><div class="num stat-val">' + amps + '</div><div class="stat-label">Predicted AMP</div></div>' +
-        '<div class="stat"><div class="num stat-val">' + (total - amps) + '</div><div class="stat-label">Predicted non-AMP</div></div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="filter-row">' +
-      '<button class="pill pill-sm hit filter-btn" id="fAll" aria-pressed="true" onclick="applyFilter(\\'all\\')">All</button>' +
-      '<button class="pill pill-sm hit filter-btn" id="fAmp" aria-pressed="false" onclick="applyFilter(\\'amp\\')">AMP only</button>' +
-      '<button class="pill pill-sm hit filter-btn" id="fNon" aria-pressed="false" onclick="applyFilter(\\'non\\')">Non-AMP only</button>' +
-    '</div>' +
-    '<div class="table-scroll">' +
-      '<table id="tbl">' +
-        '<thead><tr><th>ID</th><th>Sequence</th><th>Prediction</th><th>Prob. AMP</th></tr></thead>' +
-        '<tbody>' + preds.map(makeRow).join('') + '</tbody>' +
-      '</table>' +
-    '</div>' +
-    '<div class="dl">' +
-      '<button class="pill" onclick="downloadCSV()">Download CSV</button>' +
-      '<button class="pill" id="copyBtn" onclick="copyTable()">Copy table</button>' +
-    '</div>' +
-    '<div class="email-csv-section surface">' +
-      '<div class="email-csv-title">Receive results by email</div>' +
-      '<div class="email-csv-fields">' +
-        '<div class="field">' +
-          '<label class="field-label" for="csvEmailLang">Language</label>' +
-          '<span class="select-shell">' +
-            '<select class="select" id="csvEmailLang">' +
-              '<option value="en">English</option>' +
-              '<option value="fr">Français</option>' +
-              '<option value="es">Español</option>' +
-              '<option value="pt">Português</option>' +
-              '<option value="zh">中文</option>' +
-            '</select>' +
-          '</span>' +
-        '</div>' +
-        '<div class="field">' +
-          '<label class="field-label" for="csvEmail">Your email</label>' +
-          '<input class="input" type="email" id="csvEmail" placeholder="you@example.com" autocomplete="email" spellcheck="false">' +
-        '</div>' +
-        '<button class="pill" id="sendCsvBtn" onclick="sendCsvByEmail()">Send</button>' +
-      '</div>' +
-      '<div class="email-csv-status" id="emailCsvStatus" aria-live="polite"></div>' +
-    '</div>' +
-    '<div class="result-note prose-justify">' +
-      '<strong>Interpretation note:</strong> Predictions are computed from 22 physicochemical and compositional descriptors derived from the primary amino acid sequence. ' +
-      'For higher predictive power, use the <strong>voting ensemble</strong> mode (RF + SVM + GB + XGB + LGBM), which combines five independent classifiers by soft voting and achieves ' +
-      '<strong>AUC-ROC 0.950</strong>, <strong>MCC 0.742</strong>, <strong>Sensitivity 94.9%</strong>, and <strong>Specificity 78.4%</strong> on the independent benchmark set. ' +
-      'Bear in mind that proteins whose primary function is not antimicrobial activity may still harbour potential antimicrobial features in specific sequence regions. A full benchmark is available in Luna-Arago et al. (2026), <a href="https://doi.org/10.1021/acs.jcim.XXXXXXX" target="_blank">doi:10.1021/acs.jcim.XXXXXXX</a>.' +
-    '</div>';
-
-  applyFilter(currentFilter);
-}
-
-function applyFilter(type) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
-  const ids = { all: 'fAll', amp: 'fAmp', non: 'fNon' };
-  document.getElementById(ids[type]).setAttribute('aria-pressed', 'true');
-  document.querySelectorAll('#tbl tbody tr').forEach(row => {
-    if (type === 'all') row.style.display = '';
-    else if (type === 'amp') row.style.display = row.classList.contains('r-amp') ? '' : 'none';
-    else row.style.display = row.classList.contains('r-non') ? '' : 'none';
-  });
-  currentFilter = type;
-  syncUrl();
-}
-
-/* modelo e filtro sao estado: quem recarrega a pagina ou manda o link
-   adiante chega no mesmo lugar de onde saiu. */
-let currentFilter = 'all';
-
-function syncUrl() {
-  const p = new URLSearchParams();
-  const model = document.getElementById('model').value;
-  if (model !== 'voting') p.set('model', model);
-  if (currentFilter !== 'all') p.set('filter', currentFilter);
-  const q = p.toString();
-  history.replaceState(null, '', window.location.pathname + (q ? '?' + q : ''));
-}
-
-function restoreFromUrl() {
-  const p = new URLSearchParams(window.location.search);
-  const model = p.get('model');
-  const select = document.getElementById('model');
-  if (model && Array.from(select.options).some(o => o.value === model)) select.value = model;
-  const filter = p.get('filter');
-  if (filter === 'amp' || filter === 'non') currentFilter = filter;
-  select.addEventListener('change', syncUrl);
-}
-restoreFromUrl();
-showEmptyResults();
-
-function downloadCSV() {
-  if (!lastData) return;
-  const keys = Object.keys(lastData[0]);
-  const csv  = [
-    keys.join(','),
-    ...lastData.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))
-  ].join('\\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'ampidentifier_results.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
-}
-
-function copyTable() {
-  if (!lastData) return;
-  const keys = Object.keys(lastData[0]);
-  const tsv  = [
-    keys.join('\\t'),
-    ...lastData.map(r => keys.map(k => r[k] ?? '').join('\\t'))
-  ].join('\\n');
-  navigator.clipboard.writeText(tsv).then(() => {
-    const btn = document.getElementById('copyBtn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy table', 1500);
-  }).catch(() => alert('Copy not supported in this browser.'));
-}
-
-async function sendCsvByEmail() {
-  if (!lastData || !lastModel) return;
-  const email = document.getElementById('csvEmail').value.trim();
-  const lang  = document.getElementById('csvEmailLang').value;
-  const status = document.getElementById('emailCsvStatus');
-  const btn = document.getElementById('sendCsvBtn');
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    status.innerHTML = '<span class="err">Enter a valid email address.</span>';
-    return;
-  }
-  const keys = Object.keys(lastData[0]);
-  const csv = [
-    keys.join(','),
-    ...lastData.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))
-  ].join('\\n');
-  const total = lastData.length;
-  const amps  = lastData.filter(r => r.prediction === 1).length;
-  btn.disabled = true;
-  status.classList.remove('status-good');
-  status.textContent = 'Sending...';
-  try {
-    const form = new FormData();
-    form.append('to_email', email);
-    form.append('csv_data', csv);
-    form.append('lang',  lang);
-    form.append('model', lastModel);
-    form.append('total', total);
-    form.append('amps',  amps);
-    const res = await fetch('/send_csv', { method: 'POST', body: form });
-    const data = await res.json();
-    if (data.ok) {
-      status.classList.add('status-good');
-      status.textContent = 'Email sent to ' + email;
-    } else {
-      status.innerHTML = '<span class="err">' + (data.error || 'Failed to send.') + '</span>';
-    }
-  } catch (e) {
-    status.innerHTML = '<span class="err">Request failed: ' + e.message + '</span>';
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-function copyLink() {
-  const url = window.location.origin + '/';
-  const box = document.getElementById('shareUrlBox');
-  const btn = document.getElementById('copyLinkBtn');
-  navigator.clipboard.writeText(url).then(() => {
-    box.textContent = url + '  (copied)';
-    box.style.display = 'block';
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Copy link'; box.style.display = 'none'; }, 2500);
-  }).catch(() => {
-    box.textContent = url;
-    box.style.display = 'block';
-  });
-}
-
-function toggleShareForm() {
-  const form = document.getElementById('shareForm');
-  const opening = !form.classList.contains('open');
-  form.classList.toggle('open');
-  if (opening) document.getElementById('shareFriendEmail').focus();
-}
-
-async function sendShareEmail() {
-  const email = document.getElementById('shareFriendEmail').value.trim();
-  const status = document.getElementById('shareFormStatus');
-  const btn = document.getElementById('sendShareBtn');
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    status.innerHTML = '<span class="err">Enter a valid email.</span>';
-    return;
-  }
-  btn.disabled = true;
-  status.classList.remove('status-good');
-  status.textContent = 'Sending...';
-  try {
-    const fd = new FormData();
-    fd.append('to_email', email);
-    fd.append('lang', document.getElementById('shareLang').value);
-    const res = await fetch('/send_recommendation', { method: 'POST', body: fd });
-    const data = await res.json();
-    if (data.ok) {
-      status.classList.add('status-good');
-      status.textContent = 'Recommendation sent to ' + email;
-      document.getElementById('shareFriendEmail').value = '';
-    } else {
-      status.innerHTML = '<span class="err">' + (data.error || 'Failed to send.') + '</span>';
-    }
-  } catch (e) {
-    status.innerHTML = '<span class="err">' + e.message + '</span>';
-  } finally {
-    btn.disabled = false;
-  }
+function motionClose(el, done) {
+  el.classList.remove('is-open');
+  el.classList.add('is-closing');
+  window.setTimeout(function() {
+    el.classList.remove('open', 'is-closing');
+    if (done) done();
+  }, motionExitMs());
 }
 
 function openFeedback() {
-  document.getElementById('feedbackOverlay').classList.add('open');
+  const overlay = document.getElementById('feedbackOverlay');
+  const card = overlay.querySelector('.modal');
+  card.classList.remove('is-closing');
+  motionOpen(overlay);
+  card.classList.add('is-open');
   document.getElementById('feedbackMsg').focus();
 }
 function closeFeedback() {
-  document.getElementById('feedbackOverlay').classList.remove('open');
-  document.getElementById('feedbackMsg').value = '';
+  const overlay = document.getElementById('feedbackOverlay');
+  const card = overlay.querySelector('.modal');
+  card.classList.remove('is-open');
+  card.classList.add('is-closing');
+  motionClose(overlay, function() {
+    card.classList.remove('is-closing');
+    document.getElementById('feedbackMsg').value = '';
+  });
 }
 function closeFeedbackOutside(e) {
   if (e.target === document.getElementById('feedbackOverlay')) closeFeedback();
@@ -1416,9 +1133,26 @@ function submitFeedback() {
   const url = 'https://github.com/madsondeluna/AMPidentifier/issues/new?title=' + title + '&body=' + body + '&labels=' + label;
   window.open(url, '_blank', 'noopener,noreferrer');
   closeFeedback();
-}
+}"""
 
-</script>{% endraw %}
-</body>
-</html>"""
 
+def page(title, description, path, body, schema='', css='', js=''):
+    """Monta uma pagina inteira a partir do miolo dela."""
+    head = HEAD % {'title': title, 'description': description, 'path': path}
+    # a rota corrente se marca no proprio link, e nao por javascript: sem
+    # aria-current um leitor de tela nao tem como saber onde esta.
+    # o alvo e o data-nav e nao o href, porque href="/beta" aparece antes
+    # no link da marca e a marca nao e a rota corrente
+    slug = {'/': 'predict', '/about': 'about', '/suggestions': 'suggestions', '/beta': 'beta'}.get(path, '')
+    nav = NAV.replace('data-nav="%s"' % slug, 'data-nav="%s" aria-current="page"' % slug, 1) if slug else NAV
+    return (
+        '<!DOCTYPE html>\n' + head + '\n<style>\n' + STYLE + css + '\n</style>\n'
+        + schema + '</head>\n<body>\n'
+        + DEFS + '\n'
+        + '<a class="skip-link pill" href="#main">Skip to content</a>\n\n'
+        + nav + '\n\n<div class="shell">\n' + body + '\n</div>\n\n'
+        + FOOTER_BAR + '\n\n' + MODAL + '\n\n'
+        + '{% raw %}<script>\n' + SHELL_JS + '\n' + js + '\n</script>{% endraw %}\n'
+        + '<script src="/pure/light.js?v={{ asset_v }}" defer></script>\n'
+        + '</body>\n</html>'
+    )
