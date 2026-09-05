@@ -55,33 +55,6 @@ BODY = """  <header>
 
   <main class="step-2" id="main" tabindex="-1">
 
-    <div class="surface share-section step-2">
-      <div class="share-inner">
-        <div class="share-heading">Find AMPidentifier useful?</div>
-        <div class="share-actions">
-          <button class="pill" onclick="copyLink()" id="copyLinkBtn">Copy link</button>
-          <button class="pill" onclick="toggleShareForm()" id="shareEmailBtn">Share by email</button>
-        </div>
-      </div>
-      <div class="share-url-box mono motion-dropdown" id="shareUrlBox"></div>
-      <div class="share-form motion-dropdown" id="shareForm">
-        <span class="select-shell">
-          <select class="select" id="shareLang" title="Email language">
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-            <option value="es">Español</option>
-            <option value="pt">Português</option>
-            <option value="zh">中文</option>
-          </select>
-        </span>
-        <label class="field">
-          <span class="sr-only">Recipient email</span>
-          <input class="input" type="email" id="shareFriendEmail" placeholder="friend@example.com" autocomplete="email" spellcheck="false">
-        </label>
-        <button class="pill" onclick="sendShareEmail()" id="sendShareBtn">Send</button>
-        <div class="share-form-status" id="shareFormStatus" aria-live="polite"></div>
-      </div>
-    </div>
 
     <div class="step-2">
       <div class="label-row">
@@ -115,6 +88,34 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
     </div>
 
     <div id="results" class="motion-lines"></div>
+
+    <div class="surface share-section step-2">
+      <div class="share-inner">
+        <div class="share-heading">Find AMPidentifier useful?</div>
+        <div class="share-actions">
+          <button class="pill" onclick="copyLink()" id="copyLinkBtn">Copy link</button>
+          <button class="pill" onclick="toggleShareForm()" id="shareEmailBtn">Share by email</button>
+        </div>
+      </div>
+      <div class="share-url-box mono motion-dropdown" id="shareUrlBox"></div>
+      <div class="share-form motion-dropdown" id="shareForm">
+        <span class="select-shell">
+          <select class="select" id="shareLang" title="Email language">
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+            <option value="pt">Português</option>
+            <option value="zh">中文</option>
+          </select>
+        </span>
+        <label class="field">
+          <span class="sr-only">Recipient email</span>
+          <input class="input" type="email" id="shareFriendEmail" placeholder="friend@example.com" autocomplete="email" spellcheck="false">
+        </label>
+        <button class="pill" onclick="sendShareEmail()" id="sendShareBtn">Send</button>
+        <div class="share-form-status" id="shareFormStatus" aria-live="polite"></div>
+      </div>
+    </div>
   </main>
 
   <footer class="step-2">
