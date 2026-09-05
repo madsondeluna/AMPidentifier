@@ -771,7 +771,20 @@ STYLE = """  /* =========================================================
   .nav-wordmark { display: block; height: var(--space-32); width: auto; }
   .nav-symbol { display: none; height: var(--space-32); width: auto; }
 
-  .nav-links { display: flex; align-items: center; gap: var(--space-4); margin-left: var(--space-16); }
+  /* A fileira de rotas nao quebra: rotulo de navegacao que vira duas
+     linhas estica a pilula e rompe a altura da barra, que e fixa. Quando
+     nao cabe, ela rola; o que nao pode e o rotulo se partir no meio. */
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-left: var(--space-16);
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav-links::-webkit-scrollbar { display: none; }
 
   .nav-link {
     display: inline-flex;
@@ -780,6 +793,17 @@ STYLE = """  /* =========================================================
     padding: var(--space-6) var(--space-10);
     border-radius: var(--radius-control);
     font-size: var(--text-12);
+    /* O rotulo nunca quebra: duas linhas esticam a pilula e rompem a
+       altura fixa da barra. Sem lugar, a fileira rola.
+
+       Estes links NAO levam .lit-edge. A classe compoe
+       --shadow-glass-rest, que e a sombra de uma superficie de vidro:
+       bisel branco no topo, poco na base e duas quedas para fora. Num
+       link de fundo transparente e sem borda isso pinta a sombra de um
+       objeto que nao esta la, e o rotulo sai cercado de um borrao. A
+       camada de luz e para vidro; aqui e texto. */
+    white-space: nowrap;
+    flex: 0 0 auto;
     /* texto sobre vidro usa --text, sem excecao: --muted esta abaixo do
        piso de 4,5 sobre a superficie de vidro em todos os modos. O que
        separa a rota corrente das outras nao e cor, e peso. */
@@ -1042,10 +1066,10 @@ NAV = """<nav class="navbar glass glass-thin" aria-label="__nav_label__">
     </a>
 
     <div class="nav-links">
-      <a class="nav-link lit lit-edge" href="/" data-nav="predict">__nav_predict__</a>
-      <a class="nav-link lit lit-edge" href="/about" data-nav="about">__nav_about__</a>
-      <a class="nav-link lit lit-edge" href="/suggestions" data-nav="suggestions">__nav_suggestions__</a>
-      <a class="nav-link lit lit-edge" href="/beta" data-nav="beta">__nav_beta__</a>
+      <a class="nav-link" href="/" data-nav="predict">__nav_predict__</a>
+      <a class="nav-link" href="/about" data-nav="about">__nav_about__</a>
+      <a class="nav-link" href="/suggestions" data-nav="suggestions">__nav_suggestions__</a>
+      <a class="nav-link" href="/beta" data-nav="beta">__nav_beta__</a>
     </div>
 
     <div class="nav-side">
