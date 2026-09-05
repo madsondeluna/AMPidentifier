@@ -109,7 +109,7 @@ BODY = """
       <div class="metrics-grid metrics-3">
         <div class="card-glass metric"><span class="num metric-val">25.7%</span><span class="metric-lbl">Unreachable at first access</span></div>
         <div class="card-glass metric"><span class="num metric-val">50%</span><span class="metric-lbl">Availability of 2010 tools</span></div>
-        <div class="card-glass metric"><span class="num metric-val">51.1%</span><span class="metric-lbl">Restored once authors were asked</span></div>
+        <div class="card-glass metric"><span class="num metric-val">51.1%</span><span class="metric-lbl">Restored after contact</span></div>
       </div>
     </div>
 
