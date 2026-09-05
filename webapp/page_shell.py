@@ -152,7 +152,8 @@ HEAD = """<html lang="en">
   ]
 }
 </script>
-<link rel="icon" type="image/svg+xml" href="/img/symbol.svg">
+<link rel="icon" type="image/svg+xml" href="/img/symbol-fan.svg">
+<link rel="apple-touch-icon" href="/img/symbol-fan.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,300..400&family=Public+Sans:wght@300;400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -786,22 +787,24 @@ STYLE = """  /* =========================================================
   /* o leque e a unica coisa colorida da barra, e nao inverte no escuro:
      inverter uma marca de cor devolve a cor complementar, nao a versao
      para fundo escuro */
-  .nav-fan {
-    display: block;
+  /* A placa do icone e vetor, nao o PNG de 1024px: num quadrado de 32px
+     a versao rasterizada perde nitidez em tela de alta densidade, e a
+     mesma arte sai limpa com o leque branco sobre a cor de marca. O
+     arredondamento vem de --radius-media, o papel de midia na escada de
+     raio, e nao de um valor escolhido a olho. */
+  .nav-icon {
+    display: grid;
+    place-items: center;
     flex: 0 0 auto;
-    height: var(--space-24);
-    width: auto;
-    align-self: center;
+    width: var(--space-32);
+    height: var(--space-32);
+    border-radius: var(--radius-media);
+    background-color: var(--brand-teal);
   }
 
-  .nav-name {
-    flex: 0 0 auto;
-    font-family: var(--font-sans);
-    font-size: var(--text-16);
-    font-weight: var(--weight-medium);
-    color: var(--text);
-    white-space: nowrap;
-  }
+  /* o leque ocupa o miolo da placa: a folga em volta e o que faz a marca
+     ler como icone de aplicativo e nao como desenho cortado na borda */
+  .nav-icon-mark { display: block; height: var(--space-20); width: auto; }
 
   /* Entrada uma vez, no carregamento: o slogan chega depois da marca,
      que e a ordem em que se le. Keyframe e nao transicao porque e
@@ -1035,7 +1038,6 @@ STYLE = """  /* =========================================================
 
   @media (max-width: 768px) {
     .nav-slogan { display: none; }
-    .nav-name { display: none; }
     .nav-links { margin-left: var(--space-8); gap: 0; }
     .nav-link { padding: var(--space-6); }
     .status-label { display: none; }
@@ -1121,8 +1123,9 @@ DEFS = """<svg class="pure-defs" aria-hidden="true" focusable="false" width="0" 
 NAV = """<nav class="navbar glass glass-thin" aria-label="__nav_label__">
   <div class="nav-inner">
     <a class="nav-brand" href="/" aria-label="__nav_home__">
-      <img src="/img/symbol-fan.svg" alt="" class="nav-fan">
-      <span class="nav-name">AMPidentifier</span>
+      <span class="nav-icon">
+        <img src="/img/symbol-fan-white.svg" alt="AMPidentifier" class="nav-icon-mark">
+      </span>
       <span class="nav-slogan">__slogan__</span>
     </a>
 
