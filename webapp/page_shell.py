@@ -805,7 +805,21 @@ STYLE = """  /* =========================================================
        altura fixa da barra. Sem lugar, a fileira rola. */
     white-space: nowrap;
     flex: 0 0 auto;
+    /* --shadow-glass-rest e desenhada para cartao: a queda larga tem
+       18px de raio deslocada 6px, e a pilula tem 30px de altura. A
+       sombra fica maior que o objeto e le como borrao sob cada rotulo,
+       que e a mesma coisa que a linguagem ja registrou para a lente do
+       cursor. --shadow-lens e a resposta dela para vidro pequeno: sobra
+       o contato de 1px e as camadas internas, que dao corpo sem
+       projetar. */
   }
+
+  /* Duas classes, porque `.pill.lit-edge` pesa duas e declara box-shadow
+     propria. Com um seletor de uma classe a troca nao aplicava e a queda
+     larga continuava embaixo de cada rotulo. Quarta vez que esta
+     armadilha aparece nesta folha. */
+  .nav-link.pill { box-shadow: var(--shadow-lens); }
+  .nav-link.pill:hover { box-shadow: var(--shadow-glass-rest); }
 
   /* A rota corrente e a unica tingida. Duas pistas e nenhuma so de cor:
      o vidro assume o acento e o rotulo ganha peso, e aria-current diz o
