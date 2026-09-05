@@ -16,6 +16,16 @@ PHRASE = 'more is yet to come'
 BODY = """
   <main class="step-2 soup-main" id="main" tabindex="-1">
     <div class="soup" id="soup" role="img" aria-label="More is yet to come"></div>
+
+    <!-- A piada nao se explica: um residuo mascarado no meio da LL-37 e a
+         tarefa com que um modelo de linguagem de proteina e treinado, e a
+         posicao 7 e um R para quem quiser conferir. Quem conhece a area
+         le o recado inteiro; quem nao conhece ve uma sequencia. -->
+    <p class="soup-mask">
+      <span class="soup-seq">LLGDFF<span class="soup-token">[MASK]</span>KSKEKIGKEF</span>
+      <span class="soup-aside">Something that fills that in is in training.</span>
+    </p>
+
     <noscript>
       <p class="soup-fallback">More is yet to come.</p>
     </noscript>
@@ -28,9 +38,25 @@ CSS = """
   .soup-main {
     min-height: calc(100vh - var(--chrome-top) - var(--chrome-bottom) - var(--space-96) - var(--space-96));
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: var(--space-48);
   }
+
+  /* o residuo mascarado fica em tinta cheia e o resto da cadeia em tinta
+     apagada: o que importa e o buraco, nao a sequencia */
+  .soup-mask {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-8);
+    text-align: center;
+  }
+
+  .soup-seq { font-family: var(--font-mono); font-size: var(--text-13); color: var(--muted); letter-spacing: var(--tracking-wide); }
+  .soup-token { color: var(--text); }
+  .soup-aside { font-size: var(--text-13); color: var(--muted); }
 
   .soup {
     display: flex;
