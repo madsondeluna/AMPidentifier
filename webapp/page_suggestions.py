@@ -55,7 +55,7 @@ BODY = """
 
     <div class="metrics-band step-2">
       <div class="metrics-label">Other routes</div>
-      <div class="card-glass prose-block">
+      <div class="card-glass prose-block prose-justify">
         <p class="install"><span class="install-lead">Bug with a reproduction:</span> <a href="https://github.com/madsondeluna/AMPidentifier/issues" target="_blank" rel="noopener">open an issue on GitHub</a></p>
         <p class="install"><span class="install-lead">Direct email:</span> <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a></p>
       </div>

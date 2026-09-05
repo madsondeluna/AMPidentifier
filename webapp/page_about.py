@@ -190,19 +190,25 @@ BODY = """
         <div class="lead-text prose-justify">
           <div class="lead-name">Madson Allan de Luna Arag&atilde;o</div>
           <div class="lead-role">Lead developer and maintainer</div>
-          <p>Rebuilt AMPidentifier from that prototype into the tool
-          distributed today: the 22-feature extraction, the training pipeline,
-          the soft-voting ensemble of five classifiers, and the external
-          benchmark that put it against 11 published configurations on the same
-          4,736 sequences. Wrote the three ways it ships, the command line
-          program, the Python package on PyPI and this web server, so that none
-          of them is a single point of failure for the others.</p>
+          <p>Wrote the three ways the tool ships, the command line program,
+          the Python package on PyPI and this web server, so that none of them
+          is a single point of failure for the others.</p>
           <p>Maintenance is the work, not what comes after it. Half the broken
           tools in the survey above came back the moment someone answered an
           email, which is most of the distance between a published tool and a
           working one. Keeps the repository current, answers the issues, keeps
           the server up, and holds the constraints the tool is built against: no
           sequence is stored, no account is required, and nothing is charged.</p>
+          <div class="lead-education">
+            <div class="edu-label">Education</div>
+            <ul class="edu-list">
+              <li><span class="edu-what">PhD student in Bioinformatics</span><span class="edu-where">Institute of Biological Sciences, UFMG</span><span class="num edu-when">2024&ndash;</span></li>
+              <li><span class="edu-what">MBA in Software Engineering</span><span class="edu-where">Computer Science Department, USP</span><span class="num edu-when">2025&ndash;</span></li>
+              <li><span class="edu-what">Specialization in Data Science and Analytics</span><span class="edu-where">Computer Science Department, PUC-Rio</span><span class="num edu-when">2024&ndash;2026</span></li>
+              <li><span class="edu-what">MSc in Genetics and Molecular Biology</span><span class="edu-where">Department of Genetics, UFPE</span><span class="num edu-when">2022&ndash;2024</span></li>
+              <li><span class="edu-what">BSc in Biomedical Sciences</span><span class="edu-where">Center of Biosciences, UFPE</span><span class="num edu-when">2014&ndash;2021</span></li>
+            </ul>
+          </div>
           <p class="lead-links">
             <a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">ORCID 0000-0001-5313-3913</a>
             &nbsp;&middot;&nbsp; <a href="https://github.com/madsondeluna" target="_blank" rel="noopener">GitHub</a>
@@ -257,7 +263,7 @@ BODY = """
 
     <div class="metrics-band step-2">
       <div class="metrics-label">Access</div>
-      <div class="card-glass prose-block">
+      <div class="card-glass prose-block prose-justify">
         <p class="install"><span class="install-lead">Python package:</span> <code>pip install ampidentifier</code></p>
         <p class="install"><span class="install-lead">Source and command line:</span> <a href="https://github.com/madsondeluna/AMPidentifier" target="_blank" rel="noopener">github.com/madsondeluna/AMPidentifier</a></p>
         <p class="install"><span class="install-lead">Web:</span> <a href="/">stable version</a> and <a href="/beta">beta layout</a></p>
@@ -319,6 +325,22 @@ CSS = """
   .lead-role { font-family: var(--font-mono); font-size: var(--text-12); color: var(--muted); margin-bottom: var(--space-10); }
   .lead-text > p + p, .lead-role + p { margin-top: var(--space-10); }
   .lead-links { font-size: var(--text-13); }
+
+  /* formacao: tres colunas, com o ano em coluna propria e alinhado a
+     direita, porque ano se compara com ano e nao com o fim do texto que
+     vem antes dele. A lista nao herda a justificacao da prosa: linha
+     curta justificada abre buraco entre as palavras. */
+  .lead-education { margin-top: var(--space-16); text-align: left; }
+  .edu-label { font-family: var(--font-mono); font-size: var(--text-11); color: var(--muted); margin-bottom: var(--space-6); }
+  .edu-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+  .edu-list li { display: grid; grid-template-columns: 1fr auto auto; gap: var(--space-10); align-items: baseline; font-size: var(--text-13); }
+  .edu-what { color: var(--text); }
+  .edu-where { color: var(--muted); font-size: var(--text-12); }
+  .edu-when { color: var(--muted); font-size: var(--text-12); white-space: nowrap; }
+
+  @media (max-width: 768px) {
+    .edu-list li { grid-template-columns: 1fr; gap: 0; }
+  }
 
   /* seis autores em duas colunas: uma coluna so faz seis cartoes de duas
      linhas cada e a lista fica mais alta que o manifesto que a precede */
