@@ -175,9 +175,16 @@ BODY = """
         <div class="lead-text prose-justify">
           <div class="lead-name">Madson Allan de Luna Arag&atilde;o</div>
           <div class="lead-role">Design, implementation and maintenance</div>
-          <p>Wrote the feature extraction, the training pipeline, the ensemble,
-          the command line interface, the Python package and the web server.
-          Maintains the repository and answers the issues.</p>
+          <p>Built AMPidentifier from the descriptors up: the 22-feature
+          extraction, the training pipeline, the soft-voting ensemble of five
+          classifiers, and the external benchmark that put it against 11
+          published configurations on the same 4,736 sequences. Wrote the three
+          ways it is distributed, the command line program, the Python package
+          on PyPI and this web server, so that none of them is a single point of
+          failure for the others.</p>
+          <p>Maintains the repository and answers the issues. Holds the
+          constraints the tool is built against: no sequence is stored, no
+          account is required, and nothing is charged.</p>
           <p class="lead-links">
             <a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">ORCID 0000-0001-5313-3913</a>
             &nbsp;&middot;&nbsp; <a href="https://github.com/madsondeluna" target="_blank" rel="noopener">GitHub</a>
