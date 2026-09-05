@@ -47,8 +47,8 @@ BODY = """
 
         <p>The FAIR principles are the practical form of that commitment.
         <strong>Findable</strong>: the software is deposited on PyPI and GitHub,
-        carries a citable identifier and a machine-readable
-        <code>CITATION.cff</code>. <strong>Accessible</strong>: the web tool needs
+        and carries a machine-readable <code>CITATION.cff</code> so that a
+        citation can be resolved without reading the page. <strong>Accessible</strong>: the web tool needs
         no account, no institutional login and no payment, and the package
         installs with one command. <strong>Interoperable</strong>: input is FASTA
         and output is CSV, two formats every other tool in the pipeline already

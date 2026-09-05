@@ -675,7 +675,7 @@ STYLE = """  /* =========================================================
      background-color do material. Medido: a declaracao de uma classe nao
      chegava a aplicar e a barra continuava sem tinta propria. */
   .navbar.glass, .footer-bar.glass {
-    background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+    background-color: color-mix(in srgb, var(--surface) 74%, transparent);
     --surface-context: var(--surface);
   }
 
@@ -719,16 +719,27 @@ STYLE = """  /* =========================================================
        separa a rota corrente das outras nao e cor, e peso. */
     color: var(--text);
     text-decoration: none;
-    opacity: 0.72;
-    transition: opacity var(--duration-5) var(--ease-out-soft);
+    /* Tinta cheia em todos. A rota corrente nao se separa por apagar as
+       outras: apagar rotulo para destacar um vizinho custa legibilidade
+       nos tres que sobraram e nao devolve nada ao que ficou. */
+    background-color: transparent;
+    transition:
+      background-color var(--duration-5) var(--ease-out-soft),
+      box-shadow var(--duration-5) var(--ease-out-soft);
   }
 
-  .nav-link:hover { opacity: 1; }
+  .nav-link:hover { background-color: var(--dim); }
 
   /* a rota corrente e estado, entao ela tambem se le sem cor: o rotulo
      sobe para a tinta cheia e ganha peso, e aria-current diz o mesmo
      para quem nao ve nenhum dos dois. */
-  .nav-link[aria-current="page"] { opacity: 1; font-weight: var(--weight-medium); }
+  /* a rota corrente ganha superficie e peso: duas pistas, nenhuma delas
+     so de cor, e aria-current diz o mesmo para quem nao ve as duas */
+  .nav-link[aria-current="page"] {
+    font-weight: var(--weight-medium);
+    background-color: var(--surface);
+    box-shadow: inset 0 0 0 var(--hairline) var(--secondary);
+  }
 
   .nav-side { display: flex; align-items: center; gap: var(--space-8); margin-left: auto; }
 
@@ -763,7 +774,10 @@ STYLE = """  /* =========================================================
     overscroll-behavior-x: contain;
   }
 
-  .footer-strip .logo-group { flex: 0 0 auto; gap: var(--space-6); }
+  /* o rotulo se centra sobre a fileira que ele nomeia, em vez de comecar
+     na borda esquerda dela: com grupos de larguras diferentes o rotulo
+     alinhado a esquerda parece solto do proprio conteudo */
+  .footer-strip .logo-group { flex: 0 0 auto; gap: var(--space-6); align-items: center; }
   .footer-strip .logo-group-label { white-space: nowrap; color: var(--text); opacity: 0.72; }
 
   /* cada marca leva ao site da propria instituicao. O alvo e a imagem,
@@ -784,7 +798,13 @@ STYLE = """  /* =========================================================
      aparente. Area de CAIXA, nao de tinta: area de tinta mede espessura
      de traco e infla uma marca de traco fino ate ela virar a maior da
      fita. Os tres degraus sao os que a escala de espaco oferece perto
-     dos valores calculados, e o calculo esta em cada arquivo. */
+     dos valores calculados, e o calculo esta em cada arquivo.
+
+     Quatro marcas sobem um degrau acima do que a area pede: ICB, FAPEMIG,
+     LCM3 e LNCC. Nas quatro, quem fixa a leitura nao e o simbolo, e uma
+     legenda em corpo pequeno ao lado ou abaixo dele, e a area da caixa
+     nao ve essa legenda. Marca de letreiro grande, como UFMG, FACEPE e
+     LGBV, nao precisa do degrau porque a propria letra e o tamanho. */
   .footer-strip .logo-row { min-height: var(--space-40); gap: var(--space-16); }
   .footer-strip .logo-row img { height: var(--space-24); }
   .footer-strip .logo-row img.logo-lockup { height: var(--space-32); }
@@ -999,7 +1019,7 @@ FOOTER_BAR = """<footer class="footer-bar glass glass-thin">
             <a class="logo-link" href="https://www.ufpe.br" target="_blank" rel="noopener" title="Universidade Federal de Pernambuco"><img src="/img/pure/ufpe.png"     alt="Universidade Federal de Pernambuco" class="logo-lockup"></a>
             <a class="logo-link" href="https://www.ufmg.br" target="_blank" rel="noopener" title="Universidade Federal de Minas Gerais"><img src="/img/pure/ufmg.png"     alt="Universidade Federal de Minas Gerais"></a>
             <a class="logo-link" href="https://upe.br" target="_blank" rel="noopener" title="Universidade de Pernambuco"><img src="/img/pure/upe-logo.png" alt="Universidade de Pernambuco" class="logo-lockup"></a>
-            <a class="logo-link" href="https://www.gov.br/lncc/pt-br" target="_blank" rel="noopener" title="Laboratório Nacional de Computação Científica"><img src="/img/pure/lncc.png"     alt="Laboratório Nacional de Computação Científica"></a>
+            <a class="logo-link" href="https://www.gov.br/lncc/pt-br" target="_blank" rel="noopener" title="Laboratório Nacional de Computação Científica"><img src="/img/pure/lncc.png"     alt="Laboratório Nacional de Computação Científica" class="logo-lockup"></a>
           </div>
         </div>
         <div class="logo-group">
@@ -1007,7 +1027,7 @@ FOOTER_BAR = """<footer class="footer-bar glass glass-thin">
           <div class="logo-row">
             <a class="logo-link" href="https://www.ufpe.br/dqf" target="_blank" rel="noopener" title="Departamento de Química Fundamental, UFPE"><img src="/img/pure/dqf.png"   alt="Departamento de Química Fundamental, UFPE" class="logo-lockup"></a>
             <a class="logo-link" href="https://www.ufpe.br/dep-genetica" target="_blank" rel="noopener" title="Departamento de Genética, UFPE"><img src="/img/pure/dgen.png" alt="Departamento de Genética, UFPE" class="logo-lockup"></a>
-            <a class="logo-link" href="https://www.icb.ufmg.br" target="_blank" rel="noopener" title="Instituto de Ciências Biológicas, UFMG"><img src="/img/pure/icb.png"   alt="Instituto de Ciências Biológicas, UFMG" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.icb.ufmg.br" target="_blank" rel="noopener" title="Instituto de Ciências Biológicas, UFMG"><img src="/img/pure/icb.png"   alt="Instituto de Ciências Biológicas, UFMG" class="logo-stacked"></a>
             <a class="logo-link" href="https://www.pgbioinfo.icb.ufmg.br" target="_blank" rel="noopener" title="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG"><img src="/img/pure/ppgbioinfo.png" alt="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG" class="logo-stacked"></a>
           </div>
         </div>
@@ -1015,14 +1035,14 @@ FOOTER_BAR = """<footer class="footer-bar glass glass-thin">
           <div class="logo-group-label">Funding</div>
           <div class="logo-row">
             <a class="logo-link" href="https://www.facepe.br" target="_blank" rel="noopener" title="FACEPE"><img src="/img/pure/facepe.png"  alt="FACEPE"></a>
-            <a class="logo-link" href="https://fapemig.br" target="_blank" rel="noopener" title="FAPEMIG"><img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-lockup"></a>
+            <a class="logo-link" href="https://fapemig.br" target="_blank" rel="noopener" title="FAPEMIG"><img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-stacked"></a>
           </div>
         </div>
         <div class="logo-group">
           <div class="logo-group-label">Research groups</div>
           <div class="logo-row">
             <a class="logo-link" href="https://lgbv-ufpe.net" target="_blank" rel="noopener" title="Laboratório de Genética e Biotecnologia Vegetal"><img src="/img/pure/lgbv.png" alt="Laboratório de Genética e Biotecnologia Vegetal"></a>
-            <img src="/img/pure/lcm3.png" alt="LCM3">
+            <img src="/img/pure/lcm3.png" alt="LCM3" class="logo-lockup">
           </div>
         </div>
       </div>
