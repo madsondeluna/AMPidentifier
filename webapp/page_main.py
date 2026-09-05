@@ -65,6 +65,34 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
     <div id="results" class="motion-lines"></div>
   </main>
 
+    <div class="surface share-section step-2">
+      <div class="share-inner">
+        <div class="share-heading">Find AMPidentifier useful?</div>
+        <div class="share-actions">
+          <button class="pill" onclick="copyLink()" id="copyLinkBtn">Copy link</button>
+          <button class="pill" onclick="toggleShareForm()" id="shareEmailBtn">Share by email</button>
+        </div>
+      </div>
+      <div class="share-url-box mono motion-dropdown" id="shareUrlBox"></div>
+      <div class="share-form motion-dropdown" id="shareForm">
+        <span class="select-shell">
+          <select class="select" id="shareLang" title="Email language">
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+            <option value="pt">Português</option>
+            <option value="zh">中文</option>
+          </select>
+        </span>
+        <label class="field">
+          <span class="sr-only">Recipient email</span>
+          <input class="input" type="email" id="shareFriendEmail" placeholder="friend@example.com" autocomplete="email" spellcheck="false">
+        </label>
+        <button class="pill" onclick="sendShareEmail()" id="sendShareBtn">Send</button>
+        <div class="share-form-status" id="shareFormStatus" aria-live="polite"></div>
+      </div>
+    </div>
+
     <div class="metrics-band step-1">
      <div class="card-glass intro">
       <p class="sub prose-justify"><strong>AMPidentifier</strong> is a toolkit for antimicrobial peptide prediction using ensemble machine learning.</p>
@@ -100,48 +128,11 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
   </div>
 
 
-    <div class="surface share-section step-2">
-      <div class="share-inner">
-        <div class="share-heading">Find AMPidentifier useful?</div>
-        <div class="share-actions">
-          <button class="pill" onclick="copyLink()" id="copyLinkBtn">Copy link</button>
-          <button class="pill" onclick="toggleShareForm()" id="shareEmailBtn">Share by email</button>
-        </div>
-      </div>
-      <div class="share-url-box mono motion-dropdown" id="shareUrlBox"></div>
-      <div class="share-form motion-dropdown" id="shareForm">
-        <span class="select-shell">
-          <select class="select" id="shareLang" title="Email language">
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-            <option value="es">Español</option>
-            <option value="pt">Português</option>
-            <option value="zh">中文</option>
-          </select>
-        </span>
-        <label class="field">
-          <span class="sr-only">Recipient email</span>
-          <input class="input" type="email" id="shareFriendEmail" placeholder="friend@example.com" autocomplete="email" spellcheck="false">
-        </label>
-        <button class="pill" onclick="sendShareEmail()" id="sendShareBtn">Send</button>
-        <div class="share-form-status" id="shareFormStatus" aria-live="polite"></div>
-      </div>
-    </div>
-
   <footer class="step-2">
     <div>
       <div class="usage-map-title">Where AMPidentifier is being used</div>
       <div id="usageMap"></div>
     </div>
-
-  <div class="metrics-band step-2">
-    <div class="metrics-label">In testing</div>
-    <div class="card-glass changelog">
-      <p>This round changes the interface only. Models, thresholds and predictions are the same as the stable version.</p>
-      <p class="changelog-body prose-justify">The front end was rebuilt on a token-based design system: one type scale, one spacing scale and a single set of colour tokens shared by every component, with the layout on a single column and a concentric radius ladder. Controls and panels became glass surfaces with backdrop-filter, keyboard focus rings and reduced-motion fallbacks, the usage map became inline SVG instead of a tile layer, and the result panel carries its state in the URL.</p>
-      <p class="changelog-body prose-justify">Coming soon: a new batch of trained models will reach the beta before the stable version, and a prediction mode built on a protein language model (PLLM) goes into testing here.</p>
-    </div>
-  </div>
 
     <div class="step-2 prose-justify">
       <p>Luna-Aragão, M. A., da Silva, R. L., Bezerra Neto, J. P., dos Santos-Silva, C. A., da Silva Santos, D. E. &amp; Benko&#8209;Iseppon, A. M. (2026).
@@ -921,9 +912,6 @@ BODY_PAIRS = [
     ('>Recipient email</span>', '>Email do destinat&aacute;rio</span>'),
     ('>Send</button>', '>Enviar</button>'),
     ('>Where AMPidentifier is being used</div>', '>Onde o AMPidentifier est&aacute; sendo usado</div>'),
-    ('>In testing</div>', '>Em teste</div>'),
-    ('This round changes the interface only. Models, thresholds and predictions are the same as the stable version.',
-     'Esta rodada muda apenas a interface. Modelos, limiares e predi&ccedil;&otilde;es s&atilde;o os mesmos da vers&atilde;o est&aacute;vel.'),
     ('This tool is officially registered with the',
      'Esta ferramenta est&aacute; registrada no'),
     ('(Brazilian National Institute of Industrial Property), Registration No.',
@@ -936,10 +924,6 @@ BODY_PAIRS = [
 ]
 
 CHANGELOG_PAIRS = [
-    ('The front end was rebuilt on a token-based design system',
-     'A interface foi reconstru&iacute;da sobre um sistema de design baseado em tokens'),
-    ('Coming soon: a new batch of trained models will reach the beta before the stable version, and a prediction mode built on a protein language model (PLLM) goes into testing here.',
-     'Em breve: um novo conjunto de modelos treinados chega &agrave; beta antes da vers&atilde;o est&aacute;vel, e um modo de predi&ccedil;&atilde;o sobre modelo de linguagem de prote&iacute;na (PLLM) entra em teste aqui.'),
 ]
 
 BODY_PT = BODY
