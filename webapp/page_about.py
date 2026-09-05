@@ -202,8 +202,8 @@ BODY = """
           <div class="lead-education">
             <div class="edu-label">Education</div>
             <ul class="edu-list">
-              <li><span class="edu-what">PhD student in Bioinformatics</span><span class="edu-where">Institute of Biological Sciences, UFMG</span><span class="num edu-when">2024&ndash;</span></li>
-              <li><span class="edu-what">MBA in Software Engineering</span><span class="edu-where">Computer Science Department, USP</span><span class="num edu-when">2025&ndash;</span></li>
+              <li><span class="edu-what">PhD student in Bioinformatics</span><span class="edu-where">Institute of Biological Sciences, UFMG</span><span class="num edu-when">2024&ndash;Now</span></li>
+              <li><span class="edu-what">MBA in Software Engineering</span><span class="edu-where">Computer Science Department, USP</span><span class="num edu-when">2025&ndash;Now</span></li>
               <li><span class="edu-what">Specialization in Data Science and Analytics</span><span class="edu-where">Computer Science Department, PUC-Rio</span><span class="num edu-when">2024&ndash;2026</span></li>
               <li><span class="edu-what">MSc in Genetics and Molecular Biology</span><span class="edu-where">Department of Genetics, UFPE</span><span class="num edu-when">2022&ndash;2024</span></li>
               <li><span class="edu-what">BSc in Biomedical Sciences</span><span class="edu-where">Center of Biosciences, UFPE</span><span class="num edu-when">2014&ndash;2021</span></li>
