@@ -646,7 +646,13 @@ STYLE = """  /* =========================================================
 
   /* indice abaixo de 80, que e onde mora o veu do modal: barra acima
      dele cobriria o dialogo e o clique de fora deixaria de fechar. */
-  /* as duas barras sao vidro, e vidro carrega texto na tinta cheia */
+  /* As barras sao a textura mais fina do material, nao a mais funda.
+     Vidro fundo numa faixa de largura total desfoca 56px o tempo todo,
+     derruba a taxa de quadros em aparelho de entrada e le como painel
+     em vez de moldura. O que a pagina precisa aqui e translucidez leve:
+     o conteudo passa por baixo e ainda se ve.
+
+     as duas barras carregam texto, e texto sobre vidro vai na tinta cheia */
   .navbar .status-label { color: var(--text); }
 
   .navbar, .footer-bar {
@@ -655,6 +661,22 @@ STYLE = """  /* =========================================================
     right: 0;
     z-index: 40;
     border-radius: 0;
+  }
+
+  /* Desfoque fino deixa o conteudo atravessar, e numa barra que carrega
+     texto isso vira ilegibilidade que depende do que passa por baixo. As
+     duas ganham tinta propria: translucida o bastante para o conteudo se
+     insinuar, opaca o bastante para o rotulo nao depender dele.
+
+     --surface-context declara o que a barra realmente pinta: a varredura
+     de contraste anda pela ancestralidade e sem isto resolveria contra
+     --bg, aprovando uma pagina que na tela esta errada. */
+  /* Duas classes, e nao uma: `.glass:not(.card-glass)` pesa duas e zera o
+     background-color do material. Medido: a declaracao de uma classe nao
+     chegava a aplicar e a barra continuava sem tinta propria. */
+  .navbar.glass, .footer-bar.glass {
+    background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+    --surface-context: var(--surface);
   }
 
   .navbar { top: 0; height: var(--chrome-top); border-bottom: var(--hairline) solid var(--border); }
@@ -767,6 +789,26 @@ STYLE = """  /* =========================================================
   .footer-strip .logo-row img { height: var(--space-24); }
   .footer-strip .logo-row img.logo-lockup { height: var(--space-32); }
   .footer-strip .logo-row img.logo-stacked { height: var(--space-40); }
+
+  /* Contorno de controle no modo claro.
+
+     A aresta do vidro e um realce BRANCO, desenhado para vidro sobre
+     fundo colorido. A divergencia local desta pagina faz --bg ser branco
+     absoluto, entao o realce cai em cima do proprio fundo: medido, o
+     contorno da pilula ficava em 1,00 contra a pagina, que nao e pouco
+     contraste, e contorno nenhum. No escuro o mesmo realce da 1,47 e o
+     botao se le, que e por que o defeito so aparece de um lado.
+
+     --secondary da 3,45 sobre a pagina, acima do piso de 3 para limite
+     de controle, e a linguagem ja a declara como cor de borda e nao de
+     texto. O escuro fica como esta. */
+  :root:not(.dark) .pill,
+  :root:not(.dark) .liquid-item,
+  :root:not(.dark) .input,
+  :root:not(.dark) .textarea,
+  :root:not(.dark) .select {
+    border-color: var(--secondary);
+  }
 
   /* o pulo de teclado passa por cima da barra de cima */
   .skip-link { z-index: 100; }
@@ -895,7 +937,7 @@ DEFS = """<svg class="pure-defs" aria-hidden="true" focusable="false" width="0" 
 </defs></svg>
 <div class="lit-cursor" aria-hidden="true"></div>"""
 
-NAV = """<nav class="navbar glass-deep" aria-label="Main">
+NAV = """<nav class="navbar glass glass-thin" aria-label="Main">
   <div class="nav-inner">
     <a class="nav-brand" href="/" aria-label="AMPidentifier, home">
       <img src="/img/logo.svg" alt="AMPidentifier" class="nav-wordmark">
@@ -946,7 +988,7 @@ NAV = """<nav class="navbar glass-deep" aria-label="Main">
   </div>
 </nav>"""
 
-FOOTER_BAR = """<footer class="footer-bar glass-deep">
+FOOTER_BAR = """<footer class="footer-bar glass glass-thin">
   <div class="footer-bar-inner">
       <!-- a categoria de cada marca sai do alt, que continua completo: o
            rotulo visivel repetia o que a imagem ja diz e cobrava altura -->
@@ -1046,9 +1088,12 @@ function applyMode(mode, record) {
 }
 
 (function initMode() {
+  /* O claro e o padrao em toda pagina, e nao a preferencia do sistema:
+     as marcas institucionais do rodape sao tinta escura invertida por
+     filtro no escuro, e a pagina foi desenhada e medida no claro. Quem
+     quiser o escuro pede, pelo interruptor ou pelo endereco. */
   const asked = new URL(location.href).searchParams.get('mode');
-  const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
-  applyMode(asked === 'dark' || asked === '' ? asked : system, false);
+  applyMode(asked === 'dark' ? 'dark' : '', false);
   const btn = document.getElementById('modeBtn');
   if (btn) btn.addEventListener('click', function () {
     applyMode(document.documentElement.classList.contains('dark') ? '' : 'dark', true);
