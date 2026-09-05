@@ -21,9 +21,9 @@ BODY = """  <header>
     <div class="hero">
       <svg class="hero-fan" viewBox="0 0 679 210" fill="none" role="img" aria-label="AMPidentifier" xmlns="http://www.w3.org/2000/svg"> <g id="04 Export fan"> <g id="ampidentifier-compact-fan"> <g id="Group"> <circle id="Model 1" cx="102" cy="20.134" r="13.134" fill="#0E6E66"/> <rect id="Vote 1" x="98.7165" y="60.5464" width="23.2371" height="6.56701" rx="3.28351" transform="rotate(-90 98.7165 60.5464)" fill="#0E6E66"/> <circle id="Model 2" cx="41.9907" cy="44.9907" r="13.134" fill="#0E6E66"/> <rect id="Vote 2" x="68.2448" y="75.8884" width="23.2371" height="6.56701" rx="3.28351" transform="rotate(-135 68.2448 75.8884)" fill="#0E6E66"/> <circle id="Model 3" cx="17.134" cy="105" r="13.134" fill="#0E6E66"/> <rect id="Vote 3" x="57.5464" y="108.283" width="23.2371" height="6.56701" rx="3.28351" transform="rotate(-180 57.5464 108.283)" fill="#0E6E66"/> <circle id="Model 4" cx="41.9907" cy="165.009" r="13.134" fill="#0E6E66"/> <rect id="Vote 4" x="72.8883" y="138.755" width="23.2371" height="6.56701" rx="3.28351" transform="rotate(135 72.8883 138.755)" fill="#0E6E66"/> <circle id="Model 5" cx="102" cy="189.866" r="13.134" fill="#0E6E66"/> <rect id="Vote 5" x="105.284" y="149.454" width="23.2371" height="6.56701" rx="3.28351" transform="rotate(90 105.284 149.454)" fill="#0E6E66"/> <circle id="Call" cx="102" cy="105" r="26.268" fill="#0E6E66"/> </g> <path id="AMPidentifier" d="M150.728 136L175.292 72.888H190.38L215.036 136H202.064L197.004 122.568H168.116L163.056 136H150.728ZM171.888 112.448H193.14L186.792 95.336C186.547 94.7227 186.24 93.956 185.872 93.036C185.565 92.0547 185.228 91.012 184.86 89.908C184.492 88.7427 184.124 87.5773 183.756 86.412C183.388 85.2467 183.051 84.204 182.744 83.284H182.284C181.916 84.5107 181.456 85.9213 180.904 87.516C180.413 89.1107 179.923 90.6133 179.432 92.024C178.941 93.4347 178.543 94.5387 178.236 95.336L171.888 112.448ZM220.647 136V72.888H239.507L249.443 108.032C249.811 109.259 250.179 110.639 250.547 112.172C250.915 113.705 251.252 115.177 251.559 116.588C251.927 117.999 252.203 119.225 252.387 120.268H253.123C253.245 119.348 253.429 118.213 253.675 116.864C253.92 115.515 254.196 114.073 254.503 112.54C254.871 110.945 255.269 109.412 255.699 107.94L265.635 72.888H284.311V136H272.351V104.076C272.351 101.255 272.381 98.4333 272.443 95.612C272.504 92.7907 272.565 90.368 272.627 88.344C272.749 86.32 272.811 85.124 272.811 84.756H272.075C271.952 85.308 271.645 86.504 271.155 88.344C270.664 90.184 270.143 92.1773 269.591 94.324C269.039 96.4707 268.548 98.3107 268.119 99.844L257.723 136H246.683L236.287 99.936C235.919 98.648 235.489 97.1147 234.999 95.336C234.569 93.496 234.109 91.6253 233.619 89.724C233.189 87.8227 232.791 86.1667 232.423 84.756H231.687C231.748 86.412 231.809 88.4053 231.871 90.736C231.932 93.0053 231.993 95.336 232.055 97.728C232.116 100.059 232.147 102.175 232.147 104.076V136H220.647ZM296.432 136V72.888H328.08C332.741 72.888 336.574 73.716 339.58 75.372C342.646 77.028 344.946 79.3587 346.48 82.364C348.013 85.3693 348.78 88.9573 348.78 93.128C348.78 97.2373 347.982 100.825 346.388 103.892C344.793 106.959 342.401 109.351 339.212 111.068C336.084 112.724 332.158 113.552 327.436 113.552H308.392V136H296.432ZM308.392 103.34H327.068C330.134 103.34 332.496 102.451 334.152 100.672C335.869 98.832 336.728 96.3173 336.728 93.128C336.728 90.9813 336.36 89.172 335.624 87.7C334.888 86.228 333.814 85.0933 332.404 84.296C330.993 83.4987 329.214 83.1 327.068 83.1H308.392V103.34ZM355.672 77.672V69.484H362.296V77.672H355.672ZM355.672 136V87.608H362.296V136H355.672ZM389.794 137.104C385.808 137.104 382.373 136.215 379.49 134.436C376.608 132.657 374.4 129.897 372.866 126.156C371.394 122.353 370.658 117.416 370.658 111.344C370.658 105.64 371.425 100.979 372.958 97.36C374.492 93.68 376.669 90.9507 379.49 89.172C382.373 87.3933 385.746 86.504 389.61 86.504C391.696 86.504 393.658 86.7493 395.498 87.24C397.338 87.7307 398.994 88.528 400.466 89.632C401.938 90.6747 403.226 92.0853 404.33 93.864H404.882V69.484H411.506V136H406.354L405.618 128.916H404.974C403.257 131.676 401.049 133.731 398.35 135.08C395.713 136.429 392.861 137.104 389.794 137.104ZM390.898 131.308C394.21 131.308 396.878 130.572 398.902 129.1C400.988 127.628 402.49 125.512 403.41 122.752C404.392 119.992 404.882 116.619 404.882 112.632V110.976C404.882 107.173 404.484 104.045 403.686 101.592C402.95 99.1387 401.908 97.2373 400.558 95.888C399.27 94.5387 397.829 93.6187 396.234 93.128C394.64 92.576 393.014 92.3 391.358 92.3C388.292 92.3 385.716 92.944 383.63 94.232C381.606 95.4587 380.073 97.4213 379.03 100.12C378.049 102.819 377.558 106.345 377.558 110.7V113C377.558 117.539 378.11 121.157 379.214 123.856C380.318 126.493 381.852 128.395 383.814 129.56C385.838 130.725 388.2 131.308 390.898 131.308ZM441.286 137.104C436.686 137.104 432.791 136.215 429.602 134.436C426.412 132.596 423.99 129.805 422.334 126.064C420.678 122.323 419.85 117.569 419.85 111.804C419.85 105.977 420.678 101.224 422.334 97.544C423.99 93.8027 426.443 91.0427 429.694 89.264C432.944 87.424 436.992 86.504 441.838 86.504C446.315 86.504 450.056 87.3933 453.062 89.172C456.128 90.9507 458.428 93.5267 459.962 96.9C461.556 100.273 462.354 104.413 462.354 109.32V113.552H426.75C426.75 117.784 427.332 121.249 428.498 123.948C429.663 126.647 431.319 128.609 433.466 129.836C435.674 131.001 438.372 131.584 441.562 131.584C443.892 131.584 445.916 131.277 447.634 130.664C449.412 130.051 450.854 129.223 451.958 128.18C453.123 127.076 454.012 125.788 454.626 124.316C455.239 122.844 455.546 121.311 455.546 119.716H461.986C461.986 122.108 461.526 124.377 460.606 126.524C459.747 128.609 458.459 130.449 456.742 132.044C455.086 133.639 452.97 134.896 450.394 135.816C447.818 136.675 444.782 137.104 441.286 137.104ZM426.75 108.308H455.454C455.454 105.241 455.086 102.696 454.35 100.672C453.675 98.5867 452.724 96.9307 451.498 95.704C450.271 94.416 448.799 93.496 447.082 92.944C445.426 92.392 443.555 92.116 441.47 92.116C438.464 92.116 435.888 92.6987 433.742 93.864C431.595 94.968 429.939 96.716 428.774 99.108C427.67 101.5 426.995 104.567 426.75 108.308ZM470.543 136V87.608H475.787L476.431 95.244H477.075C478.424 93.036 479.958 91.3187 481.675 90.092C483.392 88.804 485.232 87.884 487.195 87.332C489.219 86.78 491.366 86.504 493.635 86.504C496.702 86.504 499.37 87.0253 501.639 88.068C503.97 89.0493 505.779 90.6747 507.067 92.944C508.355 95.2133 508.999 98.3107 508.999 102.236V136H502.375V102.88C502.375 100.733 502.099 98.9853 501.547 97.636C500.995 96.2867 500.228 95.244 499.247 94.508C498.266 93.7107 497.1 93.1587 495.751 92.852C494.463 92.5453 493.022 92.392 491.427 92.392C488.974 92.392 486.643 93.0053 484.435 94.232C482.288 95.3973 480.54 97.084 479.191 99.292C477.842 101.5 477.167 104.199 477.167 107.388V136H470.543ZM530.227 137.012C528.019 137.012 526.24 136.613 524.891 135.816C523.603 135.019 522.683 133.915 522.131 132.504C521.64 131.093 521.395 129.529 521.395 127.812V93.22H514.863V87.608H521.395L522.683 74.176H528.019V87.608H537.311V93.22H528.019V126.616C528.019 128.272 528.233 129.499 528.663 130.296C529.153 131.093 530.196 131.492 531.791 131.492H537.311V135.724C536.697 135.969 535.961 136.184 535.103 136.368C534.305 136.613 533.477 136.767 532.619 136.828C531.76 136.951 530.963 137.012 530.227 137.012ZM544.308 77.672V69.484H550.932V77.672H544.308ZM544.308 136V87.608H550.932V136H544.308ZM563.802 136V93.22H556.626V87.608H563.802V79.144C563.802 77.4267 564.048 75.7707 564.538 74.176C565.09 72.5813 566.072 71.2933 567.482 70.312C568.893 69.2693 570.886 68.748 573.462 68.748C574.26 68.748 575.057 68.7787 575.854 68.84C576.652 68.9013 577.388 68.9933 578.062 69.116C578.798 69.2387 579.442 69.4227 579.994 69.668V74.36H575.118C573.524 74.36 572.328 74.7587 571.53 75.556C570.794 76.3533 570.426 77.5187 570.426 79.052V87.608H579.994V93.22H570.426V136H563.802ZM586.71 77.672V69.484H593.334V77.672H586.71ZM586.71 136V87.608H593.334V136H586.71ZM623.183 137.104C618.583 137.104 614.689 136.215 611.499 134.436C608.31 132.596 605.887 129.805 604.231 126.064C602.575 122.323 601.747 117.569 601.747 111.804C601.747 105.977 602.575 101.224 604.231 97.544C605.887 93.8027 608.341 91.0427 611.591 89.264C614.842 87.424 618.89 86.504 623.735 86.504C628.213 86.504 631.954 87.3933 634.959 89.172C638.026 90.9507 640.326 93.5267 641.859 96.9C643.454 100.273 644.251 104.413 644.251 109.32V113.552H608.647C608.647 117.784 609.23 121.249 610.395 123.948C611.561 126.647 613.217 128.609 615.363 129.836C617.571 131.001 620.27 131.584 623.459 131.584C625.79 131.584 627.814 131.277 629.531 130.664C631.31 130.051 632.751 129.223 633.855 128.18C635.021 127.076 635.91 125.788 636.523 124.316C637.137 122.844 637.443 121.311 637.443 119.716H643.883C643.883 122.108 643.423 124.377 642.503 126.524C641.645 128.609 640.357 130.449 638.639 132.044C636.983 133.639 634.867 134.896 632.291 135.816C629.715 136.675 626.679 137.104 623.183 137.104ZM608.647 108.308H637.351C637.351 105.241 636.983 102.696 636.247 100.672C635.573 98.5867 634.622 96.9307 633.395 95.704C632.169 94.416 630.697 93.496 628.979 92.944C627.323 92.392 625.453 92.116 623.367 92.116C620.362 92.116 617.786 92.6987 615.639 93.864C613.493 94.968 611.837 96.716 610.671 99.108C609.567 101.5 608.893 104.567 608.647 108.308ZM652.441 136V87.608H657.777L658.329 95.704H658.973C659.402 94.232 660.046 92.7907 660.905 91.38C661.763 89.9693 662.929 88.804 664.401 87.884C665.873 86.964 667.743 86.504 670.013 86.504C670.871 86.504 671.669 86.596 672.405 86.78C673.141 86.9027 673.693 87.0253 674.061 87.148V93.22H671.209C669.062 93.22 667.222 93.6187 665.689 94.416C664.155 95.152 662.898 96.2253 661.917 97.636C660.935 99.0467 660.199 100.672 659.709 102.512C659.279 104.291 659.065 106.161 659.065 108.124V136H652.441Z" fill="currentColor"/> </g> </g> </svg>
       <p class="hero-line">
-        <span class="sr-only">antimicrobial peptide prediction</span>
+        <span class="sr-only">antimicrobial peptide predictor</span>
         <span class="hero-scramble" id="heroScramble" aria-hidden="true"
-              data-text="antimicrobial peptide prediction"></span>
+              data-text="antimicrobial peptide predictor"></span>
       </p>
     </div>
 
@@ -189,7 +189,19 @@ CSS = """
     white-space: pre;
   }
 
-  .hero-scramble .fixed { color: var(--text); }
+  /* O ciclo apaga em fade e recomeca. So opacidade anima, e a saida e
+     mais curta que a entrada, porque quem ja leu a frase nao precisa
+     assistir ela sair. */
+  .hero-scramble {
+    transition: opacity var(--duration-5) var(--ease-out-soft);
+  }
+
+  .hero-scramble.is-out { opacity: 0; }
+
+  /* a letra ja resolvida vai para a tinta cheia e as que ainda giram
+     ficam em --muted: a frase se forma da esquerda para a direita e da
+     para ver onde ela esta */
+  .hero-scramble .done { color: var(--text); }
   .hero-fan { display: block; height: var(--space-80); width: auto; color: var(--text); }
 
   @media (max-width: 768px) {
@@ -197,7 +209,95 @@ CSS = """
   }
 """
 
-JS = """const EXAMPLE = [
+JS = """/* ---------- a frase se resolve a partir dos aminoacidos ----------
+   O alfabeto do embaralhamento e o codigo de uma letra dos vinte
+   aminoacidos, e nao simbolos quaisquer: a materia da ferramenta e a
+   sequencia, entao a frase nasce do alfabeto dela. Nao e enfeite com
+   tema, e o tema virando enfeite.
+
+   Mono e obrigatorio, nao preferencia: cada glifo tem o mesmo avanco,
+   entao a linha nao muda de largura enquanto as letras giram. Em fonte
+   proporcional a frase pularia a cada quadro.
+
+   O ciclo: resolve da esquerda para a direita, segura, apaga em fade,
+   espera e recomeca. Ele para quando a aba sai de vista, porque animar
+   o que ninguem esta vendo e gastar bateria, e nao roda nenhuma vez sob
+   movimento reduzido: la a frase simplesmente esta escrita.
+
+   Os numeros abaixo sao de tempo, em milissegundos, e nenhum e lido por
+   folha de estilo, entao nenhum vira token. */
+
+(function () {
+  var AMINO = 'ACDEFGHIKLMNPQRSTVWY';
+  var TICK = 45;        /* quanto tempo cada giro fica na tela */
+  var PER_CHAR = 2;     /* giros antes de uma letra assentar */
+  var HOLD = 2600;      /* frase inteira parada, para ser lida */
+  var GAP = 500;        /* escuro entre um ciclo e o proximo */
+
+  var host = document.getElementById('heroScramble');
+  if (!host) return;
+  var text = host.dataset.text || '';
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (still) {
+    host.textContent = text;
+    return;
+  }
+
+  var timer = null;
+
+  function rand() {
+    return AMINO[Math.floor(Math.random() * AMINO.length)];
+  }
+
+  /* uma passada: `resolvidas` letras ja assentadas, o resto girando */
+  function frame(resolvidas) {
+    var out = '';
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (ch === ' ') { out += ' '; continue; }
+      if (i < resolvidas) out += '<span class="done">' + ch + '</span>';
+      else out += rand();
+    }
+    host.innerHTML = out;
+  }
+
+  function run() {
+    var passo = 0;
+    host.classList.remove('is-out');
+    timer = window.setInterval(function () {
+      var resolvidas = Math.floor(passo / PER_CHAR);
+      frame(resolvidas);
+      passo++;
+      if (resolvidas > text.length) {
+        window.clearInterval(timer);
+        frame(text.length);
+        timer = window.setTimeout(function () {
+          host.classList.add('is-out');
+          timer = window.setTimeout(run, GAP);
+        }, HOLD);
+      }
+    }, TICK);
+  }
+
+  function stop() {
+    window.clearInterval(timer);
+    window.clearTimeout(timer);
+    timer = null;
+  }
+
+  /* aba escondida nao anima: setInterval continua correndo em segundo
+     plano, ao contrario de requestAnimationFrame, entao aqui a parada e
+     explicita */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { stop(); host.textContent = text; }
+    else if (!timer) run();
+  });
+
+  run();
+})();
+
+const EXAMPLE = [
   ">Magainin-2|Xenopus_laevis|Cationic_amphipathic_helix",
   "GIGKFLHSAKKFGKAFVGEIMNS",
   ">LL-37|Homo_sapiens|Cathelicidin_family",
@@ -781,6 +881,10 @@ async function sendShareEmail() {
 # ---------------------------------------------------------------------------
 
 BODY_PAIRS = [
+    ('<span class="sr-only">antimicrobial peptide predictor</span>',
+     '<span class="sr-only">preditor de peptideos antimicrobianos</span>'),
+    ('data-text="antimicrobial peptide predictor"',
+     'data-text="preditor de peptideos antimicrobianos"'),
     ('>AMPidentifier, antimicrobial peptide prediction</h1>',
      '>AMPidentifier, predi&ccedil;&atilde;o de pept&iacute;deos antimicrobianos</h1>'),
     ('is a toolkit for antimicrobial peptide prediction using ensemble machine learning.',

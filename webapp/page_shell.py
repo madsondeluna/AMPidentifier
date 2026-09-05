@@ -757,10 +757,12 @@ STYLE = """  /* =========================================================
 
   /* a barra acompanha a coluna da pagina: mesma largura, mesma margem
      lateral, mesmo eixo esquerdo do cabecalho ao rodape. */
-  /* A barra e chrome, nao prosa: ela nao cabe na coluna de texto. Com
-     --container-md a fileira de rotas rolava e cortava o ultimo item. O
-     rodape ja usa a largura inteira pelo mesmo motivo. */
-  .nav-inner {
+  /* As duas barras sao chrome e usam a mesma ancora: largura inteira da
+     tela com a folga lateral de 24. Assim a esquerda da navbar cai na
+     mesma vertical da esquerda do rodape, e a direita das duas tambem.
+     Antes a navbar vivia numa coluna de 1280 centrada, o que a deixava
+     sem alinhamento nem com a coluna de texto nem com o rodape. */
+  .nav-inner, .footer-bar-inner {
     max-width: var(--container-xl);
     height: 100%;
     margin: 0 auto;
@@ -770,67 +772,15 @@ STYLE = """  /* =========================================================
     gap: var(--space-16);
   }
 
-  /* Ordem de prioridade da barra: as rotas e os controles nunca cedem
-     largura, o slogan cede. Por isso a marca e a unica que encolhe, e o
-     que sai dela e o slogan, que e decoracao, e nao a fileira de rotas,
-     que e navegacao. */
-  .nav-brand {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-8);
-    text-decoration: none;
-    flex: 0 1 auto;
-    min-width: 0;
-    overflow: hidden;
-  }
+  .nav-inner { gap: var(--space-16); }
 
-  /* o leque e a unica coisa colorida da barra, e nao inverte no escuro:
-     inverter uma marca de cor devolve a cor complementar, nao a versao
-     para fundo escuro */
-  /* A placa do icone e vetor, nao o PNG de 1024px: num quadrado de 32px
-     a versao rasterizada perde nitidez em tela de alta densidade, e a
-     mesma arte sai limpa com o leque branco sobre a cor de marca. O
-     arredondamento vem de --radius-media, o papel de midia na escada de
-     raio, e nao de um valor escolhido a olho. */
-  .nav-icon {
-    display: grid;
-    place-items: center;
-    flex: 0 0 auto;
-    width: var(--space-32);
-    height: var(--space-32);
-    border-radius: var(--radius-media);
-    background-color: var(--brand-teal);
-  }
+  .nav-brand { display: flex; align-items: center; text-decoration: none; flex: 0 0 auto; }
 
-  /* o leque ocupa o miolo da placa: a folga em volta e o que faz a marca
-     ler como icone de aplicativo e nao como desenho cortado na borda */
-  .nav-icon-mark { display: block; height: var(--space-20); width: auto; }
-
-  /* Entrada uma vez, no carregamento: o slogan chega depois da marca,
-     que e a ordem em que se le. Keyframe e nao transicao porque e
-     sequencia encenada e corre uma vez so; so opacidade e transform
-     animam, e sob movimento reduzido o slogan ja esta la. */
-  @keyframes nav-slogan-in {
-    from { opacity: 0; transform: translateY(var(--nudge-1)); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .nav-slogan {
-    flex: 0 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    font-family: var(--font-mono);
-    font-size: var(--text-11);
-    letter-spacing: var(--tracking-wide);
-    color: var(--muted);
-    white-space: nowrap;
-    opacity: 0;
-    animation: nav-slogan-in var(--duration-6) var(--ease-out-expo) var(--duration-4) forwards;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .nav-slogan { opacity: 1; animation: none; }
-  }
+  /* O leque nu carrega a marca na barra, sem placa. Ele e a unica coisa
+     colorida ali e nao inverte no escuro: inverter uma marca de cor
+     devolve a complementar, nao a versao para fundo escuro. A palavra
+     nao se repete aqui porque ela abre a pagina no lockup do topo. */
+  .nav-fan { display: block; flex: 0 0 auto; height: var(--space-32); width: auto; }
 
   /* A fileira de rotas nao quebra: rotulo de navegacao que vira duas
      linhas estica a pilula e rompe a altura da barra, que e fixa. Quando
@@ -903,13 +853,7 @@ STYLE = """  /* =========================================================
      tamanho da unidade desce junto. */
   .nav-actions { padding: var(--space-4); --liquid-size: var(--space-32); }
 
-  .footer-bar-inner {
-    height: 100%;
-    padding: 0 var(--space-24);
-    display: flex;
-    align-items: center;
-    gap: var(--space-24);
-  }
+  .footer-bar-inner { gap: var(--space-24); }
 
   /* doze marcas numa linha so nao cabem em tela estreita, e o corpo da
      pagina nunca rola na horizontal: quem rola e a fita. */
@@ -918,11 +862,16 @@ STYLE = """  /* =========================================================
      distancia e param de se ler como uma fita so. O vao entre grupos e
      fixo e maior que o vao entre marcas do mesmo grupo, que e o que faz
      o agrupamento aparecer sem precisar de linha divisoria. */
+  /* Ancorada nas pontas, como a navbar, e dentro da mesma coluna: assim
+     o primeiro grupo cai na vertical do leque e o ultimo na vertical do
+     aglomerado. Espalhar assim na largura INTEIRA da tela era o que
+     deixava os grupos a 500px um do outro; dentro da coluna limitada a
+     mesma regra alinha em vez de dispersar. */
   .footer-strip {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: var(--space-64);
+    justify-content: space-between;
+    gap: var(--space-48);
     flex-wrap: nowrap;
     width: 100%;
     overflow-x: auto;
@@ -1037,7 +986,6 @@ STYLE = """  /* =========================================================
   :root.dark .footer-strip .logo-row img:hover { opacity: 1; }
 
   @media (max-width: 768px) {
-    .nav-slogan { display: none; }
     .nav-links { margin-left: var(--space-8); gap: 0; }
     .nav-link { padding: var(--space-6); }
     .status-label { display: none; }
@@ -1123,10 +1071,7 @@ DEFS = """<svg class="pure-defs" aria-hidden="true" focusable="false" width="0" 
 NAV = """<nav class="navbar glass glass-thin" aria-label="__nav_label__">
   <div class="nav-inner">
     <a class="nav-brand" href="/" aria-label="__nav_home__">
-      <span class="nav-icon">
-        <img src="/img/symbol-fan-white.svg" alt="AMPidentifier" class="nav-icon-mark">
-      </span>
-      <span class="nav-slogan">__slogan__</span>
+      <img src="/img/symbol-fan.svg" alt="AMPidentifier" class="nav-fan">
     </a>
 
     <div class="nav-links">
