@@ -1,0 +1,21 @@
+<svg width="132" height="210" viewBox="0 0 132 210" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+<g id="04 Export fan">
+<g id="ampidentifier-compact-fan">
+<g id="Group">
+<circle id="Model 1" cx="102" cy="20.134" r="13.134" fill="#46545E"/>
+<rect id="Vote 1" x="98.7165" y="60.5464" width="23.2371" height="6.56701" rx="3.28351" transform="rotate(-90 98.7165 60.5464)" fill="#46545E"/>
+<circle id="Model 2" cx="41.9907" cy="44.9907" r="13.134" fill="#46545E"/>
+<rect id="Vote 2" x="68.2448" y="75.8884" width="23.2371" height="6.56701" rx="3.28351" transform="rotate(-135 68.2448 75.8884)" fill="#46545E"/>
+<circle id="Model 3" cx="17.134" cy="105" r="13.134" fill="#46545E"/>
+<rect id="Vote 3" x="57.5464" y="108.283" width="23.2371" height="6.56701" rx="3.28351" transform="rotate(-180 57.5464 108.283)" fill="#46545E"/>
+<circle id="Model 4" cx="41.9907" cy="165.009" r="13.134" fill="#46545E"/>
+<rect id="Vote 4" x="72.8883" y="138.755" width="23.2371" height="6.56701" rx="3.28351" transform="rotate(135 72.8883 138.755)" fill="#46545E"/>
+<circle id="Model 5" cx="102" cy="189.866" r="13.134" fill="#46545E"/>
+<rect id="Vote 5" x="105.284" y="149.454" width="23.2371" height="6.56701" rx="3.28351" transform="rotate(90 105.284 149.454)" fill="#46545E"/>
+<circle id="Call" cx="102" cy="105" r="26.268" fill="#46545E"/>
+</g>
+
+</g>
+</g>
+</svg>

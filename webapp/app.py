@@ -25,6 +25,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from amp_identifier.core import run_prediction_pipeline
 from amp_identifier.data_io import load_fasta_sequences
 from webapp.page_beta import PAGE as PAGE_BETA
+from webapp.page_about import PAGE as PAGE_ABOUT
+from webapp.page_suggestions import PAGE as PAGE_SUGGESTIONS
 
 VERSION = "2.0.0"
 
@@ -1451,6 +1453,22 @@ def pure_assets(filename):
 
 
 # Both rules point at the same view: with only the bare one, /beta/ is a 404.
+@app.route('/beta/about')
+@app.route('/beta/about/')
+def beta_about():
+    resp = make_response(render_template_string(PAGE_ABOUT, version=VERSION,
+                                                asset_v=_pure_version()))
+    return resp
+
+
+@app.route('/beta/suggestions')
+@app.route('/beta/suggestions/')
+def beta_suggestions():
+    resp = make_response(render_template_string(PAGE_SUGGESTIONS, version=VERSION,
+                                                asset_v=_pure_version()))
+    return resp
+
+
 @app.route('/beta')
 @app.route('/beta/')
 def beta():
@@ -1478,6 +1496,7 @@ def robots():
         "Disallow: /predict\n"
         "Disallow: /send_csv\n"
         "Disallow: /send_recommendation\n"
+        "Disallow: /send_suggestion\n"
         "Sitemap: https://www.ampidentifier.com/sitemap.xml\n"
     )
     return make_response(content, 200, {'Content-Type': 'text/plain'})
@@ -1497,6 +1516,16 @@ def sitemap():
         '    <loc>https://www.ampidentifier.com/beta</loc>\n'
         '    <changefreq>weekly</changefreq>\n'
         '    <priority>0.8</priority>\n'
+        '  </url>\n'
+        '  <url>\n'
+        '    <loc>https://www.ampidentifier.com/beta/about</loc>\n'
+        '    <changefreq>monthly</changefreq>\n'
+        '    <priority>0.6</priority>\n'
+        '  </url>\n'
+        '  <url>\n'
+        '    <loc>https://www.ampidentifier.com/beta/suggestions</loc>\n'
+        '    <changefreq>monthly</changefreq>\n'
+        '    <priority>0.5</priority>\n'
         '  </url>\n'
         '</urlset>\n'
     )
@@ -1934,6 +1963,83 @@ def send_recommendation():
         return jsonify({'ok': False, 'error': f'Resend {e.code}: {msg}'}), 500
     except Exception as e:
         app.logger.exception('send_recommendation failed')
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+
+@app.route('/send_suggestion', methods=['POST'])
+def send_suggestion():
+    """Manda a sugestao para o desenvolvedor pelo mesmo Resend das outras.
+
+    A rota e publica e sem autenticacao, como /send_recommendation, entao
+    ela carrega os mesmos limites: destino fixo, corpo com teto e um so
+    endereco de resposta, que e opcional e so serve para responder.
+    """
+    api_key = os.environ.get('RESEND_API_KEY', '')
+    if not api_key:
+        return jsonify({'ok': False, 'error': 'Email service not configured.'}), 503
+
+    topics = {
+        'feature': 'Feature request',
+        'model': 'Model or prediction quality',
+        'interface': 'Interface',
+        'data': 'Data or export',
+        'other': 'Other',
+    }
+    topic = request.form.get('topic', 'other').strip().lower()
+    topic = topic if topic in topics else 'other'
+
+    message = request.form.get('message', '').strip()
+    if not message:
+        return jsonify({'ok': False, 'error': 'Empty message.'}), 400
+    if len(message) > 4000:
+        return jsonify({'ok': False, 'error': 'Message too long.'}), 413
+
+    reply_to = request.form.get('reply_to', '').strip()
+    if reply_to and ('@' not in reply_to or len(reply_to) > 254):
+        return jsonify({'ok': False, 'error': 'Invalid email address.'}), 400
+
+    from_addr = os.environ.get('RESEND_FROM_EMAIL', 'AMPidentifier <onboarding@resend.dev>')
+    body = (
+        f'Topic: {topics[topic]}\n'
+        f'Reply to: {reply_to or "(not provided)"}\n'
+        f'Source: {request.url_root.rstrip("/")}/beta/suggestions\n\n'
+        f'{message}\n'
+    )
+
+    payload = json.dumps({
+        'from': from_addr,
+        'to': ['madsondeluna@gmail.com'],
+        'reply_to': reply_to or 'madsondeluna@gmail.com',
+        'subject': f'AMPidentifier suggestion: {topics[topic]}',
+        'text': body,
+        'html': _wrap_email_html(body),
+    }).encode('utf-8')
+
+    try:
+        req = urllib.request.Request(
+            'https://api.resend.com/emails',
+            data=payload,
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+                'User-Agent': 'AMPidentifier/2.0 (https://ampidentifier.com)',
+                'Accept': 'application/json',
+            },
+            method='POST',
+        )
+        with urllib.request.urlopen(req) as resp:
+            resp.read()
+        return jsonify({'ok': True})
+    except urllib.error.HTTPError as e:
+        raw = ''
+        try:
+            raw = e.read().decode('utf-8', errors='replace')
+        except Exception:
+            pass
+        app.logger.error(f'Resend HTTP {e.code}: {raw}')
+        return jsonify({'ok': False, 'error': f'Resend {e.code}'}), 500
+    except Exception as e:
+        app.logger.exception('send_suggestion failed')
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 

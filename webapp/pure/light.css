@@ -1,0 +1,424 @@
+/* Pure Design 1.6.1 -- copia de /Volumes/promethion/pure-design-language/web/light.css
+ pure / light.css
+   Camada de luz. Quinto arquivo, opcional, novo em 1.6.0.
+
+   O vidro desta linguagem e um material PARADO: ele desfoca o que esta
+   atras, acende a aresta de cima e deposita uma sombra na base, e faz as
+   tres coisas do mesmo jeito onde quer que o ponteiro esteja. E o que se
+   pede de um material honesto e e por isso que ele nunca precisou de
+   script.
+
+   A camada de luz nao troca o material: ela acrescenta a FONTE. Uma
+   superficie de vidro real tem um realce que anda quando a luz anda, um
+   aro que acende do lado de onde a luz vem e uma profundidade que so
+   aparece quando o observador se mexe. O ponteiro e o observador, e e a
+   unica coisa nesta pagina que a folha de estilo nao consegue ler
+   sozinha. Por isso, e so por isso, esta camada tem javascript junto:
+   `web/light.js`, um listener de ponteiro que escreve tres numeros.
+
+   O CONTRATO, e ele e curto:
+
+     o script escreve   --light-x, --light-y   posicao do ponteiro dentro
+                                               da caixa, de 0 a 1
+                        --light-near           proximidade, 1 sob o
+                                               ponteiro e 0 a
+                                               --light-reach de distancia
+     o CSS le os tres   e decide tudo o mais.
+
+   O script nao conhece efeito nenhum. Ele nao sabe o que e inclinacao,
+   nem aro, nem ima: ele mede uma caixa e escreve tres numeros. Toda a
+   aparencia mora aqui, em regra de CSS, e e por isso que um efeito novo
+   nesta camada nao toca em javascript.
+
+   Os tres sao propriedades REGISTRADAS em tokens.css, e o registro nao
+   e enfeite: custom property nao registrada e texto, o navegador
+   reanalisa o valor a cada escrita e o realce salta de quadro em quadro
+   em vez de escorrer atras do cursor.
+
+   A COR da luz e por modo, e ela NAO e --glass-specular. A diferenca foi
+   medida na tela: o especular do vidro e branco, e branco sobre uma
+   pagina quase branca nao aparece. Um realce que so existe nos dois
+   modos escuros nao e um realce. --light-fill e --light-edge moram nos
+   quatro blocos de modo em tokens.css, matiz de slate-700 nos claros e
+   branco nos escuros, e nenhuma cor nova entra na paleta: slate-700 ja
+   e o par de --glass-tint-accent. Fisicamente e a luz assumindo o tom
+   do material que ela atravessa.
+
+   --light-near e o que apaga o efeito sozinho. Nao ha um segundo estado
+   "sem ponteiro" em lugar nenhum deste arquivo: quando o cursor sai do
+   alcance o numero vai a zero e todo efeito desta camada multiplica por
+   ele. Um estado a menos e um estado a menos para sair de sincronia.
+
+   DEGRADACAO, decidida por entrada e nao por largura: em `pointer:
+   coarse` nao existe ponteiro pairando, entao a camada inteira volta ao
+   repouso e o script nem se registra. Em `prefers-reduced-motion` a luz
+   fica, o movimento sai: o realce continua acendendo, a inclinacao e o
+   ima nao. Um tablet de 1280px e toque e um celular com mouse nao e, e
+   decidir por largura erra os dois.
+
+   O QUE ESTA CAMADA NAO FAZ, e a exclusao e a regra funcionando:
+   nao ha mola, nao ha inercia e nao ha rastro fisico de cursor. Os tres
+   precisam integrar posicao a cada quadro, e um efeito que so existe
+   enquanto o rAF roda nao e material: e animacao com outro nome. O que
+   a lib faz com mola, aqui se faz com curva, e a diferenca e declarada.
+
+   ORDEM DE IMPORTACAO: tokens, patterns, light, motion, agent. A luz vem
+   depois de patterns porque ela precisa vencer o vidro na cascata em
+   tres pares nomeados; vem antes de motion e agent porque nenhum dos
+   dois a modifica. */
+
+/* ---------- palco ----------
+   Inclinacao sem perspectiva e rotacao chapada: a caixa gira e nao
+   entra na tela. A perspectiva mora no PAI, nao no elemento que
+   inclina, senao cada cartao de uma fileira teria o proprio ponto de
+   fuga e a fileira inteira sairia torta. */
+.lit-stage {
+  perspective: var(--light-depth);
+  perspective-origin: center;
+}
+
+/* ---------- realce especular ----------
+   O ponto de luz que anda com o ponteiro. Ele mora num pseudo-elemento
+   de indice NEGATIVO, e o numero e o efeito inteiro: um descendente
+   posicionado em z-index -1 pinta depois do fundo e da borda do proprio
+   elemento e ANTES do conteudo em fluxo. Em z-index 0, ou sem indice
+   nenhum, o pseudo pinta na camada dos posicionados, que vem depois do
+   texto: o realce lavava o rotulo do proprio botao.
+
+   `isolation: isolate` prende o -1 dentro desta caixa. Sem ele o pseudo
+   escorrega para tras do fundo do ancestral e desaparece. */
+.lit {
+  position: relative;
+  isolation: isolate;
+}
+
+.lit::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle var(--light-spec) at
+      calc(var(--light-x, 0.5) * 100%)
+      calc(var(--light-y, 0.5) * 100%),
+    var(--light-fill),
+    transparent
+  );
+  /* a proximidade e a unica coisa que apaga o realce, e ela ja e um
+     numero de 0 a 1: nao ha :hover nem :not(:hover) neste arquivo */
+  opacity: var(--light-near, 0);
+  transition: opacity var(--duration-3) var(--ease-out-soft);
+}
+
+/* ---------- aro aceso ----------
+   O aro nao acende inteiro: ele acende do lado de onde a luz vem. A
+   sombra interna sai do centro na direcao OPOSTA ao ponteiro, que e o
+   que uma fonte pontual faz num corpo translucido.
+
+   Esta e a unica regra da camada que precisa vencer a cascata por par
+   nomeado, pela mesma razao ja fechada em 1.4.2 e 1.4.3: quem pinta
+   sombra de vidro em patterns.css usa `.glass:not(.card-glass)`, que
+   pesa duas classes, e um modificador de uma classe perde em silencio.
+   Nomear os quatro componentes e o preco de o aro ser modificador e nao
+   componente. */
+.lit-edge,
+.glass.lit-edge,
+.card-glass.lit-edge,
+.pill.lit-edge,
+.overlay.lit-edge {
+  box-shadow:
+    var(--shadow-glass-rest),
+    inset
+      calc((0.5 - var(--light-x, 0.5)) * 2 * var(--light-rim))
+      calc((0.5 - var(--light-y, 0.5)) * 2 * var(--light-rim))
+      var(--light-rim)
+      calc(var(--light-rim) * -1)
+      color-mix(in oklab, var(--light-edge) calc(var(--light-near, 0) * 100%), transparent);
+  transition: box-shadow var(--duration-3) var(--ease-out-soft);
+}
+
+.glass.lit-edge:hover,
+.card-glass.lit-edge:hover,
+.pill.lit-edge:hover,
+.overlay.lit-edge:hover {
+  box-shadow:
+    var(--shadow-glass-hover),
+    inset
+      calc((0.5 - var(--light-x, 0.5)) * 2 * var(--light-rim))
+      calc((0.5 - var(--light-y, 0.5)) * 2 * var(--light-rim))
+      var(--light-rim)
+      calc(var(--light-rim) * -1)
+      color-mix(in oklab, var(--light-edge) calc(var(--light-near, 0) * 100%), transparent);
+}
+
+/* ---------- transform composto ----------
+   UMA declaracao de transform por elemento, composta de tokens, exata-
+   mente como no capitulo do liquido e pelo mesmo defeito: inclinacao,
+   ima e inchaco agem no MESMO elemento, e duas regras escrevendo
+   transform brigam por especificidade em vez de somar. Cada efeito
+   escreve o seu token; a composicao mora aqui e em lugar nenhum mais.
+
+   Os fallbacks de var() nao sao redundancia. @property e a primeira
+   trava dura de versao de navegador da linguagem: sem suporte os tokens
+   nao tem valor, o calc fica invalido em tempo de valor computado e a
+   declaracao INTEIRA cai para `transform: none`. Com fallback, o
+   registro so ACRESCENTA interpolacao. */
+.lit-tilt,
+.lit-pull,
+.lit-swell {
+  transform:
+    translate3d(var(--light-shift-x, 0px), var(--light-shift-y, 0px), 0)
+    rotateX(var(--light-turn-x, 0deg))
+    rotateY(var(--light-turn-y, 0deg))
+    scale(var(--light-grow, 1));
+  transform-style: preserve-3d;
+  transition: transform var(--duration-3) var(--ease-out-soft);
+}
+
+/* inclinacao: a caixa vira para o ponteiro. O eixo X responde ao Y do
+   ponteiro e vice-versa, que e o que faz a superficie parecer girar sob
+   ele em vez de fugir dele. Multiplicado pela proximidade, entao a
+   inclinacao chega em zero e sai em zero sem estado nenhum. */
+.lit-tilt {
+  --light-turn-x: calc((0.5 - var(--light-y, 0.5)) * 2 * var(--light-near, 0) * var(--light-tilt));
+  --light-turn-y: calc((var(--light-x, 0.5) - 0.5) * 2 * var(--light-near, 0) * var(--light-tilt));
+}
+
+/* ima: o controle escorrega na direcao do ponteiro ANTES de ele chegar.
+   O deslocamento e pequeno de proposito, --light-pull e 6px: controle
+   assenta, nao pula, e um alvo que foge do cursor e um alvo que erra. */
+.lit-pull {
+  --light-shift-x: calc((var(--light-x, 0.5) - 0.5) * 2 * var(--light-near, 0) * var(--light-pull));
+  --light-shift-y: calc((var(--light-y, 0.5) - 0.5) * 2 * var(--light-near, 0) * var(--light-pull));
+}
+
+/* inchaco por proximidade: a mesma leitura do liquido, agora a
+   distancia. O teto e 1.04 e nao mais: acima disso o texto de dentro
+   reamostra e le como desfocado. */
+.lit-swell {
+  --light-grow: calc(1 + var(--light-near, 0) * 0.04);
+}
+
+/* ---------- campo de luz ----------
+   A secao acende sob o ponteiro, e a luz fica ATRAS do vidro que mora
+   nela: e o backdrop-filter das superficies de cima que a distorce, e e
+   dai que vem a leitura de vidro liquido. Por isso o plano e um pseudo
+   de indice negativo e nao um overlay: um overlay por cima ficaria
+   nitido e denunciaria que a luz nao atravessa nada. */
+.lit-field {
+  position: relative;
+  isolation: isolate;
+  --surface-context: var(--bg);
+}
+
+.lit-field::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle var(--light-reach) at
+      calc(var(--light-x, 0.5) * 100%)
+      calc(var(--light-y, 0.5) * 100%),
+    var(--light-fill),
+    transparent
+  );
+  opacity: var(--light-near, 0);
+  transition: opacity var(--duration-4) var(--ease-out-soft);
+}
+
+/* ---------- lente do cursor ----------
+
+   Um disco de vidro sob o ponteiro, na pagina inteira, e ele nao desfoca
+   o fundo: ele o DOBRA. Dentro da lente o que esta atras aparece maior e
+   entortado, como atraves de vidro grosso.
+
+   Nada disso e escala em CSS, porque nao existe escala de fundo em CSS:
+   e amostragem. `backdrop-filter` aceita referencia a filtro SVG, e o
+   filtro le a posicao de cada pixel do fundo num mapa de deslocamento.
+   O `#pure-lens` do template faz dois passes, corpo e anel, e o segundo
+   existe so para a beirada entortar sem mexer no miolo.
+
+   O PISO e desfoque comum, declarado FORA do @supports: onde a
+   referencia a filtro nao vale, a lente vira a gota de vidro fino que
+   ela era antes, em vez de sumir. Chrome e Edge dobram; Safari e Firefox
+   desfocam. Nenhum dos dois fica sem material.
+
+   Dentro do @supports so existe a declaracao padrao, e a ausencia do par
+   -webkit- e deliberada e nao esquecimento: `-webkit-backdrop-filter`
+   NAO aceita url(), medido, entao escrever o par ali daria uma
+   declaracao invalida seguida da valida. A regra de ordem do par vale
+   onde ha par, e o par mora no piso logo acima.
+
+   Ela NAO e um cursor personalizado. O cursor do sistema continua la,
+   com a forma que o sistema decidiu, e a lente anda junto: trocar o
+   cursor por um desenho e a forma mais rapida de perder a affordance de
+   texto, de link e de arraste de uma vez.
+
+   O deslocamento vem em pixel do script, no mesmo par de tokens do
+   transform composto. */
+.lit-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  /* A lente e o PONTEIRO, e ponteiro nao fica atras de nada. Ela nasceu
+     em 2, que perdia para qualquer coisa que a pagina empilhasse: no
+     primeiro site real ela sumiu atras do seletor de modo.
+
+     A escada da linguagem termina em 80 para a sobreposicao e 100 para o
+     pulo de teclado. 120 fica acima das duas, e cobrir o pulo nao custa
+     nada porque a lente nao recebe ponteiro: ela desenha por cima e o
+     clique atravessa. */
+  z-index: 120;
+  width: var(--light-lens);
+  height: var(--light-lens);
+  margin: calc(var(--light-lens) / -2) 0 0 calc(var(--light-lens) / -2);
+  border-radius: var(--radius-circle);
+  pointer-events: none;
+  --surface-context: var(--surface-glass);
+  background-image: var(--glass-fill-thin);
+  background-color: var(--lens-fill);
+  border: var(--hairline) solid var(--glass-edge-hover);
+  box-shadow: var(--shadow-lens);
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(var(--glass-blur-thin)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur-thin)) saturate(140%);
+  transform:
+    translate3d(var(--light-shift-x, 0px), var(--light-shift-y, 0px), 0)
+    scale(var(--light-grow, 1));
+  opacity: var(--light-near, 0);
+  /* Aqui a transicao e sobre o TOKEN, nao sobre transform, e essa e a
+     unica forma que funciona. O deslocamento vem do script a cada
+     quadro: uma transicao sobre transform amorteceria ele junto e a
+     lente arrastaria atras do ponteiro. Uma propriedade REGISTRADA
+     interpola sozinha, entao o inchaco escorre enquanto o deslocamento
+     continua instantaneo, e o transform composto le os dois.
+
+     E o pagamento do @property: registrar deu tipo aos tokens, e com
+     tipo eles animam sem que ninguem precise animar transform. */
+  transition:
+    opacity      var(--duration-3) var(--ease-out-soft),
+    --light-grow var(--duration-3) var(--ease-out-soft);
+}
+
+/* O GRANULADO e o que faz vidro ler como fosco: sem ele o resultado e
+   translucido, que e outra coisa. E a mesma camada de .glass-frost, a
+   unica textura da linguagem que o carrega.
+
+   Aqui ele serve a um proposito alem do material: uma lente puramente
+   translucida some sobre uma area lisa, e o ponteiro se perde justamente
+   onde nao ha nada para dobrar. O granulado da corpo ao disco sem
+   fechar o miolo, entao a ampliacao continua passando.
+
+   Em `mix-blend-mode: overlay` ele escurece o que e claro e clareia o
+   que e escuro, entao o disco aparece nos quatro modos com uma regra so,
+   sem uma cor por modo. */
+.lit-cursor::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--glass-grain);
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+@supports (backdrop-filter: url("#pure-lens")) {
+  .lit-cursor {
+    backdrop-filter: url("#pure-lens") saturate(150%);
+  }
+}
+
+/* ---------- a lente sobre um controle ----------
+   Ela incha ao passar por algo clicavel. Nao e enfeite: e o que RESTA da
+   affordance quando o cursor do sistema cede o lugar, porque a mudanca
+   de forma sobre link e botao e metade do que a mãozinha comunicava.
+
+   :has() no body, e nao um combinador, porque a lente e irma de tudo e
+   nao descendente de nada: ela mora fixa no topo do documento. */
+body:has(a:hover, button:hover, [role="button"]:hover) .lit-cursor {
+  --light-grow: 1.5;
+}
+
+/* ---------- o cursor do sistema cede o lugar ----------
+
+   Opcional e opt-in, e opt-in de proposito: esconder o cursor nativo
+   CUSTA. Vai embora o I-beam sobre texto, a mãozinha sobre link e a
+   seta de arraste, e nenhuma lente devolve os tres. A classe existe para
+   quem decidiu pagar esse preco de olho aberto, nao como padrao.
+
+   O que ela NUNCA pode fazer e deixar a pagina sem ponteiro nenhum.
+   Onde a lente nao existe, o cursor do sistema volta na mesma consulta
+   que a apaga: em `pointer: coarse` ela nem se registra, e em
+   `prefers-reduced-motion` ela some. Sem estes dois blocos a classe
+   entrega uma tela onde nao ha nada para seguir com os olhos.
+
+   A classe aparece DUAS vezes no seletor, e nao e engano: `.lit-cursor-only *`
+   pesa uma classe so, igual a `.section-card { cursor: pointer }` de
+   qualquer app, e empate perde para quem vier depois. Medido: o cartao
+   voltava a mostrar a mãozinha e a metade da tela ficava com dois
+   ponteiros. Mesma licao ja fechada em `.glass-accent` e nas texturas,
+   por um terceiro caminho: um modificador que perde a cascata e um
+   modificador que nao existe. */
+.lit-cursor-only.lit-cursor-only,
+.lit-cursor-only.lit-cursor-only * {
+  cursor: none;
+}
+
+/* campo de texto e a excecao dentro da excecao: ali o I-beam nao e
+   enfeite, e a unica coisa que diz onde o caractere vai cair */
+.lit-cursor-only.lit-cursor-only input,
+.lit-cursor-only.lit-cursor-only textarea,
+.lit-cursor-only.lit-cursor-only [contenteditable] {
+  cursor: text;
+}
+
+/* ---------- degradacao ----------
+
+   Toque: nao existe pairar. Zerar a proximidade apaga a camada inteira
+   de uma vez, porque todo efeito daqui multiplica por ela, e o script
+   confere a mesma consulta antes de se registrar. Os controles que a
+   camada toca continuam com o piso de 44px que patterns.css ja lhes da:
+   esta camada nao cria controle novo, ela modifica os que existem. */
+@media (pointer: coarse) {
+  :root {
+    --light-near: 0;
+  }
+  .lit-cursor {
+    display: none;
+  }
+  /* sem lente, o cursor do sistema volta. Uma pagina sem ponteiro
+     nenhum e pior que uma pagina sem efeito nenhum. */
+  .lit-cursor-only.lit-cursor-only,
+  .lit-cursor-only.lit-cursor-only * {
+    cursor: auto;
+  }
+}
+
+/* Movimento reduzido: a LUZ fica, o MOVIMENTO sai. O realce e o aro sao
+   mudanca de cor e nao deslocam nada, entao continuam; a inclinacao, o
+   ima e o inchaco sao percurso e voltam ao repouso. Apagar tudo tambem
+   apagaria a informacao de foco de luz, que e o oposto do que a
+   preferencia pede. */
+@media (prefers-reduced-motion: reduce) {
+  .lit-tilt,
+  .lit-pull,
+  .lit-swell {
+    --light-turn-x: 0deg;
+    --light-turn-y: 0deg;
+    --light-shift-x: 0px;
+    --light-shift-y: 0px;
+    --light-grow: 1;
+  }
+  .lit-cursor {
+    display: none;
+  }
+  .lit-cursor-only.lit-cursor-only,
+  .lit-cursor-only.lit-cursor-only * {
+    cursor: auto;
+  }
+}
