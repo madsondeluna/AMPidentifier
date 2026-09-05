@@ -719,7 +719,7 @@ STYLE = """  /* =========================================================
      o conteudo passa por baixo e ainda se ve.
 
      as duas barras carregam texto, e texto sobre vidro vai na tinta cheia */
-  .navbar .status-label { color: var(--text); }
+  .navbar .status-label { color: var(--text); white-space: nowrap; }
 
   .navbar, .footer-bar {
     position: fixed;
@@ -754,8 +754,11 @@ STYLE = """  /* =========================================================
 
   /* a barra acompanha a coluna da pagina: mesma largura, mesma margem
      lateral, mesmo eixo esquerdo do cabecalho ao rodape. */
+  /* A barra e chrome, nao prosa: ela nao cabe na coluna de texto. Com
+     --container-md a fileira de rotas rolava e cortava o ultimo item. O
+     rodape ja usa a largura inteira pelo mesmo motivo. */
   .nav-inner {
-    max-width: var(--container-md);
+    max-width: var(--container-lg);
     height: 100%;
     margin: 0 auto;
     padding: 0 var(--space-24);
@@ -786,52 +789,38 @@ STYLE = """  /* =========================================================
 
   .nav-links::-webkit-scrollbar { display: none; }
 
+  /* Pilula de vidro de verdade, flutuando sobre a barra. A tentativa
+     anterior deixou a sombra do vidro num elemento sem fundo e sem borda,
+     e o rotulo saia cercado de um borrao: sombra de vidro pede vidro.
+     Agora quem paga a sombra e a propria superficie, e .lit-edge volta a
+     ser legitima, porque .pill esta na lista de seletores dela. */
   .nav-link {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--hit-min);
-    padding: var(--space-6) var(--space-10);
-    border-radius: var(--radius-control);
+    font-family: var(--font-sans);
     font-size: var(--text-12);
-    /* O rotulo nunca quebra: duas linhas esticam a pilula e rompem a
-       altura fixa da barra. Sem lugar, a fileira rola.
-
-       Estes links NAO levam .lit-edge. A classe compoe
-       --shadow-glass-rest, que e a sombra de uma superficie de vidro:
-       bisel branco no topo, poco na base e duas quedas para fora. Num
-       link de fundo transparente e sem borda isso pinta a sombra de um
-       objeto que nao esta la, e o rotulo sai cercado de um borrao. A
-       camada de luz e para vidro; aqui e texto. */
+    line-height: var(--text-16);
+    padding: var(--space-6) var(--space-12);
+    min-height: var(--hit-min);
+    text-decoration: none;
+    /* o rotulo nunca quebra: duas linhas esticam a pilula e rompem a
+       altura fixa da barra. Sem lugar, a fileira rola. */
     white-space: nowrap;
     flex: 0 0 auto;
-    /* texto sobre vidro usa --text, sem excecao: --muted esta abaixo do
-       piso de 4,5 sobre a superficie de vidro em todos os modos. O que
-       separa a rota corrente das outras nao e cor, e peso. */
-    color: var(--text);
-    text-decoration: none;
-    /* Tinta cheia em todos. A rota corrente nao se separa por apagar as
-       outras: apagar rotulo para destacar um vizinho custa legibilidade
-       nos tres que sobraram e nao devolve nada ao que ficou. */
-    background-color: transparent;
-    transition:
-      background-color var(--duration-5) var(--ease-out-soft),
-      box-shadow var(--duration-5) var(--ease-out-soft);
   }
 
-  .nav-link:hover { background-color: var(--dim); }
-
-  /* a rota corrente e estado, entao ela tambem se le sem cor: o rotulo
-     sobe para a tinta cheia e ganha peso, e aria-current diz o mesmo
-     para quem nao ve nenhum dos dois. */
-  /* a rota corrente ganha superficie e peso: duas pistas, nenhuma delas
-     so de cor, e aria-current diz o mesmo para quem nao ve as duas */
+  /* A rota corrente e a unica tingida. Duas pistas e nenhuma so de cor:
+     o vidro assume o acento e o rotulo ganha peso, e aria-current diz o
+     mesmo para quem nao ve nenhuma das duas. */
   .nav-link[aria-current="page"] {
     font-weight: var(--weight-medium);
-    background-color: var(--surface);
-    box-shadow: inset 0 0 0 var(--hairline) var(--secondary);
+    background-image: var(--glass-tint-accent);
+    border-color: var(--glass-edge-accent);
   }
 
-  .nav-side { display: flex; align-items: center; gap: var(--space-8); margin-left: auto; }
+  /* o lado direito nao quebra nem encolhe: ele e a ancora da barra, e a
+     fileira de rotas e que rola quando falta espaco */
+  .nav-side { display: flex; align-items: center; gap: var(--space-8); margin-left: auto; flex: 0 0 auto; }
+  .navbar .status-label { white-space: nowrap; }
+  .navbar .status-tip { flex: 0 0 auto; }
 
   /* o aglomerado liquido tem folga propria de 24px para a massa fundida
      caber; dentro de uma barra de 56 isso estoura, entao a folga cai e o
@@ -1066,10 +1055,10 @@ NAV = """<nav class="navbar glass glass-thin" aria-label="__nav_label__">
     </a>
 
     <div class="nav-links">
-      <a class="nav-link" href="/" data-nav="predict">__nav_predict__</a>
-      <a class="nav-link" href="/about" data-nav="about">__nav_about__</a>
-      <a class="nav-link" href="/suggestions" data-nav="suggestions">__nav_suggestions__</a>
-      <a class="nav-link" href="/beta" data-nav="beta">__nav_beta__</a>
+      <a class="nav-link pill lit lit-edge" href="/" data-nav="predict">__nav_predict__</a>
+      <a class="nav-link pill lit lit-edge" href="/about" data-nav="about">__nav_about__</a>
+      <a class="nav-link pill lit lit-edge" href="/suggestions" data-nav="suggestions">__nav_suggestions__</a>
+      <a class="nav-link pill lit lit-edge" href="/beta" data-nav="beta">__nav_beta__</a>
     </div>
 
     <div class="nav-side">
