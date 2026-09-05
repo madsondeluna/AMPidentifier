@@ -22,8 +22,15 @@ BODY = """
          posicao 7 e um R para quem quiser conferir. Quem conhece a area
          le o recado inteiro; quem nao conhece ve uma sequencia. -->
     <p class="soup-mask">
-      <span class="soup-seq">LLGDFF<span class="soup-token">[MASK]</span>KSKEKIGKEF</span>
-      <span class="soup-aside">Something that fills that in is in training.</span>
+      <span class="soup-seq">LLGDFF<button type="button" class="soup-token hit"
+             aria-label="Masked residue, position 7 of LL-37. Reveal it: arginine.">
+        <span class="mask-face mask-face-hidden" aria-hidden="true">[MASK]</span>
+        <span class="mask-face mask-face-shown" aria-hidden="true">R</span>
+      </button>KSKEKIGKEF</span>
+      <span class="soup-aside" role="status">
+        <span class="mask-face mask-line-rest" aria-hidden="true">Something that fills that in is in training.</span>
+        <span class="mask-face mask-line-done" aria-hidden="true">You just did what it is being trained to do.</span>
+      </span>
     </p>
 
     <noscript>
@@ -55,8 +62,54 @@ CSS = """
   }
 
   .soup-seq { font-family: var(--font-mono); font-size: var(--text-13); color: var(--muted); letter-spacing: var(--tracking-wide); }
-  .soup-token { color: var(--text); }
-  .soup-aside { font-size: var(--text-13); color: var(--muted); }
+
+  /* O residuo mascarado e um controle, nao um enfeite: e o gesto que
+     completa a piada. Largura fixa na maior das duas faces, senao a
+     cadeia inteira anda para o lado quando [MASK] vira R. */
+  .soup-token {
+    display: inline-grid;
+    place-items: center;
+    position: relative;
+    min-width: var(--space-48);
+    padding: 0;
+    border: none;
+    border-bottom: var(--stroke) dotted var(--secondary);
+    background: none;
+    font: inherit;
+    color: var(--text);
+    cursor: pointer;
+    vertical-align: baseline;
+  }
+
+  .mask-face {
+    grid-area: 1 / 1;
+    transition:
+      opacity var(--duration-3) var(--ease-out-expo),
+      transform var(--duration-3) var(--ease-out-expo),
+      filter var(--duration-3) var(--ease-out-expo);
+  }
+
+  .mask-face-hidden, .mask-line-rest { opacity: 1; transform: scale(1); filter: blur(0); }
+  .mask-face-shown, .mask-line-done { opacity: 0; transform: scale(0.25); filter: blur(var(--motion-blur-2)); }
+
+  .soup-token:hover .mask-face-hidden,
+  .soup-token:focus-visible .mask-face-hidden { opacity: 0; transform: scale(0.25); filter: blur(var(--motion-blur-2)); }
+  .soup-token:hover .mask-face-shown,
+  .soup-token:focus-visible .mask-face-shown { opacity: 1; transform: scale(1); filter: blur(0); }
+
+  /* a legenda troca junto, e por isso a piada se explica sozinha para
+     quem nao a pegou de primeira. Sem :has() o token ainda troca, so a
+     legenda fica parada: a degradacao perde a explicacao, nao o gesto. */
+  .soup-aside {
+    display: inline-grid;
+    font-size: var(--text-13);
+    color: var(--muted);
+  }
+
+  .soup-mask:has(.soup-token:hover) .mask-line-rest,
+  .soup-mask:has(.soup-token:focus-visible) .mask-line-rest { opacity: 0; transform: scale(0.25); filter: blur(var(--motion-blur-2)); }
+  .soup-mask:has(.soup-token:hover) .mask-line-done,
+  .soup-mask:has(.soup-token:focus-visible) .mask-line-done { opacity: 1; transform: scale(1); filter: blur(0); }
 
   .soup {
     display: flex;
