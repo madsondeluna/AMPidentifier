@@ -1154,11 +1154,22 @@ MODAL = """<!-- Feedback modal -->
   </div>
 </div>"""
 
-SHELL_JS = """/* ---------- modo: o estado mora no endereco ----------
-   Dois modos, claro e escuro. Sem ?mode o navegador decide pela
-   preferencia do sistema, e a escolha explicita sobrescreve. A moldura
-   do navegador acompanha, lendo --bg computado em vez de um literal. */
+SHELL_JS = """/* ---------- modo: o padrao e claro, a escolha persiste ----------
+   Toda pagina abre no claro e em ingles. A preferencia do sistema NAO
+   decide: a pagina foi desenhada e medida no claro, e as marcas do rodape
+   sao tinta escura invertida por filtro no escuro.
 
+   Depois que a pessoa escolhe, a escolha vale nas paginas seguintes. Ela
+   mora em dois lugares e a ordem importa: o endereco vence, porque um
+   link compartilhado tem de abrir do jeito que quem mandou estava vendo;
+   o armazenamento local entra so quando o endereco nao diz nada. Sem o
+   local, trocar de rota pela navbar perderia a escolha; sem o endereco,
+   um link compartilhado abriria no modo de quem recebe.
+
+   O idioma nao precisa deste mecanismo: ele mora no caminho, e os links
+   da navbar em portugues ja apontam para as rotas em portugues. */
+
+const MODE_KEY = 'amp-mode';
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 const modeProbe = document.createElement('div');
 modeProbe.style.cssText = 'position:absolute;visibility:hidden';
@@ -1171,32 +1182,57 @@ function resolveToken(name) {
   return '#' + m.slice(0, 3).map(c => (+c).toString(16).padStart(2, '0')).join('');
 }
 
+/* leitura e escrita do armazenamento sempre em try: em janela privada o
+   proprio acessor lança, e uma pagina que quebra por causa da memoria de
+   um interruptor e pior que um interruptor sem memoria */
+function storedMode() {
+  try { return window.localStorage.getItem(MODE_KEY); } catch (e) { return null; }
+}
+function storeMode(mode) {
+  try { window.localStorage.setItem(MODE_KEY, mode); } catch (e) {}
+}
+
+/* todo link interno carrega o modo: sem isto a escolha morre no primeiro
+   clique da navbar, e e justamente a navbar que leva as outras paginas */
+function carryMode(mode) {
+  document.querySelectorAll('a[href^="/"]').forEach(function (a) {
+    const url = new URL(a.getAttribute('href'), location.origin);
+    if (mode === 'dark') url.searchParams.set('mode', 'dark');
+    else url.searchParams.delete('mode');
+    a.setAttribute('href', url.pathname + (url.search || '') + (url.hash || ''));
+  });
+}
+
 function applyMode(mode, record) {
-  document.documentElement.className = mode === 'dark' ? 'dark' : '';
+  const dark = mode === 'dark';
+  document.documentElement.className = dark ? 'dark' : '';
   const btn = document.getElementById('modeBtn');
   if (btn) {
-    btn.setAttribute('aria-pressed', String(mode === 'dark'));
-    btn.setAttribute('aria-label', mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    btn.setAttribute('aria-pressed', String(dark));
+    btn.setAttribute('aria-label', dark ? '__mode_to_light__' : '__mode_to_dark__');
   }
   const bg = resolveToken('--bg');
   if (themeMeta && bg) themeMeta.setAttribute('content', bg);
+  carryMode(dark ? 'dark' : '');
   if (!record) return;
+  storeMode(dark ? 'dark' : 'light');
   const url = new URL(location.href);
-  if (mode === 'dark') url.searchParams.set('mode', 'dark');
+  if (dark) url.searchParams.set('mode', 'dark');
   else url.searchParams.delete('mode');
   history.replaceState(null, '', url);
 }
 
 (function initMode() {
-  /* O claro e o padrao em toda pagina, e nao a preferencia do sistema:
-     as marcas institucionais do rodape sao tinta escura invertida por
-     filtro no escuro, e a pagina foi desenhada e medida no claro. Quem
-     quiser o escuro pede, pelo interruptor ou pelo endereco. */
   const asked = new URL(location.href).searchParams.get('mode');
-  applyMode(asked === 'dark' ? 'dark' : '', false);
+  const remembered = storedMode();
+  const start = asked === 'dark' ? 'dark'
+              : asked === 'light' ? 'light'
+              : remembered === 'dark' ? 'dark'
+              : 'light';
+  applyMode(start, false);
   const btn = document.getElementById('modeBtn');
   if (btn) btn.addEventListener('click', function () {
-    applyMode(document.documentElement.classList.contains('dark') ? '' : 'dark', true);
+    applyMode(document.documentElement.classList.contains('dark') ? 'light' : 'dark', true);
   });
 })();
 
@@ -1317,7 +1353,11 @@ def page(title, description, path, body, schema='', css='', js='', lang='en'):
     # link da marca e a marca nao e a rota corrente
     slug = {'/': 'predict', '/about': 'about', '/suggestions': 'suggestions',
             '/beta': 'beta'}.get(path, '')
-    nav = fill(NAV)
+    # A reescrita de prefixo corre ANTES do preenchimento, com o href da
+    # sigla de idioma ainda como marcador: feita depois, ela prefixava o
+    # proprio link de troca e a sigla apontava para a pagina onde ja se
+    # esta. Medido: em /pt/about a sigla EN levava a /pt/about.
+    nav = NAV
     if slug:
         nav = nav.replace('data-nav="%s"' % slug,
                           'data-nav="%s" aria-current="page"' % slug, 1)
@@ -1327,6 +1367,7 @@ def page(title, description, path, body, schema='', css='', js='', lang='en'):
         nav = nav.replace('href="/suggestions"', 'href="/pt/suggestions"')
         nav = nav.replace('href="/" data-nav', 'href="/pt" data-nav')
         nav = nav.replace('class="nav-brand" href="/"', 'class="nav-brand" href="/pt"')
+    nav = fill(nav)
 
     return (
         '<!DOCTYPE html>\n' + head + '\n<style>\n' + STYLE + css + '\n</style>\n'
@@ -1335,7 +1376,7 @@ def page(title, description, path, body, schema='', css='', js='', lang='en'):
         + fill('<a class="skip-link pill" href="#main">__skip__</a>') + '\n\n'
         + nav + '\n\n<div class="shell">\n' + body + '\n</div>\n\n'
         + fill(FOOTER_BAR) + '\n\n' + fill(MODAL) + '\n\n'
-        + '{% raw %}<script>\n' + SHELL_JS + '\n' + js + '\n</script>{% endraw %}\n'
+        + '{% raw %}<script>\n' + fill(SHELL_JS) + '\n' + js + '\n</script>{% endraw %}\n'
         + '<script src="/pure/light.js?v={{ asset_v }}" defer></script>\n'
         + '</body>\n</html>'
     )
