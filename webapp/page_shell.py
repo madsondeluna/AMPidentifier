@@ -906,7 +906,7 @@ NAV = """<nav class="navbar glass-deep" aria-label="Main">
       <a class="nav-link lit lit-edge" href="/" data-nav="predict">Predict</a>
       <a class="nav-link lit lit-edge" href="/about" data-nav="about">About</a>
       <a class="nav-link lit lit-edge" href="/suggestions" data-nav="suggestions">Suggestions</a>
-      <a class="nav-link lit lit-edge" href="/beta" data-nav="beta">Next</a>
+      <a class="nav-link lit lit-edge" href="/beta" data-nav="beta">Beta version</a>
     </div>
 
     <div class="nav-side">
