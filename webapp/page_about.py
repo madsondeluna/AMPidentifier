@@ -169,22 +169,40 @@ BODY = """
     </div>
 
     <div class="metrics-band step-2">
-      <div class="metrics-label">Main developer</div>
+      <div class="metrics-label">Origin</div>
+      <div class="card-glass prose-block prose-justify">
+        <p>AMPidentifier began as a minimum viable product written by Jo&atilde;o
+        Pacifico Bezerra Neto in the 2020s. That prototype is where the tool
+        comes from: it set the problem, showed that sequence-derived descriptors
+        carried enough signal to classify antimicrobial peptides, and made the
+        case for building the rest.</p>
+        <p>What is distributed today was rebuilt from that starting point. The
+        descriptor set, the training pipeline, the ensemble, the external
+        benchmark and the three distribution channels are a later and separate
+        implementation, but the idea is his.</p>
+      </div>
+    </div>
+
+    <div class="metrics-band step-2">
+      <div class="metrics-label">Maintainer</div>
       <div class="card-glass lead-card">
         %(photo)s
         <div class="lead-text prose-justify">
           <div class="lead-name">Madson Allan de Luna Arag&atilde;o</div>
-          <div class="lead-role">Design, implementation and maintenance</div>
-          <p>Built AMPidentifier from the descriptors up: the 22-feature
-          extraction, the training pipeline, the soft-voting ensemble of five
-          classifiers, and the external benchmark that put it against 11
-          published configurations on the same 4,736 sequences. Wrote the three
-          ways it is distributed, the command line program, the Python package
-          on PyPI and this web server, so that none of them is a single point of
-          failure for the others.</p>
-          <p>Maintains the repository and answers the issues. Holds the
-          constraints the tool is built against: no sequence is stored, no
-          account is required, and nothing is charged.</p>
+          <div class="lead-role">Lead developer and maintainer</div>
+          <p>Rebuilt AMPidentifier from that prototype into the tool
+          distributed today: the 22-feature extraction, the training pipeline,
+          the soft-voting ensemble of five classifiers, and the external
+          benchmark that put it against 11 published configurations on the same
+          4,736 sequences. Wrote the three ways it ships, the command line
+          program, the Python package on PyPI and this web server, so that none
+          of them is a single point of failure for the others.</p>
+          <p>Maintenance is the work, not what comes after it. Half the broken
+          tools in the survey above came back the moment someone answered an
+          email, which is most of the distance between a published tool and a
+          working one. Keeps the repository current, answers the issues, keeps
+          the server up, and holds the constraints the tool is built against: no
+          sequence is stored, no account is required, and nothing is charged.</p>
           <p class="lead-links">
             <a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">ORCID 0000-0001-5313-3913</a>
             &nbsp;&middot;&nbsp; <a href="https://github.com/madsondeluna" target="_blank" rel="noopener">GitHub</a>
@@ -201,6 +219,7 @@ BODY = """
 
         <div class="card-glass author">
           <div class="author-name">Madson Allan de Luna Arag&atilde;o</div>
+          <div class="author-role">Lead developer and maintainer</div>
           <div class="author-affil">Institute of Biological Sciences, Universidade Federal de Minas Gerais (UFMG), Belo Horizonte<br>Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife</div>
           <div class="author-links"><a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">ORCID</a></div>
         </div>
@@ -212,6 +231,7 @@ BODY = """
 
         <div class="card-glass author">
           <div class="author-name">Jo&atilde;o Pacifico Bezerra Neto</div>
+          <div class="author-role">Original prototype</div>
           <div class="author-affil">Universidade de Pernambuco (UPE), Petrolina</div>
           <div class="author-links"><a href="https://orcid.org/0000-0003-3861-4879" target="_blank" rel="noopener">ORCID</a></div>
         </div>
@@ -312,6 +332,7 @@ CSS = """
 
   .author { padding: var(--space-16); display: flex; flex-direction: column; gap: var(--space-6); }
   .author-name { font-size: var(--text-15); color: var(--text); }
+  .author-role { font-family: var(--font-mono); font-size: var(--text-11); color: var(--muted); }
   .author-affil { font-size: var(--text-12); color: var(--muted); line-height: var(--leading-snug); }
   .author-links { font-family: var(--font-mono); font-size: var(--text-11); }
 
