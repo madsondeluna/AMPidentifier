@@ -97,12 +97,16 @@ HEAD = """<html lang="en">
 <meta property="og:url" content="https://www.ampidentifier.com%(path)s">
 <meta property="og:title" content="AMPidentifier | Antimicrobial Peptide Prediction Tool">
 <meta property="og:description" content="Free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences, get predictions in seconds.">
-<meta property="og:image" content="https://www.ampidentifier.com/img/og-image.png?v=2">
+<meta property="og:image" content="https://www.ampidentifier.com/img/og-image.png?v=3">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:url" content="https://www.ampidentifier.com/">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="AMPidentifier">
+<meta name="twitter:url" content="https://www.ampidentifier.com%(path)s">
 <meta name="twitter:title" content="AMPidentifier | Antimicrobial Peptide Prediction Tool">
 <meta name="twitter:description" content="Free web tool for antimicrobial peptide (AMP) prediction using machine learning ensemble models. Submit FASTA sequences, get predictions in seconds.">
-<meta name="twitter:image" content="https://www.ampidentifier.com/img/og-image.png?v=2">
+<meta name="twitter:image" content="https://www.ampidentifier.com/img/og-image.png?v=3">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
