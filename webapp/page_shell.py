@@ -744,6 +744,16 @@ STYLE = """  /* =========================================================
   .footer-strip .logo-group { flex: 0 0 auto; gap: var(--space-6); }
   .footer-strip .logo-group-label { white-space: nowrap; color: var(--text); opacity: 0.72; }
 
+  /* cada marca leva ao site da propria instituicao. O alvo e a imagem,
+     entao o link nao acrescenta caixa: display block e o raio de marca
+     so existem para o anel de foco nao sair quadrado num contorno que
+     ninguem ve. */
+  .logo-link {
+    display: block;
+    border-radius: var(--radius-mark);
+    line-height: 0;
+  }
+
   /* A altura de cada marca sai de area de caixa constante, nao da altura
      igual: h = raiz(A / proporcao), com A fechada para a marca mais
      quadrada cair no degrau mais alto. Altura igual faz um logotipo de
@@ -943,32 +953,32 @@ FOOTER_BAR = """<footer class="footer-bar glass-deep">
         <div class="logo-group">
           <div class="logo-group-label">Institutions</div>
           <div class="logo-row">
-            <img src="/img/pure/ufpe.png"     alt="Universidade Federal de Pernambuco" class="logo-lockup">
-            <img src="/img/pure/ufmg.png"     alt="Universidade Federal de Minas Gerais">
-            <img src="/img/pure/upe-logo.png" alt="Universidade de Pernambuco" class="logo-lockup">
-            <img src="/img/pure/lncc.png"     alt="Laboratório Nacional de Computação Científica">
+            <a class="logo-link" href="https://www.ufpe.br" target="_blank" rel="noopener" title="Universidade Federal de Pernambuco"><img src="/img/pure/ufpe.png"     alt="Universidade Federal de Pernambuco" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.ufmg.br" target="_blank" rel="noopener" title="Universidade Federal de Minas Gerais"><img src="/img/pure/ufmg.png"     alt="Universidade Federal de Minas Gerais"></a>
+            <a class="logo-link" href="https://upe.br" target="_blank" rel="noopener" title="Universidade de Pernambuco"><img src="/img/pure/upe-logo.png" alt="Universidade de Pernambuco" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.gov.br/lncc/pt-br" target="_blank" rel="noopener" title="Laboratório Nacional de Computação Científica"><img src="/img/pure/lncc.png"     alt="Laboratório Nacional de Computação Científica"></a>
           </div>
         </div>
         <div class="logo-group">
           <div class="logo-group-label">Departments</div>
           <div class="logo-row">
-            <img src="/img/pure/dqf.png"   alt="Departamento de Química Fundamental, UFPE" class="logo-lockup">
-            <img src="/img/pure/dgen.png" alt="Departamento de Genética, UFPE" class="logo-lockup">
-            <img src="/img/pure/icb.png"   alt="Instituto de Ciências Biológicas, UFMG" class="logo-lockup">
-            <img src="/img/pure/ppgbioinfo.png" alt="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG" class="logo-stacked">
+            <a class="logo-link" href="https://www.ufpe.br/dqf" target="_blank" rel="noopener" title="Departamento de Química Fundamental, UFPE"><img src="/img/pure/dqf.png"   alt="Departamento de Química Fundamental, UFPE" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.ufpe.br/dep-genetica" target="_blank" rel="noopener" title="Departamento de Genética, UFPE"><img src="/img/pure/dgen.png" alt="Departamento de Genética, UFPE" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.icb.ufmg.br" target="_blank" rel="noopener" title="Instituto de Ciências Biológicas, UFMG"><img src="/img/pure/icb.png"   alt="Instituto de Ciências Biológicas, UFMG" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.pgbioinfo.icb.ufmg.br" target="_blank" rel="noopener" title="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG"><img src="/img/pure/ppgbioinfo.png" alt="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG" class="logo-stacked"></a>
           </div>
         </div>
         <div class="logo-group">
           <div class="logo-group-label">Funding</div>
           <div class="logo-row">
-            <img src="/img/pure/facepe.png"  alt="FACEPE">
-            <img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-lockup">
+            <a class="logo-link" href="https://www.facepe.br" target="_blank" rel="noopener" title="FACEPE"><img src="/img/pure/facepe.png"  alt="FACEPE"></a>
+            <a class="logo-link" href="https://fapemig.br" target="_blank" rel="noopener" title="FAPEMIG"><img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-lockup"></a>
           </div>
         </div>
         <div class="logo-group">
           <div class="logo-group-label">Research groups</div>
           <div class="logo-row">
-            <img src="/img/pure/lgbv.png" alt="Laboratório de Genética e Biotecnologia Vegetal">
+            <a class="logo-link" href="https://lgbv-ufpe.net" target="_blank" rel="noopener" title="Laboratório de Genética e Biotecnologia Vegetal"><img src="/img/pure/lgbv.png" alt="Laboratório de Genética e Biotecnologia Vegetal"></a>
             <img src="/img/pure/lcm3.png" alt="LCM3">
           </div>
         </div>
