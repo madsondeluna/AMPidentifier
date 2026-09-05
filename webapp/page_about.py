@@ -4,7 +4,15 @@ Only the body lives here. Head, style, navbar, footer bar and modal come
 from page_shell.py and are the same on every route under /beta.
 """
 
+from pathlib import Path
+
 from webapp.page_shell import page
+
+# A foto entra so quando o arquivo existe: um <img> apontando para 404
+# rende o icone de imagem quebrada, que e pior que nao ter retrato.
+_PHOTO = Path(__file__).with_name('img') / 'madson.jpg'
+PHOTO_TAG = ('<img class="lead-photo" src="/img/madson.jpg" '
+             'alt="Madson Allan de Luna Arag&atilde;o">') if _PHOTO.exists() else ''
 
 BODY = """
   <header class="step-1">
@@ -21,6 +29,49 @@ BODY = """
     </div>
 
     <div class="metrics-band step-2">
+      <div class="metrics-label">Manifesto</div>
+      <div class="card-glass prose-block prose-justify">
+        <p>Antimicrobial resistance kills people now and will kill more. The
+        sequence space where new antimicrobial peptides might be found is far
+        larger than any laboratory can screen, which makes computational triage
+        part of the experimental pipeline rather than an accessory to it. A tool
+        that performs that triage is only useful to the extent that other people
+        can run it, check it and disagree with it.</p>
+
+        <p>That is why every part of this project is in the open. The training
+        code, the datasets, the feature extraction, the model files and the web
+        server are in one public repository under a permissive licence. The
+        benchmark figures on this page come from a held-out set that ships with
+        the repository, so anyone can reproduce them or show that they do not
+        hold. A prediction you cannot audit is an opinion with a decimal point.</p>
+
+        <p>The FAIR principles are the practical form of that commitment.
+        <strong>Findable</strong>: the software is deposited on PyPI and GitHub,
+        carries a citable identifier and a machine-readable
+        <code>CITATION.cff</code>. <strong>Accessible</strong>: the web tool needs
+        no account, no institutional login and no payment, and the package
+        installs with one command. <strong>Interoperable</strong>: input is FASTA
+        and output is CSV, two formats every other tool in the pipeline already
+        reads. <strong>Reusable</strong>: the licence permits reuse and
+        modification, the descriptors are documented, and the training procedure
+        is a script rather than a paragraph in a methods section.</p>
+
+        <p>Two commitments follow from this and constrain how the tool is built.
+        Sequences submitted here are processed in memory and are never stored:
+        unpublished sequence data is the most valuable thing a research group
+        holds, and asking someone to upload it to a server that keeps it is
+        asking too much. And the tool stays free to run, because a triage step
+        behind a paywall stops being triage for exactly the laboratories that
+        most need it.</p>
+
+        <p>Open development is not a licence file. It is answering issues,
+        publishing the failure cases along with the benchmark, and treating a
+        report that the model is wrong as the most useful message the project
+        receives.</p>
+      </div>
+    </div>
+
+    <div class="metrics-band step-2">
       <div class="metrics-label">Model</div>
       <div class="card-glass prose-block prose-justify">
         <p>The default mode is a soft-voting ensemble of five classifiers: random
@@ -29,9 +80,10 @@ BODY = """
         descriptors, among them net charge, hydrophobicity, hydrophobic moment,
         isoelectric point, aliphatic index, instability index and amino acid
         composition.</p>
-        <p>On the independent benchmark set the ensemble reaches AUC-ROC 0.950,
-        MCC 0.742, sensitivity 94.9% and specificity 78.4%. Single-model modes are
-        available and score lower on every one of those four.</p>
+        <p>On the independent benchmark set of 4,736 sequences the ensemble
+        reaches AUC-ROC 0.950, MCC 0.742, sensitivity 94.9% and specificity
+        78.4%. Single-model modes are available and score lower on every one of
+        those four.</p>
       </div>
     </div>
 
@@ -58,6 +110,66 @@ BODY = """
     </div>
 
     <div class="metrics-band step-2">
+      <div class="metrics-label">Main developer</div>
+      <div class="card-glass lead-card">
+        %(photo)s
+        <div class="lead-text prose-justify">
+          <div class="lead-name">Madson Allan de Luna Arag&atilde;o</div>
+          <div class="lead-role">Design, implementation and maintenance</div>
+          <p>Wrote the feature extraction, the training pipeline, the ensemble,
+          the command line interface, the Python package and the web server.
+          Maintains the repository and answers the issues.</p>
+          <p class="lead-links">
+            <a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">ORCID 0000-0001-5313-3913</a>
+            &nbsp;&middot;&nbsp; <a href="https://github.com/madsondeluna" target="_blank" rel="noopener">GitHub</a>
+            &nbsp;&middot;&nbsp; <a href="https://madsondeluna.com" target="_blank" rel="noopener">madsondeluna.com</a>
+            &nbsp;&middot;&nbsp; <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics-band step-2">
+      <div class="metrics-label">Authors</div>
+      <div class="author-grid">
+
+        <div class="card-glass author">
+          <div class="author-name">Madson Allan de Luna Arag&atilde;o</div>
+          <div class="author-affil">Institute of Biological Sciences, Universidade Federal de Minas Gerais (UFMG), Belo Horizonte<br>Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife</div>
+          <div class="author-links"><a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">ORCID</a></div>
+        </div>
+
+        <div class="card-glass author">
+          <div class="author-name">Rafael Lucas da Silva</div>
+          <div class="author-affil">Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife</div>
+        </div>
+
+        <div class="card-glass author">
+          <div class="author-name">Jo&atilde;o Pacifico Bezerra Neto</div>
+          <div class="author-affil">Universidade de Pernambuco (UPE), Petrolina</div>
+          <div class="author-links"><a href="https://orcid.org/0000-0003-3861-4879" target="_blank" rel="noopener">ORCID</a></div>
+        </div>
+
+        <div class="card-glass author">
+          <div class="author-name">Carlos Andr&eacute; dos Santos-Silva</div>
+          <div class="author-affil">Centro Universit&aacute;rio CESMAC, Macei&oacute;</div>
+        </div>
+
+        <div class="card-glass author">
+          <div class="author-name">Denys Ewerton da Silva Santos</div>
+          <div class="author-affil">Department of Fundamental Chemistry, Universidade Federal de Pernambuco (UFPE), Recife</div>
+        </div>
+
+        <div class="card-glass author">
+          <div class="author-name">Ana Maria Benko-Iseppon</div>
+          <div class="author-affil">Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife</div>
+          <div class="author-links"><a href="https://orcid.org/0000-0002-0575-3197" target="_blank" rel="noopener">ORCID</a></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="metrics-band step-2">
       <div class="metrics-label">Access</div>
       <div class="card-glass prose-block">
         <p class="install"><span class="install-lead">Python package:</span> <code>pip install ampidentifier</code></p>
@@ -78,7 +190,7 @@ BODY = """
     <div class="metrics-band step-2">
       <div class="metrics-label">Citation</div>
       <div class="card-glass prose-block prose-justify">
-        <p>Luna-Arag&atilde;o, M. A., da Silva, R. L., Bezerra Neto, J. P.,
+        <p>de Luna-Arag&atilde;o, M. A., da Silva, R. L., Pacifico Bezerra Neto, J.,
         dos Santos-Silva, C. A., da Silva Santos, D. E. &amp;
         Benko&#8209;Iseppon, A. M. (2026). AMPidentifier: A Cross-Platform
         Ensemble Toolkit for Antimicrobial Peptide Prediction.</p>
@@ -97,6 +209,48 @@ CSS = """
   .page-title { font-size: var(--text-32); }
   .prose-block > p + p { margin-top: var(--space-12); }
   .prose-block { padding: var(--space-16) var(--space-24); }
+
+  /* o retrato e a coluna de texto dividem uma linha; abaixo do ponto de
+     quebra empilham, e a foto encolhe em vez de tomar a largura toda */
+  .lead-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-24);
+    padding: var(--space-24);
+  }
+
+  .lead-photo {
+    flex: 0 0 auto;
+    width: var(--photo-sm);
+    height: var(--photo-sm);
+    border-radius: var(--radius-circle);
+    object-fit: cover;
+    display: block;
+  }
+
+  .lead-text { min-width: 0; }
+  .lead-name { font-size: var(--text-16); font-weight: var(--weight-medium); color: var(--text); }
+  .lead-role { font-family: var(--font-mono); font-size: var(--text-12); color: var(--muted); margin-bottom: var(--space-10); }
+  .lead-text > p + p, .lead-role + p { margin-top: var(--space-10); }
+  .lead-links { font-size: var(--text-13); }
+
+  /* seis autores em duas colunas: uma coluna so faz seis cartoes de duas
+     linhas cada e a lista fica mais alta que o manifesto que a precede */
+  .author-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-12);
+  }
+
+  .author { padding: var(--space-16); display: flex; flex-direction: column; gap: var(--space-6); }
+  .author-name { font-size: var(--text-15); color: var(--text); }
+  .author-affil { font-size: var(--text-12); color: var(--muted); line-height: var(--leading-snug); }
+  .author-links { font-family: var(--font-mono); font-size: var(--text-11); }
+
+  @media (max-width: 768px) {
+    .author-grid { grid-template-columns: 1fr; }
+    .lead-card { flex-direction: column; align-items: flex-start; }
+  }
 """
 
 PAGE = page(
@@ -105,6 +259,6 @@ PAGE = page(
                  'ensemble, the 22 descriptors, the benchmark figures, the scope '
                  'of the training data and the privacy terms.'),
     path='/beta/about',
-    body=BODY,
+    body=BODY.replace('%(photo)s', PHOTO_TAG),
     css=CSS,
 )
