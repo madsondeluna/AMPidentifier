@@ -15,7 +15,7 @@ PHRASE = 'more is yet to come'
 
 BODY = """
   <main class="step-2 soup-main" id="main" tabindex="-1">
-    <div id="soup" role="img" aria-label="More is yet to come, spelled out of a fragment of the human antimicrobial peptide LL-37"></div>
+    <div class="soup" id="soup" role="img" aria-label="More is yet to come"></div>
     <noscript>
       <p class="soup-fallback">More is yet to come.</p>
     </noscript>
@@ -96,32 +96,6 @@ CSS = """
 
   .soup-size-sm { --soup-size: var(--space-40); }
 
-  /* Duas faces no mesmo ladrilho, uma sobre a outra. Trocar por display
-     nao anima e a caixa salta; as duas ficam no DOM e cruzam por
-     opacidade, escala e desfoque, que e a receita de troca de icone da
-     linguagem com os mesmos valores. */
-  .soup-face {
-    grid-area: 1 / 1;
-    transition:
-      opacity var(--duration-4) var(--ease-out-expo),
-      transform var(--duration-4) var(--ease-out-expo),
-      filter var(--duration-4) var(--ease-out-expo);
-  }
-
-  .soup-face-seq { opacity: 1; transform: scale(1); filter: blur(0); }
-  .soup-face-word { opacity: 0; transform: scale(0.25); filter: blur(var(--motion-blur-2)); }
-
-  .soup.is-resolved .soup-face-seq { opacity: 0; transform: scale(0.25); filter: blur(var(--motion-blur-2)); }
-  .soup.is-resolved .soup-face-word { opacity: 1; transform: scale(1); filter: blur(0); }
-
-  /* a chegada e mais longa que a reacao ao ponteiro: e um percurso, nao
-     um ajuste. Vale so enquanto a sopa assenta. */
-  .soup.is-settling .soup-letter { transition-duration: var(--duration-6); }
-
-  /* a sequencia entra em tinta apagada e a frase em tinta cheia: o que
-     a pagina veio dizer e a frase, a sequencia e de onde ela veio */
-  .soup-face-seq { color: var(--muted); font-family: var(--font-mono); }
-
   /* o espaco entre palavras nao e ladrilho: nao tem vidro, nao recebe
      ponteiro e nao entra na conta de deslocamento */
   .soup-gap { width: var(--space-16); }
@@ -149,31 +123,20 @@ CSS = """
 
 JS = """
 /* ---------- sopa de letrinhas ----------
-   Comeca como um trecho de LL-37, o peptideo antimicrobiano humano que
-   a propria ferramenta usa de exemplo, espalhado. Assenta, e cada
-   ladrilho troca o aminoacido pela letra da frase. A sequencia nao e
-   enfeite: e a materia com que a ferramenta trabalha, e usa-la aqui e a
-   diferenca entre um efeito que serviria a qualquer site e um que so
-   serve a este.
+   React so existe aqui pelo que a folha de estilo nao alcanca: a
+   distancia de cada ladrilho ate o ponteiro, recalculada por quadro. O
+   componente escreve tres custom properties e nada mais; quem decide
+   aparencia continua sendo o CSS, como na camada de luz.
 
-   React so existe pelo que a folha de estilo nao alcanca: a distancia de
-   cada ladrilho ate o ponteiro, recalculada por quadro. O componente
-   escreve tres custom properties e nada mais.
-
-   Os numeros abaixo sao de fisica e de tempo, nao de desenho: alcance e
-   forca em pixels, giro em graus, espera em milissegundos. Nenhum e lido
-   por uma folha de estilo, entao nenhum vira token. */
+   Os numeros abaixo sao de fisica, nao de desenho: alcance em pixels,
+   forca em pixels, giro em graus. Nao viram token porque nenhum deles e
+   lido por uma folha de estilo. */
 
 (function () {
   var PHRASE = 'more is yet to come';
-  var SEQUENCE = 'LLGDFFRKSKEKIGK';   /* LL-37, primeiros quinze residuos */
   var REACH = 160;
   var PUSH = 34;
   var TILT = 14;
-  var SCATTER_X = 90;
-  var SCATTER_Y = 44;
-  var SCATTER_ROT = 22;
-  var HOLD = 700;
 
   var h = React.createElement;
   var fine = window.matchMedia('(pointer: fine)').matches;
@@ -186,17 +149,13 @@ JS = """
       ref: ref,
       className: 'soup-letter glass glass-frost soup-size-sm',
       'aria-hidden': 'true'
-    },
-      h('span', { className: 'soup-face soup-face-seq' }, props.seq),
-      h('span', { className: 'soup-face soup-face-word' }, props.char)
-    );
+    }, props.char);
   }
 
   function Soup() {
     var nodes = React.useRef([]);
     var boxes = React.useRef([]);
     var frame = React.useRef(0);
-    var host = React.useRef(null);
 
     var register = React.useCallback(function (i, el) { nodes.current[i] = el; }, []);
 
@@ -208,58 +167,40 @@ JS = """
       });
     }, []);
 
-    var rest = React.useCallback(function (el) {
-      el.style.setProperty('--soup-x', '0px');
-      el.style.setProperty('--soup-y', '0px');
-      el.style.setProperty('--soup-rot', '0deg');
-      el.dataset.moved = '0';
-    }, []);
-
-    /* chegada: espalha, segura, assenta e troca a face. Sob movimento
-       reduzido nao ha percurso nenhum, a frase ja esta la. */
-    React.useEffect(function () {
-      var box = host.current;
-      if (still) {
-        box.classList.add('is-resolved');
-        measure();
-        return;
-      }
+    var settle = React.useCallback(function () {
       nodes.current.forEach(function (el) {
         if (!el) return;
-        el.style.setProperty('--soup-x', ((Math.random() * 2 - 1) * SCATTER_X).toFixed(2) + 'px');
-        el.style.setProperty('--soup-y', ((Math.random() * 2 - 1) * SCATTER_Y).toFixed(2) + 'px');
-        el.style.setProperty('--soup-rot', ((Math.random() * 2 - 1) * SCATTER_ROT).toFixed(2) + 'deg');
+        el.style.setProperty('--soup-x', '0px');
+        el.style.setProperty('--soup-y', '0px');
+        el.style.setProperty('--soup-rot', '0deg');
       });
-      var settle = window.setTimeout(function () {
-        box.classList.add('is-settling');
-        nodes.current.forEach(function (el) { if (el) rest(el); });
-        box.classList.add('is-resolved');
-        window.setTimeout(function () {
-          box.classList.remove('is-settling');
-          measure();
-        }, 700);
-      }, HOLD);
-      return function () { window.clearTimeout(settle); };
-    }, [measure, rest]);
+    }, []);
 
     React.useEffect(function () {
+      measure();
       if (!fine || still) return;
+
       var pointer = null;
 
       function paint() {
         frame.current = 0;
-        if (!pointer || host.current.classList.contains('is-settling')) return;
+        if (!pointer) return;
         for (var i = 0; i < nodes.current.length; i++) {
           var el = nodes.current[i];
-          var b = boxes.current[i];
-          if (!el || !b) continue;
-          var dx = b.x - pointer.x;
-          var dy = b.y - pointer.y;
+          var box = boxes.current[i];
+          if (!el || !box) continue;
+          var dx = box.x - pointer.x;
+          var dy = box.y - pointer.y;
           var d = Math.sqrt(dx * dx + dy * dy);
           if (d > REACH || d === 0) {
             /* escrita repetida e descartada: fora do alcance o ladrilho
                ja esta em repouso e nao ha o que escrever */
-            if (el.dataset.moved === '1') rest(el);
+            if (el.dataset.moved === '1') {
+              el.style.setProperty('--soup-x', '0px');
+              el.style.setProperty('--soup-y', '0px');
+              el.style.setProperty('--soup-rot', '0deg');
+              el.dataset.moved = '0';
+            }
             continue;
           }
           var near = 1 - d / REACH;
@@ -274,17 +215,17 @@ JS = """
         pointer = { x: ev.clientX, y: ev.clientY };
         if (!frame.current) frame.current = requestAnimationFrame(paint);
       }
-      function onLeave() {
-        pointer = null;
-        nodes.current.forEach(function (el) { if (el) rest(el); });
-      }
-      function onResize() { measure(); onLeave(); }
+
+      function onLeave() { pointer = null; settle(); }
+
+      function onResize() { measure(); settle(); }
 
       window.addEventListener('pointermove', onMove, { passive: true });
       window.addEventListener('pointerleave', onLeave);
       window.addEventListener('blur', onLeave);
       window.addEventListener('resize', onResize);
       window.addEventListener('scroll', measure, { passive: true });
+
       return function () {
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerleave', onLeave);
@@ -293,32 +234,28 @@ JS = """
         window.removeEventListener('scroll', measure);
         if (frame.current) cancelAnimationFrame(frame.current);
       };
-    }, [measure, rest]);
+    }, [measure, settle]);
 
     var index = 0;
     var words = PHRASE.split(' ').map(function (word, w) {
       var letters = word.split('').map(function (ch) {
         var i = index++;
-        return h(Letter, {
-          key: i, index: i, char: ch,
-          seq: SEQUENCE[i % SEQUENCE.length],
-          register: register
-        });
+        return h(Letter, { key: i, index: i, char: ch, register: register });
       });
       return h('span', { className: 'soup-word', key: 'w' + w }, letters);
     });
 
-    return h('div', { className: 'soup', ref: host }, words);
+    return h(React.Fragment, null, words);
   }
 
-  var mount = document.getElementById('soup');
-  if (mount && window.React && window.ReactDOM) {
-    ReactDOM.createRoot(mount).render(h(Soup));
-  } else if (mount) {
+  var host = document.getElementById('soup');
+  if (host && window.React && window.ReactDOM) {
+    ReactDOM.createRoot(host).render(h(Soup));
+  } else if (host) {
     /* React nao carregou: a frase entra como texto e a pagina continua
        dizendo o que veio dizer */
-    mount.textContent = 'More is yet to come.';
-    mount.className = 'soup-fallback';
+    host.textContent = 'More is yet to come.';
+    host.className = 'soup-fallback';
   }
 })();
 """
