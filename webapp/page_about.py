@@ -100,7 +100,7 @@ BODY = """
         <div class="card-glass metric"><span class="num metric-val">20</span><span class="metric-lbl">Candidate tools</span></div>
         <div class="card-glass metric"><span class="num metric-val">9</span><span class="metric-lbl">Could not be run</span></div>
         <div class="card-glass metric"><span class="num metric-val">45%</span><span class="metric-lbl">Of the candidates</span></div>
-        <div class="card-glass metric"><span class="num metric-val">2012&ndash;2023</span><span class="metric-lbl">Their publication years</span></div>
+        <div class="card-glass metric"><span class="num metric-val">2012&ndash;2023</span><span class="metric-lbl">In publications</span></div>
       </div>
     </div>
 
