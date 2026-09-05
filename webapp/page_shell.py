@@ -43,6 +43,8 @@ STRINGS = {
     'src_pypi':         {'en': 'Package on PyPI',    'pt': 'Pacote no PyPI'},
     'mode_to_dark':     {'en': 'Switch to dark mode', 'pt': 'Mudar para o modo escuro'},
     'mode_to_light':    {'en': 'Switch to light mode', 'pt': 'Mudar para o modo claro'},
+    'slogan':           {'en': 'antimicrobial peptide prediction',
+                         'pt': 'predição de peptídeos antimicrobianos'},
     'lang_switch':      {'en': 'Ver em português',   'pt': 'Read in English'},
 
     'group_inst':       {'en': 'Institutions',       'pt': 'Instituições'},
@@ -758,7 +760,7 @@ STYLE = """  /* =========================================================
      --container-md a fileira de rotas rolava e cortava o ultimo item. O
      rodape ja usa a largura inteira pelo mesmo motivo. */
   .nav-inner {
-    max-width: var(--container-lg);
+    max-width: var(--container-xl);
     height: 100%;
     margin: 0 auto;
     padding: 0 var(--space-24);
@@ -767,12 +769,65 @@ STYLE = """  /* =========================================================
     gap: var(--space-16);
   }
 
-  .nav-brand { display: flex; align-items: center; gap: var(--space-8); text-decoration: none; }
-  /* a barra estreita nao tem largura para a marca nominal, e encolher a
-     marca ate caber a deixa ilegivel: abaixo do ponto de quebra entra o
-     simbolo sozinho, que e a mesma marca sem a parte que nao cabe. */
-  .nav-wordmark { display: block; height: var(--space-32); width: auto; }
-  .nav-symbol { display: none; height: var(--space-32); width: auto; }
+  /* Ordem de prioridade da barra: as rotas e os controles nunca cedem
+     largura, o slogan cede. Por isso a marca e a unica que encolhe, e o
+     que sai dela e o slogan, que e decoracao, e nao a fileira de rotas,
+     que e navegacao. */
+  .nav-brand {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-8);
+    text-decoration: none;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* o leque e a unica coisa colorida da barra, e nao inverte no escuro:
+     inverter uma marca de cor devolve a cor complementar, nao a versao
+     para fundo escuro */
+  .nav-fan {
+    display: block;
+    flex: 0 0 auto;
+    height: var(--space-24);
+    width: auto;
+    align-self: center;
+  }
+
+  .nav-name {
+    flex: 0 0 auto;
+    font-family: var(--font-sans);
+    font-size: var(--text-16);
+    font-weight: var(--weight-medium);
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  /* Entrada uma vez, no carregamento: o slogan chega depois da marca,
+     que e a ordem em que se le. Keyframe e nao transicao porque e
+     sequencia encenada e corre uma vez so; so opacidade e transform
+     animam, e sob movimento reduzido o slogan ja esta la. */
+  @keyframes nav-slogan-in {
+    from { opacity: 0; transform: translateY(var(--nudge-1)); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .nav-slogan {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: var(--text-11);
+    letter-spacing: var(--tracking-wide);
+    color: var(--muted);
+    white-space: nowrap;
+    opacity: 0;
+    animation: nav-slogan-in var(--duration-6) var(--ease-out-expo) var(--duration-4) forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-slogan { opacity: 1; animation: none; }
+  }
 
   /* A fileira de rotas nao quebra: rotulo de navegacao que vira duas
      linhas estica a pilula e rompe a altura da barra, que e fixa. Quando
@@ -782,6 +837,10 @@ STYLE = """  /* =========================================================
     align-items: center;
     gap: var(--space-4);
     margin-left: var(--space-16);
+    /* a fileira nao cede largura: quem cede e a marca, e dentro dela o
+       slogan. So quando a marca ja encolheu a zero e a barra ainda nao
+       cabe e que a fileira rola. */
+    flex: 0 0 auto;
     min-width: 0;
     overflow-x: auto;
     scrollbar-width: none;
@@ -969,16 +1028,14 @@ STYLE = """  /* =========================================================
      no modo escuro elas desaparecem no proprio fundo. Inverter devolve a
      mesma marca em tinta clara, que e como cada instituicao publica a
      versao monocromatica dela para fundo escuro. */
-  :root.dark .footer-strip .logo-row img,
-  :root.dark .nav-wordmark,
-  :root.dark .nav-symbol { filter: grayscale(1) invert(1); }
+  :root.dark .footer-strip .logo-row img { filter: grayscale(1) invert(1); }
 
   :root.dark .footer-strip .logo-row img { opacity: 0.72; }
   :root.dark .footer-strip .logo-row img:hover { opacity: 1; }
 
   @media (max-width: 768px) {
-    .nav-wordmark { display: none; }
-    .nav-symbol { display: block; }
+    .nav-slogan { display: none; }
+    .nav-name { display: none; }
     .nav-links { margin-left: var(--space-8); gap: 0; }
     .nav-link { padding: var(--space-6); }
     .status-label { display: none; }
@@ -1064,8 +1121,9 @@ DEFS = """<svg class="pure-defs" aria-hidden="true" focusable="false" width="0" 
 NAV = """<nav class="navbar glass glass-thin" aria-label="__nav_label__">
   <div class="nav-inner">
     <a class="nav-brand" href="/" aria-label="__nav_home__">
-      <img src="/img/logo.svg" alt="AMPidentifier" class="nav-wordmark">
-      <img src="/img/symbol.svg" alt="AMPidentifier" class="nav-symbol">
+      <img src="/img/symbol-fan.svg" alt="" class="nav-fan">
+      <span class="nav-name">AMPidentifier</span>
+      <span class="nav-slogan">__slogan__</span>
     </a>
 
     <div class="nav-links">
