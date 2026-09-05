@@ -1,0 +1,791 @@
+/* Pure Design 1.6.1 -- copia de /Volumes/promethion/pure-design-language/web/motion.css
+ =========================================================
+   pure / motion.css
+
+   Quarto arquivo, opcional. Entra depois de patterns.css e antes de
+   agent.css. Uma pagina sem transicao nomeada nao precisa dele.
+
+   As receitas vem do catalogo de transitions.dev, de Jakub Antalik, e
+   NAO foram copiadas: foram remapeadas. O catalogo traz escala propria,
+   sete duracoes e seis curvas, e esta linguagem tem seis duracoes e
+   cinco curvas e proibe curva nova. O remapeamento segue a regra que o
+   proprio catalogo declara, casar pelo USO e nao pelo numero:
+
+     | uso                        | catalogo | aqui                     |
+     | abertura de suspenso       |  250ms   | --duration-3   (200)     |
+     | abertura de modal          |  250ms   | --duration-4   (300)     |
+     | fechamento de suspenso     |  150ms   | --duration-2   (150)     |
+     | troca de icone e de texto  |  250ms   | --duration-3   (200)     |
+     | subida de toast            |  400ms   | --duration-5   (350)     |
+     | enfase, confirmacao        |  500ms   | --duration-6   (500)     |
+     | escalonamento entre linhas |   40ms   | --duration-1   (100)     |
+
+     | curva do catalogo                    | curva daqui              |
+     | --ease-smooth-out (0.22, 1, .36, 1)  | --ease-out-expo          |
+     | ease-in-out                          | --ease-standard          |
+     | ease-out                             | --ease-out               |
+     | linear                               | linear                   |
+
+   linear nao vira token porque nao e uma curva: e a ausencia dela, e
+   so aparece em laco que nunca assenta (brilho, pulso).
+
+   FICAM DE FORA, e a exclusao e a regra funcionando, nao uma lacuna:
+
+     card resize, accordion, panel reveal, input clear
+       animam width, height ou grid-template-rows. Propriedade de
+       layout recalcula a cada quadro e a linguagem proibe. Um corpo
+       de accordion abre saindo do fluxo com [hidden], nao crescendo.
+
+     avatar group hover, card stack hover, toggle com duplo salto,
+     like button
+       dependem de curva com ultrapassagem (0.34, 1.36, 0.64, 1 e
+       0.34, 3.85, 0.64, 1). Controle assenta, nao pula. O toggle
+       entrou sem a ultrapassagem; os outros tres nao entraram.
+
+     confetti burst, drag and drop com fisica, delete com dissolucao
+     de fumaca, image generation placeholder
+       integram posicao, colisao ou ruido a cada quadro. Sao canvas ou
+       biblioteca de fisica com outro nome, e uma receita de CSS que
+       precisa de um laco de rAF para existir nao e uma receita de CSS.
+
+     pro gradient text, get pro button
+       pedem matiz que a paleta nao tem. A linguagem para em oito slots
+       categoricos e nenhum deles e enfeite de marca; inventar a nona cor
+       para um botao e como toda paleta se desfaz.
+
+     3D tilt com reflexo, image open tilt
+       nao foram recusados: mudaram de capitulo. Os dois reagem ao
+       PONTEIRO, e nada aqui le ponteiro. Eles moram em light.css, como
+       .lit-tilt sobre .lit-stage, com o realce de .lit junto.
+
+   PRECISAM DE JAVASCRIPT, e cada um diz qual:
+     .motion-tabs      posicao e largura da pilula, medidas do botao ativo
+     .motion-number    um filho por digito, e a troca da chave de estado
+     .motion-shake     por a classe e tira-la ao fim
+     .motion-dropdown  trocar is-open por is-closing e limpar depois
+     .motion-counter   escrever --motion-tick com o digito alvo
+     .motion-spin      por is-done quando a espera termina, no anel e no sinal
+     .motion-stack     inserir o aviso novo como primeiro filho
+
+   Toda transicao nomeia as suas propriedades, e nenhuma toca
+   propriedade de layout. Alem de transform, opacity e filter ha duas
+   excecoes, ambas de pintura e nenhuma de layout, e ambas declaradas:
+
+     stroke-dashoffset  em .motion-check e em .motion-spin, que desenham
+                        o traco do sinal e o arco do anel
+     background-position em .motion-shimmer e em .motion-wave, que varrem
+                        a faixa de brilho
+
+   Nenhuma das duas reflui nada. O guarda global de
+   prefers-reduced-motion vive em patterns.css e cobre este arquivo.
+   ========================================================= */
+
+/* ---------- suspenso: cresce da origem ----------
+   O painel nasce onde o gatilho esta. data-origin escolhe o canto, e
+   sem ele o menu cresce do centro e nao se liga a nada. */
+
+.motion-dropdown {
+  transform-origin: top left;
+  transform: scale(0.97);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--duration-3) var(--ease-out-expo),
+    opacity   var(--duration-3) var(--ease-out-expo);
+}
+
+.motion-dropdown[data-origin="top-right"]     { transform-origin: top right; }
+.motion-dropdown[data-origin="top-center"]    { transform-origin: top center; }
+.motion-dropdown[data-origin="bottom-left"]   { transform-origin: bottom left; }
+.motion-dropdown[data-origin="bottom-center"] { transform-origin: bottom center; }
+.motion-dropdown[data-origin="bottom-right"]  { transform-origin: bottom right; }
+
+.motion-dropdown.is-open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* fechar e mais rapido que abrir, e quase nao encolhe: o usuario ja
+   decidiu, a animacao de saida so precisa nao piscar */
+.motion-dropdown.is-closing {
+  transform: scale(0.99);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--duration-2) var(--ease-out-expo),
+    opacity   var(--duration-2) var(--ease-out-expo);
+}
+
+/* ---------- modal ----------
+   Superficie maior, percurso maior, tempo maior. A escala de entrada e
+   mais funda que a do suspenso porque o modal nao tem gatilho ancorado
+   para explicar de onde veio. */
+
+.motion-modal {
+  transform: scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--duration-4) var(--ease-out-expo),
+    opacity   var(--duration-4) var(--ease-out-expo);
+}
+
+.motion-modal.is-open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.motion-modal.is-closing {
+  transform: scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--duration-2) var(--ease-out-expo),
+    opacity   var(--duration-2) var(--ease-out-expo);
+}
+
+/* o veu escurece junto, sem escala */
+.motion-scrim {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-4) var(--ease-out-expo);
+}
+.motion-scrim.is-open { opacity: 1; pointer-events: auto; }
+.motion-scrim.is-closing { opacity: 0; transition-duration: var(--duration-2); }
+
+/* ---------- toast ----------
+   Sobe de baixo com desfoque proprio: o desfoque e o que faz ler como
+   chegando de longe em vez de aparecendo no lugar. */
+
+.motion-toast {
+  transform: translateY(var(--space-12)) scale(0.98);
+  opacity: 0;
+  filter: blur(var(--motion-blur-1));
+  transition:
+    transform var(--duration-5) var(--ease-out-expo),
+    opacity   var(--duration-5) var(--ease-out-expo),
+    filter    var(--duration-5) var(--ease-out-expo);
+}
+
+.motion-toast.is-open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  filter: blur(0);
+}
+
+.motion-toast.is-closing {
+  transform: translateY(var(--space-8)) scale(0.98);
+  opacity: 0;
+  filter: blur(var(--motion-blur-1));
+  transition:
+    transform var(--duration-2) var(--ease-out),
+    opacity   var(--duration-2) var(--ease-out),
+    filter    var(--duration-2) var(--ease-out);
+}
+
+/* ---------- dica ----------
+   Atraso so na entrada. Sair na hora e o que impede a dica de perseguir
+   o ponteiro por uma fileira inteira de icones. */
+
+.motion-tip {
+  transform: scale(0.98);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--duration-2) var(--ease-out),
+    opacity   var(--duration-2) var(--ease-out);
+}
+
+.motion-tip-anchor:hover .motion-tip,
+.motion-tip-anchor:focus-visible .motion-tip {
+  transform: scale(1);
+  opacity: 1;
+  transition-delay: var(--duration-4);
+}
+
+/* ---------- troca de icone ----------
+   Os dois icones ficam na mesma celula de grade e nenhum sai do DOM: o
+   slot nunca muda de tamanho, entao nada ao redor se mexe. */
+
+.motion-icon-swap {
+  display: inline-grid;
+  place-items: center;
+}
+
+.motion-icon-swap > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity   var(--duration-3) var(--ease-standard),
+    filter    var(--duration-3) var(--ease-standard),
+    transform var(--duration-3) var(--ease-standard);
+}
+
+.motion-icon-swap[data-state="a"] > [data-icon="a"],
+.motion-icon-swap[data-state="b"] > [data-icon="b"] {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+
+.motion-icon-swap[data-state="a"] > [data-icon="b"],
+.motion-icon-swap[data-state="b"] > [data-icon="a"] {
+  opacity: 0;
+  filter: blur(var(--motion-blur-1));
+  transform: scale(0.25);
+  pointer-events: none;
+}
+
+/* ---------- troca de texto ----------
+   O texto que sai sobe, o que entra vem de baixo, e o desfoque cobre a
+   travessia. Sem ele os dois rotulos se leem sobrepostos por um quadro. */
+
+.motion-text-swap {
+  display: inline-grid;
+  overflow: clip;
+}
+
+.motion-text-swap > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity   var(--duration-2) var(--ease-standard),
+    filter    var(--duration-2) var(--ease-standard),
+    transform var(--duration-2) var(--ease-standard);
+}
+
+.motion-text-swap[data-state="a"] > [data-text="a"],
+.motion-text-swap[data-state="b"] > [data-text="b"] {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+.motion-text-swap[data-state="a"] > [data-text="b"],
+.motion-text-swap[data-state="b"] > [data-text="a"] {
+  opacity: 0;
+  filter: blur(var(--motion-blur-1));
+  transform: translateY(var(--space-4));
+}
+
+/* ---------- linhas que sobem ----------
+   Escalonar e o que separa duas linhas entrando de um bloco entrando.
+   O passo aqui e --duration-1 porque a linguagem nao ganhou uma
+   duracao de 40ms so para isto: em duas ou tres linhas, que e o
+   tamanho para o qual esta receita serve, 100ms le como deliberado. */
+
+.motion-lines > * {
+  opacity: 0;
+  transform: translateY(var(--space-12));
+  filter: blur(var(--motion-blur-2));
+  transition:
+    opacity   var(--duration-6) var(--ease-standard),
+    transform var(--duration-6) var(--ease-standard),
+    filter    var(--duration-6) var(--ease-standard);
+}
+
+.motion-lines.is-open > * {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.motion-lines.is-open > :nth-child(2) { transition-delay: var(--duration-1); }
+.motion-lines.is-open > :nth-child(3) { transition-delay: calc(var(--duration-1) * 2); }
+.motion-lines.is-open > :nth-child(4) { transition-delay: calc(var(--duration-1) * 3); }
+.motion-lines.is-open > :nth-child(5) { transition-delay: calc(var(--duration-1) * 4); }
+
+/* saida sem escalonamento: uma despedida em fila e teatro */
+.motion-lines.is-closing > * {
+  opacity: 0;
+  transition: opacity var(--duration-2) var(--ease-out);
+  transition-delay: 0s;
+}
+
+/* ---------- selo de notificacao ----------
+   Entra na diagonal a partir do gatilho. Sem ultrapassagem: o catalogo
+   usa (0.34, 1.36, 0.64, 1) e aqui um selo assenta como qualquer coisa
+   que aparece sobre um controle. */
+
+.motion-badge {
+  transform: translate(calc(-1 * var(--space-8)), var(--space-12)) scale(0.6);
+  opacity: 0;
+  transition:
+    transform var(--duration-5) var(--ease-out-expo),
+    opacity   var(--duration-4) var(--ease-out-expo);
+}
+
+.motion-badge.is-open {
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+}
+
+/* ---------- digito que troca ----------
+   Um filho por digito. O javascript troca data-state e nada mais; o
+   escalonamento e a direcao ficam aqui. */
+
+.motion-digits {
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.motion-digit {
+  display: inline-grid;
+  overflow: clip;
+}
+
+.motion-digit > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity   var(--duration-6) var(--ease-out-expo),
+    transform var(--duration-6) var(--ease-out-expo),
+    filter    var(--duration-6) var(--ease-out-expo);
+}
+
+.motion-digit[data-state="a"] > [data-digit="a"],
+.motion-digit[data-state="b"] > [data-digit="b"] {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.motion-digit[data-state="a"] > [data-digit="b"],
+.motion-digit[data-state="b"] > [data-digit="a"] {
+  opacity: 0;
+  transform: translateY(var(--space-8));
+  filter: blur(var(--motion-blur-1));
+}
+
+.motion-digit:nth-child(2) > * { transition-delay: calc(var(--duration-1) * 0.7); }
+.motion-digit:nth-child(3) > * { transition-delay: calc(var(--duration-1) * 1.4); }
+.motion-digit:nth-child(4) > * { transition-delay: calc(var(--duration-1) * 2.1); }
+
+/* ---------- erro que balanca ----------
+   Deslocamento puro, sem rotacao e sem cor: a cor do erro e --status-critical
+   e ela ja esta na borda do campo. A classe entra e sai pelo javascript. */
+
+@keyframes pure-shake {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(calc(-1 * var(--space-8))); }
+  30%  { transform: translateX(var(--space-8)); }
+  45%  { transform: translateX(calc(-1 * var(--space-6))); }
+  60%  { transform: translateX(var(--space-6)); }
+  75%  { transform: translateX(calc(-1 * var(--space-2))); }
+  100% { transform: translateX(0); }
+}
+
+.motion-shake.is-error {
+  animation: pure-shake var(--duration-5) var(--ease-standard);
+}
+
+/* ---------- esqueleto que revela ----------
+   As duas camadas na mesma celula. O esqueleto sai desfocando, o
+   conteudo entra focando: e uma travessia, nao um corte. */
+
+.motion-reveal {
+  display: grid;
+}
+
+.motion-reveal > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--duration-5) var(--ease-standard),
+    filter  var(--duration-5) var(--ease-standard);
+}
+
+.motion-reveal > [data-layer="skeleton"] { opacity: 1; filter: blur(0); }
+.motion-reveal > [data-layer="content"]  { opacity: 0; filter: blur(var(--motion-blur-1)); }
+
+.motion-reveal.is-loaded > [data-layer="skeleton"] {
+  opacity: 0;
+  filter: blur(var(--motion-blur-1));
+  pointer-events: none;
+}
+.motion-reveal.is-loaded > [data-layer="content"] { opacity: 1; filter: blur(0); }
+
+/* ---------- brilho que varre ----------
+   Para texto que informa progresso, nao para decorar. Mascara sobre a
+   tinta muda: nao ha cor nova, so a tinta cheia aparecendo por baixo
+   de uma faixa que anda. linear porque um laco que assenta pulsa. */
+
+@keyframes pure-sweep {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+.motion-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    var(--text) 50%,
+    var(--muted) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: pure-sweep calc(var(--duration-6) * 4) linear infinite;
+}
+
+/* ---------- pilula que segue a aba ----------
+   O javascript escreve --tab-x e --tab-w a partir do retangulo do botao
+   ativo. Nada mais. A pilula anda por transform, nunca por left. */
+
+.motion-tabs {
+  position: relative;
+  display: inline-flex;
+  isolation: isolate;
+}
+
+.motion-tabs > .motion-tabs-pill {
+  position: absolute;
+  z-index: -1;
+  inset: 0 auto 0 0;
+  /* A largura TROCA sem transicao, a posicao ANDA com transicao.
+     As duas outras saidas foram descartadas na tela, nao no papel:
+     transicionar width recalcula layout a cada quadro, que a
+     linguagem proibe; e scaleX numa pilula de raio cheio estica as
+     tampas em elipse, e como quase toda aba passa dos 44px do raio
+     base, a pilula sai ovalada em qualquer largura diferente da
+     base. Trocar a largura de uma vez custa um layout, nao um por
+     quadro, e a forma continua sendo uma pilula.
+
+     O javascript escreve --tab-x e --tab-w a partir do retangulo do
+     botao ativo. */
+  width: var(--tab-w, 0);
+  transform: translateX(var(--tab-x, 0));
+  border-radius: var(--radius-control);
+  background: var(--surface-hover);
+  transition: transform var(--duration-3) var(--ease-out-expo);
+}
+
+/* ---------- confirmacao ----------
+   O unico lugar do arquivo com desfoque grande e giro. Um momento de
+   enfase por fluxo, e ele custa --duration-6 justamente para nao virar
+   habito. O traco do sinal e desenhado por stroke-dashoffset, que nao
+   e propriedade de layout: nao reflui nada. */
+
+.motion-check {
+  opacity: 0;
+  transform: rotate(-12deg) scale(0.8);
+  filter: blur(var(--motion-blur-3));
+  transition:
+    opacity   var(--duration-6) var(--ease-out-expo),
+    transform var(--duration-6) var(--ease-out-expo),
+    filter    var(--duration-6) var(--ease-out-expo);
+}
+
+.motion-check.is-done {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+  filter: blur(0);
+}
+
+/* o path do sinal precisa de pathLength="1" NA MARCACAO: pathLength e
+   atributo do SVG, nao propriedade CSS, e sem ele o dasharray de 1
+   unidade desenha um traco de um pixel em vez do sinal inteiro */
+.motion-check path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--duration-5) var(--ease-out);
+  transition-delay: var(--duration-3);
+}
+
+.motion-check.is-done path { stroke-dashoffset: 0; }
+
+/* ---------- interruptor ----------
+   Entrou sem a ultrapassagem do catalogo. O polegar viaja por transform
+   e assenta; um interruptor que quica passa a ideia de que ainda esta
+   decidindo. */
+
+.motion-switch-thumb {
+  transition: transform var(--duration-3) var(--ease-out-expo);
+}
+
+[aria-checked="true"] .motion-switch-thumb,
+:checked + .motion-switch-track .motion-switch-thumb {
+  transform: translateX(var(--space-20));
+}
+
+/* ---------- pagina lado a lado ----------
+   Ida e volta. O desfoque de percurso e o que evita que o texto vire
+   uma grade de listras enquanto atravessa. */
+
+.motion-pages {
+  display: grid;
+  overflow: clip;
+}
+
+.motion-pages > * {
+  grid-area: 1 / 1;
+  transition:
+    transform var(--duration-3) var(--ease-out-expo),
+    opacity   var(--duration-3) var(--ease-out-expo),
+    filter    var(--duration-3) var(--ease-out-expo);
+}
+
+.motion-pages[data-page="a"] > [data-page-id="a"],
+.motion-pages[data-page="b"] > [data-page-id="b"] {
+  transform: translateX(0);
+  opacity: 1;
+  filter: blur(0);
+}
+
+.motion-pages[data-page="a"] > [data-page-id="b"] {
+  transform: translateX(var(--space-8));
+  opacity: 0;
+  filter: blur(var(--motion-blur-2));
+  pointer-events: none;
+}
+
+.motion-pages[data-page="b"] > [data-page-id="a"] {
+  transform: translateX(calc(-1 * var(--space-8)));
+  opacity: 0;
+  filter: blur(var(--motion-blur-2));
+  pointer-events: none;
+}
+
+/* ---------- avisos que empilham ----------
+   Tres, no maximo, e o teto nao e estetico: o quarto aviso fica atras
+   de tres camadas de escala e nao se le mais. Acima disso o padrao
+   deixa de ser pilha e vira lista, que e outro componente.
+
+   A pilha nao anima altura. Cada aviso mora na mesma celula de grade e
+   recua por transform, entao o bloco inteiro ocupa a caixa do primeiro
+   e nada reflui quando o quarto chega. */
+
+.motion-stack {
+  display: grid;
+  justify-items: stretch;
+}
+
+.motion-stack > * {
+  grid-area: 1 / 1;
+  transform-origin: top center;
+  transition:
+    transform var(--duration-4) var(--ease-out-expo),
+    opacity   var(--duration-4) var(--ease-out-expo);
+}
+
+.motion-stack > :nth-child(1) { transform: translateY(0) scale(1); opacity: 1; z-index: 3; }
+.motion-stack > :nth-child(2) { transform: translateY(var(--nudge-3)) scale(0.96); opacity: 1; z-index: 2; }
+.motion-stack > :nth-child(3) { transform: translateY(var(--space-8)) scale(0.92); opacity: 1; z-index: 1; }
+
+/* o quarto e os seguintes existem no DOM e nao na tela. `visibility` e
+   nao `opacity: 0`, pela razao ja fechada no leque do liquido: opacidade
+   zero tira o ponteiro e nao tira o teclado, e o Tab alcancava um aviso
+   invisivel empilhado sob os tres. */
+.motion-stack > :nth-child(n + 4) {
+  transform: translateY(var(--space-8)) scale(0.92);
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ---------- contador de bobina ----------
+   O digito nao troca: a coluna inteira corre ate a posicao certa, como
+   uma bobina. E outra leitura do .motion-digits, que troca por desfoque,
+   e as duas coexistem de proposito: a bobina diz que o numero PERCORREU
+   a distancia, o desfoque diz que ele foi SUBSTITUIDO. Contagem
+   crescente pede a primeira; valor que chegou do servidor pede a
+   segunda.
+
+   O javascript e uma linha: escrever --motion-tick com o digito alvo. A
+   coluna e 0 a 9 na marcacao, e a altura do passo e 1em, entao a
+   receita nao mede nada e nao depende do tamanho do texto. */
+
+.motion-counter {
+  display: inline-flex;
+  overflow: clip;
+  block-size: 1em;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  vertical-align: bottom;
+}
+
+.motion-counter > * {
+  display: flex;
+  flex-direction: column;
+  transform: translateY(calc(var(--motion-tick, 0) * -1em));
+  transition: transform var(--duration-6) var(--ease-out-expo);
+}
+
+.motion-counter > * > * {
+  block-size: 1em;
+  line-height: 1;
+}
+
+/* ---------- espera que fecha ----------
+   Um elemento so para as duas metades de uma espera, e essa e a razao
+   de existir: trocar um spinner por uma marca troca um elemento por
+   outro, e a troca pisca.
+
+   Enquanto gira, o traco e um arco curto correndo pela circunferencia,
+   por dasharray. Ao concluir, a rotacao para e o arco fecha no anel
+   inteiro. O SINAL dentro do anel nao vem daqui: e .motion-check no
+   mesmo svg, que ja desenha o traco por stroke-dashoffset com o atraso
+   certo. Duas receitas compondo, e nenhuma das duas precisou de
+   interpolacao de path, que e o que a receita de origem usa e o que CSS
+   nao faz sozinho.
+
+   stroke-dasharray e stroke-dashoffset sao pintura e nao refluem nada,
+   a mesma excecao ja declarada em .motion-check. */
+
+.motion-spin {
+  transform-origin: center;
+  animation: pure-spin var(--duration-6) linear infinite;
+}
+
+.motion-spin path,
+.motion-spin circle {
+  stroke-dasharray: 0.25 0.75;
+  stroke-dashoffset: 0;
+  transition:
+    stroke-dasharray  var(--duration-5) var(--ease-out-expo),
+    stroke-dashoffset var(--duration-5) var(--ease-out-expo);
+}
+
+.motion-spin.is-done {
+  animation: none;
+  transform: rotate(0);
+  transition: transform var(--duration-4) var(--ease-out-expo);
+}
+
+.motion-spin.is-done path,
+.motion-spin.is-done circle {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+@keyframes pure-spin {
+  to { transform: rotate(1turn); }
+}
+
+/* ---------- brilho de onda ----------
+   O irmao organico do .motion-shimmer. O reto varre uma faixa
+   perpendicular; este varre uma faixa inclinada com duas paradas
+   deslocadas, e a diferenca aparece em texto longo, onde o reto
+   atravessa a linha inteira de uma vez e le como um erro de pintura.
+
+   Anima background-position, a mesma excecao de pintura ja declarada, e
+   nada mais. O gradiente e ink: --text sobre --muted, nunca slot de
+   grafico, porque brilho e enfase e nao serie. */
+
+.motion-wave {
+  background-image: linear-gradient(
+    100deg,
+    var(--muted) 30%,
+    var(--text) 45%,
+    var(--text) 55%,
+    var(--muted) 70%
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: pure-wave var(--duration-6) linear infinite;
+}
+
+@keyframes pure-wave {
+  to { background-position: -100% 0; }
+}
+
+/* ---------- saiba mais ----------
+   O menor item do arquivo e o mais usado: o link que abre um passo ao
+   receber o ponteiro. A seta anda, o sublinhado cresce a partir da
+   esquerda por scaleX, nunca por width, e o rotulo nao se move. Rotulo
+   que desloca no hover e alvo que foge do cursor. */
+
+.motion-learn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  position: relative;
+}
+
+.motion-learn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nudge-1) * -1);
+  border-bottom: var(--hairline) solid currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-3) var(--ease-out-expo);
+}
+
+.motion-learn > .icon {
+  transition: transform var(--duration-3) var(--ease-out-expo);
+}
+
+.motion-learn:hover::after,
+.motion-learn:focus-visible::after { transform: scaleX(1); }
+
+.motion-learn:hover > .icon,
+.motion-learn:focus-visible > .icon { transform: translateX(var(--nudge-3)); }
+
+/* ---------- retratos que se revezam ----------
+   N imagens na mesma celula, uma de cada vez, atravessando por desfoque
+   em vez de corte. E o .motion-icon-swap levado ao laco: la sao duas e
+   um estado externo decide; aqui sao ate quatro e quem decide e o
+   proprio tempo.
+
+   O TETO E QUATRO, e ele e declarado: cada unidade precisa do seu
+   atraso, e atraso mora em regra, nao em contagem. Mesma escolha das
+   oito unidades do aglomerado liquido. Uma quinta imagem passa a pedir
+   javascript, e a partir dali nao e mais receita de CSS.
+
+   A duracao do ciclo e MULTIPLA de --duration-6, nao um numero novo: um
+   laco de oito segundos escrito a mao seria um setimo degrau entrando
+   pela porta dos fundos. Trocar --motion-cycle no elemento muda o
+   compasso sem tocar na escala.
+
+   O desfoque e --motion-blur-1, o mesmo da troca de icone: e a mesma
+   leitura, uma coisa virando outra no lugar. */
+
+.motion-cycle {
+  display: grid;
+  isolation: isolate;
+  --motion-cycle: calc(var(--duration-6) * 16);
+}
+
+.motion-cycle > * {
+  grid-area: 1 / 1;
+  opacity: 0;
+  animation: pure-cycle var(--motion-cycle) var(--ease-standard) infinite both;
+}
+
+.motion-cycle > :nth-child(1) { animation-delay: calc(var(--motion-cycle) * -0 / 3); }
+.motion-cycle > :nth-child(2) { animation-delay: calc(var(--motion-cycle) * -1 / 3); }
+.motion-cycle > :nth-child(3) { animation-delay: calc(var(--motion-cycle) * -2 / 3); }
+
+/* com quatro, o compasso divide por quatro: o seletor de contagem troca
+   os atrasos inteiros de uma vez, e nenhuma unidade precisa saber quantas
+   irmas tem */
+.motion-cycle:has(> :nth-child(4)) > :nth-child(1) { animation-delay: calc(var(--motion-cycle) * -0 / 4); }
+.motion-cycle:has(> :nth-child(4)) > :nth-child(2) { animation-delay: calc(var(--motion-cycle) * -1 / 4); }
+.motion-cycle:has(> :nth-child(4)) > :nth-child(3) { animation-delay: calc(var(--motion-cycle) * -2 / 4); }
+.motion-cycle:has(> :nth-child(4)) > :nth-child(4) { animation-delay: calc(var(--motion-cycle) * -3 / 4); }
+
+/* A janela visivel e curta de proposito e a travessia e longa: com as
+   bordas assim, duas imagens vizinhas se sobrepoem no meio do caminho e
+   nunca ha um quadro com a celula vazia, que e o que faz o revezamento
+   ler como respiracao em vez de piscada. */
+@keyframes pure-cycle {
+  0%   { opacity: 0; filter: blur(var(--motion-blur-1)); }
+  7%   { opacity: 1; filter: blur(0); }
+  26%  { opacity: 1; filter: blur(0); }
+  33%  { opacity: 0; filter: blur(var(--motion-blur-1)); }
+  100% { opacity: 0; filter: blur(var(--motion-blur-1)); }
+}
+
+/* Movimento reduzido: o revezamento PARA na primeira, e nao acelera nem
+   desacelera. Aqui nao ha estado a comunicar, ao contrario do esqueleto
+   e do pulso: sao tres retratos da mesma pessoa, e um deles diz tudo o
+   que os tres diziam. */
+@media (prefers-reduced-motion: reduce) {
+  .motion-cycle > * { animation: none !important; opacity: 0; }
+  .motion-cycle > :first-child { opacity: 1; }
+}

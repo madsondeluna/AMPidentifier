@@ -63,3 +63,7 @@ paper/*.docx
 
 # Local design source material (kept outside the code repo)
 imgs/ampidentifier-brand-kit/ampidentifier-id/
+
+# Agent skills installed locally
+.agents/
+skills-lock.json

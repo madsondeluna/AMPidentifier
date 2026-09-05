@@ -1,5 +1,5 @@
-/* Pure Design 1.4.2 -- copia de /Volumes/promethion/pure-design-language/web/patterns.css
-   pure / patterns.css
+/* Pure Design 1.6.1 -- copia de /Volumes/promethion/pure-design-language/web/patterns.css
+ pure / patterns.css
    Os componentes da linguagem, reescritos em cima dos tokens.
    Nenhum valor literal aqui: todo numero vem de tokens.css.
    Importar depois de tokens.css. */
@@ -121,6 +121,7 @@ dl, dd { margin: 0; }
 /* superficies */
 
 .surface {
+  --surface-context: var(--surface);
   background: var(--surface);
   border: var(--hairline) solid var(--border);
   border-radius: var(--radius-surface);
@@ -137,12 +138,13 @@ dl, dd { margin: 0; }
 
 /* cartao de vidro: superficie translucida sobre conteudo */
 .card-glass {
+  --surface-context: var(--surface-glass);
   border-radius: var(--radius-surface);
   background-image: var(--glass-fill);
   background-color: var(--surface-glass);
   border: var(--hairline) solid var(--glass-edge);
-  backdrop-filter: blur(var(--blur-card)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--blur-card)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--blur-card)) saturate(var(--glass-saturate));
   box-shadow: var(--shadow-glass-rest);
   isolation: isolate;
   cursor: pointer;
@@ -184,11 +186,12 @@ dl, dd { margin: 0; }
    uma fileira de vizinhos de vidro. */
 
 .glass:not(.card-glass) {
+  --surface-context: var(--surface-glass);
   background-image: var(--glass-fill);
   background-color: transparent;
   border: var(--hairline) solid var(--glass-edge);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--shadow-glass-rest);
   /* isola o backdrop desta superficie do das vizinhas */
   isolation: isolate;
@@ -216,18 +219,20 @@ dl, dd { margin: 0; }
 
 /* fino: o fundo passa quase inteiro, so a aresta denuncia o material */
 .glass-thin {
+  --surface-context: var(--surface-glass);
   background-image: var(--glass-fill-thin);
-  backdrop-filter: blur(var(--glass-blur-thin)) saturate(140%);
   -webkit-backdrop-filter: blur(var(--glass-blur-thin)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur-thin)) saturate(140%);
 }
 
 /* fosco: e o unico que leva granulado. Sem o feTurbulence por cima o
    resultado e translucido, nao fosco. */
 .glass-frost {
+  --surface-context: var(--surface-glass);
   position: relative;
   background-image: var(--glass-fill-frost);
-  backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%) brightness(1.02);
   -webkit-backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%) brightness(1.02);
+  backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%) brightness(1.02);
 }
 .glass-frost::after {
   content: "";
@@ -242,10 +247,37 @@ dl, dd { margin: 0; }
 
 /* fundo: quase nada do que esta atras sobrevive, so a cor media */
 .glass-deep {
+  --surface-context: var(--surface-glass);
   background-image: var(--glass-fill-deep);
-  backdrop-filter: blur(var(--glass-blur-deep)) saturate(200%);
   -webkit-backdrop-filter: blur(var(--glass-blur-deep)) saturate(200%);
+  backdrop-filter: blur(var(--glass-blur-deep)) saturate(200%);
 }
+
+/* As tres texturas acima perdem de .glass:not(.card-glass) pela mesma
+   razao que .glass-accent perdia de .pill: o :not() conta como classe,
+   entao o componente vale duas e a textura vale uma. Sem estes pares
+   class="glass glass-frost" saia com o preenchimento e o raio de desfoque
+   do .glass padrao, o que apaga a diferenca entre as quatro texturas sem
+   nenhum aviso. .pill e .card-glass ficam de fora: .pill ja e o desfoque
+   de 16px e .card-glass declara o dele antes deste bloco. */
+.glass.glass-thin {
+  background-image: var(--glass-fill-thin);
+  -webkit-backdrop-filter: blur(var(--glass-blur-thin)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur-thin)) saturate(140%);
+}
+.glass.glass-frost {
+  background-image: var(--glass-fill-frost);
+  -webkit-backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%) brightness(1.02);
+  backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%) brightness(1.02);
+}
+.glass.glass-deep {
+  background-image: var(--glass-fill-deep);
+  -webkit-backdrop-filter: blur(var(--glass-blur-deep)) saturate(200%);
+  backdrop-filter: blur(var(--glass-blur-deep)) saturate(200%);
+}
+.glass.glass-thin:hover  { background-image: var(--glass-fill-thin); }
+.glass.glass-frost:hover { background-image: var(--glass-fill-frost); }
+.glass.glass-deep:hover  { background-image: var(--glass-fill-deep); }
 
 /* tingido: o material assume a cor de acento sem virar preenchimento solido */
 .glass-accent {
@@ -360,8 +392,8 @@ dl, dd { margin: 0; }
   padding: var(--space-12) var(--space-16);
   border-radius: var(--radius-surface);
   background-image: var(--glass-fill-frost);
-  backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%);
   -webkit-backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%);
+  backdrop-filter: blur(var(--glass-blur-frost)) saturate(130%);
   border: var(--hairline) solid var(--glass-edge);
   box-shadow: var(--shadow-glass-rest);
   isolation: isolate;
@@ -383,6 +415,385 @@ dl, dd { margin: 0; }
 .stage-readout .row { display: flex; gap: var(--space-12); }
 .stage-readout .row span:last-child { margin-left: auto; color: var(--text); }
 
+/* O svg que guarda os filtros nao e conteudo. Os atributos width="0" e
+   height="0" no template dao conta na maioria dos casos, mas um reset
+   que declare `svg { width: 100% }` os atropela e a pagina ganha uma
+   faixa vazia no topo sem que nada acuse. A regra fecha isso. */
+.pure-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* ---------- liquido ----------
+
+   O vidro filtra a si mesmo, e o texto que ele carrega atravessa o
+   desfoque junto. Por isso o vidro nunca funde: fundir dois controles
+   vizinhos derreteria as duas legendas.
+
+   O liquido resolve isso separando o material do conteudo em duas
+   camadas empilhadas na mesma celula de grade:
+
+     .liquid-sheet   a silhueta, atras. E a UNICA coisa filtrada na
+                     pagina inteira. aria-hidden, sem eventos de
+                     ponteiro, sem texto nenhum.
+     .liquid-content o DOM real, na frente, sem filtro. Anel de foco,
+                     area de toque, ARIA e handlers intactos.
+
+   As duas camadas sao espelhos: mesmo display, mesma folga, mesma
+   caixa por unidade. E por isso que a gota fica exatamente sob o
+   controle sem uma linha de javascript medindo nada.
+
+   O PRECO desse espelho, e ele e declarado, nao contornado: a unidade
+   do aglomerado tem tamanho fixo (--liquid-size), porque uma largura
+   que depende do texto so pode ser espelhada medindo o texto, e medir
+   e javascript. O liquido e para aglomerado de unidade fixa: botao de
+   icone, avatar, ponto, leque de acao, indicador de segmentado. Um
+   grupo de rotulos de largura variavel continua sendo .pill.
+
+   A sombra sai do proprio filtro. drop-shadow depois de url(#pure-goo)
+   age sobre a massa JA fundida, entao uma sombra so abraca o
+   aglomerado inteiro atraves de cada ponte. Um box-shadow no blob
+   entraria no desfoque e o degrau de alfa o comeria, que e exatamente
+   o motivo de o goo classico nao ter sombra.
+
+   O que NAO atravessa para o CSS puro, e nao ha meio-termo aqui: a
+   mola, a gota que arrasta atras de um elemento em movimento, o bisel
+   interno reconstruido na silhueta fundida. Os tres precisam medir
+   retangulo a cada quadro. */
+
+.liquid {
+  position: relative;
+  display: inline-grid;
+  padding: var(--liquid-pad);
+  isolation: isolate;
+  --liquid-size: var(--control-lg);
+  /* o texto de dentro nao tem ancestral opaco: quem pinta e um irmao.
+     Sem este token a varredura de contraste resolve contra --bg e
+     aprova uma pagina que na tela esta errada. */
+  --surface-context: var(--liquid-fill);
+}
+
+.liquid-sheet,
+.liquid-content {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  gap: var(--liquid-bridge);
+}
+
+.liquid-sheet {
+  pointer-events: none;
+  filter: url(#pure-goo) var(--liquid-drop);
+}
+
+/* O conteudo precisa de posicao e de indice, e nao e preciosismo: um
+   filtro promove o elemento estatico para a camada de indice zero, que
+   pinta DEPOIS do fluxo normal. Sem esta regra a folha cobre o proprio
+   conteudo, e como ela nao recebe ponteiro o teste de acerto continua
+   apontando o botao certo: o clique funciona e o rotulo some. */
+.liquid-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* a variante troca filtro E folga junto. Separar os dois e o que faz um
+   aglomerado sair como pilulas soltas sem erro em lugar nenhum. */
+.liquid-tight { --liquid-bridge: var(--liquid-bridge-tight); }
+.liquid-wide  { --liquid-bridge: var(--liquid-bridge-wide); }
+.liquid-tight .liquid-sheet { filter: url(#pure-goo-tight) var(--liquid-drop); }
+.liquid-wide  .liquid-sheet { filter: url(#pure-goo-wide) var(--liquid-drop); }
+
+.liquid-blob,
+.liquid-item {
+  flex: none;
+  box-sizing: border-box;
+  width: var(--liquid-size);
+  height: var(--liquid-size);
+  border-radius: var(--radius-circle);
+}
+
+/* UMA declaracao de transform por elemento, composta de tokens.
+   Duas regras escrevendo transform no mesmo blob e o defeito que esta
+   linguagem ja fechou duas vezes por outro caminho: o leque punha
+   translate e o inchaco punha scale, e o inchaco vencia por
+   especificidade (`:has()` pesa a do argumento mais especifico, 0,6,0
+   contra 0,3,0) independentemente da ordem no arquivo. Hover no
+   segundo item de um aglomerado dobrado devolvia o blob para a posicao
+   aberta enquanto o item continuava dobrado, e o espelho quebrava
+   exatamente onde ele e a premissa do material.
+
+   Cada estado escreve o SEU token; a composicao mora aqui. */
+.liquid-blob,
+.liquid-item {
+  /* Os fallbacks nao sao redundancia. Com @property suportado eles nunca
+     disparam, porque propriedade registrada sempre tem valor. Sem ele,
+     `calc(var(--liquid-swell) * var(--liquid-stretch-x))` fica invalido
+     em tempo de valor computado e a declaracao INTEIRA cai para
+     `transform: none`, o que derruba o leque, o inchaco e o morph de
+     uma vez. Medido: os tres blobs voltavam com transform `none`.
+
+     Com eles, @property so ACRESCENTA a interpolacao, e o
+     comportamento anterior continua sendo o piso. */
+  transform:
+    translate(var(--liquid-shift-x, 0px), var(--liquid-shift-y, 0px))
+    scale(
+      calc(var(--liquid-swell, 1) * var(--liquid-stretch-x, 1)),
+      calc(var(--liquid-swell, 1) * var(--liquid-stretch-y, 1))
+    );
+}
+
+.liquid-blob {
+  background: var(--liquid-fill);
+  transition:
+    transform var(--duration-5) var(--ease-out-soft),
+    opacity   var(--duration-5) var(--ease-out-soft);
+}
+
+.liquid-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-12);
+  cursor: pointer;
+  -webkit-tap-highlight-color: var(--tap-highlight);
+  transition: transform var(--duration-5) var(--ease-out-soft);
+}
+
+.liquid-item:focus-visible {
+  outline: var(--focus-ring) solid var(--text);
+  outline-offset: var(--focus-offset);
+}
+
+/* aglomerado quadrado: a unidade vira quadrado de canto de superficie,
+   e a ponte entre duas fica reta em vez de estrangulada */
+.liquid-sq .liquid-blob,
+.liquid-sq .liquid-item { border-radius: var(--radius-surface); }
+
+/* pilha vertical: leque que abre para cima, nao para o lado */
+.liquid-stack .liquid-sheet,
+.liquid-stack .liquid-content { flex-direction: column; }
+
+/* a gota sob o ponteiro incha e encosta na vizinha. As duas camadas sao
+   irmas, entao o estado do item nao alcanca o blob por combinador: quem
+   cruza e :has() no grupo, por indice. Oito unidades cobrem um
+   aglomerado; alem disso a lista deixou de ser um aglomerado. */
+.liquid:has(.liquid-item:nth-child(1):hover) .liquid-blob:nth-child(1),
+.liquid:has(.liquid-item:nth-child(2):hover) .liquid-blob:nth-child(2),
+.liquid:has(.liquid-item:nth-child(3):hover) .liquid-blob:nth-child(3),
+.liquid:has(.liquid-item:nth-child(4):hover) .liquid-blob:nth-child(4),
+.liquid:has(.liquid-item:nth-child(5):hover) .liquid-blob:nth-child(5),
+.liquid:has(.liquid-item:nth-child(6):hover) .liquid-blob:nth-child(6),
+.liquid:has(.liquid-item:nth-child(7):hover) .liquid-blob:nth-child(7),
+.liquid:has(.liquid-item:nth-child(8):hover) .liquid-blob:nth-child(8),
+.liquid:has(.liquid-item:nth-child(1):focus-visible) .liquid-blob:nth-child(1),
+.liquid:has(.liquid-item:nth-child(2):focus-visible) .liquid-blob:nth-child(2),
+.liquid:has(.liquid-item:nth-child(3):focus-visible) .liquid-blob:nth-child(3),
+.liquid:has(.liquid-item:nth-child(4):focus-visible) .liquid-blob:nth-child(4),
+.liquid:has(.liquid-item:nth-child(5):focus-visible) .liquid-blob:nth-child(5),
+.liquid:has(.liquid-item:nth-child(6):focus-visible) .liquid-blob:nth-child(6),
+.liquid:has(.liquid-item:nth-child(7):focus-visible) .liquid-blob:nth-child(7),
+.liquid:has(.liquid-item:nth-child(8):focus-visible) .liquid-blob:nth-child(8) {
+  --liquid-swell: 1.14;
+}
+
+/* leque fechado: as unidades se sobrepoem numa gota so. Abrir e tirar a
+   classe. Espelhado, entao a mesma regra move blob e item juntos: e o
+   que a lib chama de commit unico, aqui obtido pela geometria.
+   O leque escreve --liquid-shift-*, nunca transform: quem compoe o
+   transform e a regra unica la em cima. */
+.liquid-fold .liquid-blob:nth-child(1),
+.liquid-fold .liquid-item:nth-child(1) { --liquid-shift-x: calc(-0 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-fold .liquid-blob:nth-child(2),
+.liquid-fold .liquid-item:nth-child(2) { --liquid-shift-x: calc(-1 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-fold .liquid-blob:nth-child(3),
+.liquid-fold .liquid-item:nth-child(3) { --liquid-shift-x: calc(-2 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-fold .liquid-blob:nth-child(4),
+.liquid-fold .liquid-item:nth-child(4) { --liquid-shift-x: calc(-3 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-fold .liquid-blob:nth-child(5),
+.liquid-fold .liquid-item:nth-child(5) { --liquid-shift-x: calc(-4 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-fold .liquid-blob:nth-child(6),
+.liquid-fold .liquid-item:nth-child(6) { --liquid-shift-x: calc(-5 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-fold .liquid-blob:nth-child(7),
+.liquid-fold .liquid-item:nth-child(7) { --liquid-shift-x: calc(-6 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-fold .liquid-blob:nth-child(8),
+.liquid-fold .liquid-item:nth-child(8) { --liquid-shift-x: calc(-7 * (var(--liquid-size) + var(--liquid-bridge))); }
+
+/* na pilha vertical o leque desce pelo eixo Y, nao pelo X */
+.liquid-stack.liquid-fold .liquid-blob:nth-child(1),
+.liquid-stack.liquid-fold .liquid-item:nth-child(1) { --liquid-shift-x: 0; --liquid-shift-y: calc(-0 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-stack.liquid-fold .liquid-blob:nth-child(2),
+.liquid-stack.liquid-fold .liquid-item:nth-child(2) { --liquid-shift-x: 0; --liquid-shift-y: calc(-1 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-stack.liquid-fold .liquid-blob:nth-child(3),
+.liquid-stack.liquid-fold .liquid-item:nth-child(3) { --liquid-shift-x: 0; --liquid-shift-y: calc(-2 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-stack.liquid-fold .liquid-blob:nth-child(4),
+.liquid-stack.liquid-fold .liquid-item:nth-child(4) { --liquid-shift-x: 0; --liquid-shift-y: calc(-3 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-stack.liquid-fold .liquid-blob:nth-child(5),
+.liquid-stack.liquid-fold .liquid-item:nth-child(5) { --liquid-shift-x: 0; --liquid-shift-y: calc(-4 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-stack.liquid-fold .liquid-blob:nth-child(6),
+.liquid-stack.liquid-fold .liquid-item:nth-child(6) { --liquid-shift-x: 0; --liquid-shift-y: calc(-5 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-stack.liquid-fold .liquid-blob:nth-child(7),
+.liquid-stack.liquid-fold .liquid-item:nth-child(7) { --liquid-shift-x: 0; --liquid-shift-y: calc(-6 * (var(--liquid-size) + var(--liquid-bridge))); }
+.liquid-stack.liquid-fold .liquid-blob:nth-child(8),
+.liquid-stack.liquid-fold .liquid-item:nth-child(8) { --liquid-shift-x: 0; --liquid-shift-y: calc(-7 * (var(--liquid-size) + var(--liquid-bridge))); }
+
+/* Dobrado, so a primeira unidade recebe ponteiro E FOCO. `opacity: 0`
+   com `pointer-events: none` tira o ponteiro e nao tira o teclado: o
+   Tab continuava alcancando uma unidade invisivel e empilhada sob a
+   primeira, e o anel de foco aparecia sobre nada. `visibility: hidden`
+   tira das duas, e ela troca no fim da saida e no inicio da entrada
+   para nao cortar a propria animacao. */
+.liquid-fold .liquid-item:not(:nth-child(1)) {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition-delay: 0s, 0s, var(--duration-4);
+}
+
+.liquid-fold .liquid-item {
+  transition:
+    transform  var(--duration-5) var(--ease-out-soft),
+    opacity    var(--duration-4) var(--ease-out-soft),
+    visibility 0s;
+}
+
+/* ---------- movimento do liquido ----------
+
+   Cinco leituras, e nenhuma delas escreve `transform`: todas escrevem
+   os tokens registrados com @property, e a composicao continua sendo a
+   unica declaracao de transform do capitulo. E o que permite animar o
+   material sem reabrir o defeito de duas regras disputando o mesmo
+   elemento.
+
+   O que a lib faz com mola e o que aqui se faz com curva, e a diferenca
+   e declarada: uma mola tem ultrapassagem propria e continua depois do
+   alvo, e reproduzi-la exige integrar a cada quadro, o que e javascript.
+   O que atravessa e a FORMA do movimento, e ela e o que se reconhece:
+   a ponte que estica, o pescoco que afina, a gota que se solta.
+
+   ESTADO DE FLUXO. Tres das cinco so existem ENQUANTO a massa escorre,
+   e CSS puro nao sabe dizer "durante". Elas leem `.is-flux`, que o
+   javascript poe ao iniciar o percurso e tira ao fim, do mesmo jeito
+   que .motion-dropdown le .is-open. A alternativa foi tentada e
+   descartada na tela: aplicar o efeito ao estado permanente deixava o
+   rotulo desfocado para sempre e o rastro lendo como pontos soltos
+   parados. Um efeito de percurso preso ao estado de repouso e um
+   defeito, nao uma simplificacao. */
+
+/* 1. rastro. A gota de tras sai depois e chega depois, entao durante o
+      percurso as duas ficam a uma distancia que o filtro ainda costura:
+      o aglomerado estica em vez de se partir, e e essa a leitura de
+      "liquido sendo puxado". Atraso, nao mola: o que produz o rastro e
+      a DIFERENCA de fase entre as duas, e diferenca de fase e algo que
+      transition-delay entrega de graca.
+
+      O atraso fica sempre; o afinamento da cauda so no fluxo. Em
+      repouso um aglomerado com gotas de tamanhos diferentes se separa,
+      porque a menor encolhe para longe da vizinha e o vao passa da
+      ponte. */
+.liquid-trail .liquid-blob {
+  transition:
+    transform var(--duration-5) var(--ease-out-soft),
+    opacity   var(--duration-5) var(--ease-out-soft);
+}
+.liquid-trail .liquid-blob:nth-child(2) { transition-delay: var(--duration-1); }
+.liquid-trail .liquid-blob:nth-child(3) { transition-delay: calc(var(--duration-1) * 2); }
+.liquid-trail .liquid-blob:nth-child(4) { transition-delay: calc(var(--duration-1) * 3); }
+
+.liquid-trail.is-flux .liquid-blob:nth-child(2) { --liquid-swell: 0.86; }
+.liquid-trail.is-flux .liquid-blob:nth-child(3) { --liquid-swell: 0.7; }
+.liquid-trail.is-flux .liquid-blob:nth-child(4) { --liquid-swell: 0.54; }
+
+/* 2. gota que se solta. Desce esticando, afina no meio do percurso e
+      recupera a forma ao chegar: o estrangulamento e o filtro reagindo
+      ao estreitamento, nao um desenho de pescoco.
+
+      Esta e a unica das cinco que nao precisa de estado: ela e um
+      percurso com comeco e fim, entao a propria animacao devolve a
+      forma e o foco no ultimo quadro. */
+@keyframes pure-liquid-drip {
+  0%   { --liquid-shift-y: 0px;  --liquid-stretch-y: 1;    --liquid-stretch-x: 1; }
+  35%  { --liquid-shift-y: 8px;  --liquid-stretch-y: 1.35; --liquid-stretch-x: 0.72; }
+  70%  { --liquid-shift-y: 26px; --liquid-stretch-y: 1.1;  --liquid-stretch-x: 0.86; }
+  100% { --liquid-shift-y: 34px; --liquid-stretch-y: 1;    --liquid-stretch-x: 1; }
+}
+
+/* o conteudo desfoca no meio do percurso e volta nitido no fim, dentro
+   da propria animacao: nada fica desfocado depois que a gota assenta */
+@keyframes pure-liquid-drip-content {
+  0%, 100% { filter: blur(0); }
+  50%      { filter: blur(var(--motion-blur-1)); }
+}
+
+.liquid-drip .liquid-blob:last-child {
+  animation: pure-liquid-drip var(--duration-6) var(--ease-out-soft) forwards;
+}
+
+/* o item leva as duas animacoes numa shorthand so. Redeclarar apenas
+   animation-name e animation-duration por cima da shorthand anterior
+   deixaria fill-mode e easing herdados da lista antiga valendo para
+   nomes novos: funciona por coincidencia de ordem, que e a forma de
+   quase todo defeito que este repositorio ja fechou. */
+.liquid-drip .liquid-item:last-child {
+  animation:
+    pure-liquid-drip var(--duration-6) var(--ease-out-soft) forwards,
+    pure-liquid-drip-content var(--duration-6) var(--ease-out-soft) forwards;
+}
+
+/* 3. unidade que vira superficie. O gatilho circular cresce ate virar o
+      painel que ele abre, e ele cresce por ESCALA da silhueta, nunca
+      por width e height. Propriedade de layout nao entra aqui, e a
+      silhueta e a unica coisa que precisa crescer: o conteudo real ja
+      tem o tamanho final e so estava recortado.
+
+      E o plus-to-menu do catalogo, que na origem anima width, height e
+      border-radius. Aqui a mesma leitura sai sem tocar em layout, e
+      isso e o material trabalhando a favor da regra em vez de contra. */
+.liquid-morph .liquid-blob {
+  transition: transform var(--duration-5) var(--ease-out-expo);
+}
+.liquid-morph.is-open .liquid-blob:first-child {
+  --liquid-stretch-x: 3.2;
+  --liquid-stretch-y: 2.4;
+}
+
+/* 4. pulso. Para estado de espera, nao para decorar. As unidades incham
+      fora de fase, entao a massa se junta e se separa sozinha e o
+      aglomerado parece respirar. O passo e --duration-1, o mesmo do
+      escalonamento de linha na camada de motion. */
+@keyframes pure-liquid-breathe {
+  0%, 100% { --liquid-swell: 0.82; }
+  50%      { --liquid-swell: 1.12; }
+}
+
+.liquid-pulse .liquid-blob {
+  animation: pure-liquid-breathe calc(var(--duration-6) * 3) var(--ease-standard) infinite;
+}
+.liquid-pulse .liquid-blob:nth-child(2) { animation-delay: calc(var(--duration-1) * 2); }
+.liquid-pulse .liquid-blob:nth-child(3) { animation-delay: calc(var(--duration-1) * 4); }
+.liquid-pulse .liquid-blob:nth-child(4) { animation-delay: calc(var(--duration-1) * 6); }
+
+/* 5. conteudo que desfoca em movimento. E o contentBlur da lib, e ele
+      existe por uma razao de leitura e nao de enfeite: enquanto a massa
+      escorre, um rotulo perfeitamente nitido em cima dela denuncia que
+      sao duas camadas. Desfocar o conteudo durante o percurso e
+      devolve-lo ao assentar costura as duas.
+
+      So no fluxo, nunca no repouso. O desfoque e --motion-blur-*, a
+      familia do elemento que se move, e nunca um raio de vidro. */
+.liquid-content {
+  transition: filter var(--duration-5) var(--ease-out-soft);
+}
+
+.liquid.is-flux .liquid-content {
+  filter: blur(var(--motion-blur-1));
+}
+
 /* ---------- pilulas ----------
 
    .pill e de vidro por padrao: e a forma que a identidade usa.
@@ -390,6 +801,7 @@ dl, dd { margin: 0; }
    tabela densa ou sobre uma superficie ja translucida. */
 
 .pill {
+  --surface-context: var(--surface-glass);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -398,7 +810,12 @@ dl, dd { margin: 0; }
   border-radius: var(--radius-control);
   font-family: var(--font-mono);
   font-size: var(--text-13);
-  line-height: var(--leading-snug);
+  /* A caixa de linha e a do icone de controle, nao a do texto. Sem isto quem
+     decide a altura da pilula e o conteudo: 13px em --leading-snug da 18,2 e
+     .icon da 20, entao pilula com icone saia 1,8px mais alta que pilula so de
+     texto e as duas encostadas nao alinhavam. Uma medida por classe de
+     controle e regra da linguagem, e a classe tem de declara-la. */
+  line-height: var(--text-20);
   color: var(--text);
   user-select: none;
   cursor: pointer;
@@ -406,8 +823,8 @@ dl, dd { margin: 0; }
   background-image: var(--glass-fill);
   background-color: transparent;
   border: var(--hairline) solid var(--glass-edge);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--shadow-glass-rest);
   isolation: isolate;
 
@@ -436,8 +853,8 @@ dl, dd { margin: 0; }
   background-image: none;
   background-color: var(--surface);
   border-color: var(--border);
-  backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   box-shadow: none;
 }
 .pill-solid:hover {
@@ -451,6 +868,8 @@ dl, dd { margin: 0; }
 .pill-sm {
   padding: var(--space-4) var(--space-10);
   font-size: var(--text-11);
+  /* mesma razao da .pill, um degrau abaixo: aqui o icone e .icon-sm */
+  line-height: var(--text-16);
   gap: var(--space-4);
 }
 
@@ -591,8 +1010,8 @@ dl, dd { margin: 0; }
   border-radius: var(--radius-surface);
   background-image: var(--glass-fill);
   background-color: var(--surface-glass);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: var(--hairline) solid var(--glass-edge);
   box-shadow: var(--shadow-glass-rest);
   isolation: isolate;
@@ -701,12 +1120,50 @@ dl, dd { margin: 0; }
   min-height: var(--hit-min);
 }
 
+/* No toque a area cresce, e ela cresce em TUDO que se aperta, nao so no
+   campo. Ate 1.5.0 este bloco cobria .hit, .input, .textarea e .select,
+   e mais nada: a pilula ficava em 35px, o link de acao em 25 e a marca
+   de escolha em 16, todos abaixo do piso de 44 que a propria linguagem
+   declara como obrigatorio. O dedo nao sabe que a regra existia.
+
+   O sinal e `pointer: coarse`, nunca a largura da tela. Um tablet de
+   1280px e toque e um celular ligado a um mouse nao e, e decidir area
+   de toque por largura erra os dois. */
 @media (pointer: coarse) {
   .hit::after {
     min-width: var(--hit-min-touch);
     min-height: var(--hit-min-touch);
   }
+
   .input, .textarea, .select { min-height: var(--field-height-touch); }
+
+  /* controles: a altura sobe pelo piso, a largura acompanha quando o
+     controle e quadrado. padding-block em vez de height para o rotulo
+     nao encostar na borda quando ele quebra em duas linhas. */
+  .pill,
+  .link-cta,
+  .control-round,
+  .liquid-item {
+    min-height: var(--hit-min-touch);
+  }
+
+  .pill { padding-block: var(--space-10); }
+  .pill-sm { padding-block: var(--space-8); }
+
+  .control-round,
+  .liquid-item,
+  .liquid-blob {
+    min-width: var(--hit-min-touch);
+  }
+
+  /* a marca da escolha continua do tamanho que se le; quem cresce e o
+     rotulo inteiro, que e o alvo de verdade */
+  .check { min-height: var(--hit-min-touch); }
+
+  /* link dentro de texto corrido nao vira bloco de 44px: isso quebraria
+     a entrelinha da prosa. Ele ganha area por .hit, que estende sem
+     estender o desenho. */
+  .link-muted { -webkit-tap-highlight-color: var(--tap-highlight); }
 }
 
 /* ---------- formulario ----------
@@ -856,6 +1313,60 @@ dl, dd { margin: 0; }
   animation: pure-spin var(--duration-6) linear infinite;
 }
 
+/* ---------- icone ----------
+
+   Ate 1.6.0 a linguagem nao tinha icone nenhum, e a ausencia aparecia
+   em toda tela construida com ela: cada projeto trazia um conjunto de
+   fora, com outra caixa, outra espessura e outra ponta, e o unico
+   desenho da pagina que nao pertencia a pagina era o que mais se
+   repetia nela. `web/icons.svg` traz 65, desenhados na mesma geometria
+   e em currentColor.
+
+   A ESPESSURA e o ponto todo. Ela nao mora no arquivo do sprite: mora
+   aqui, como var(--stroke), o mesmo token do anel do spinner e da marca
+   do checkbox. `vector-effect: non-scaling-stroke` e o que a mantem
+   igual nos tres tamanhos: sem ele o traco encolhe junto com a caixa e
+   um icone de 16 sai mais leve que o de 24 na mesma barra, que e
+   exatamente o defeito que se ve num conjunto importado e nao se sabe
+   nomear. Ele e ATRIBUTO no sprite e nao regra aqui, e a diferenca nao e
+   estilo: vector-effect nao e propriedade herdada e o conteudo de um
+   <use> mora em shadow tree, entao nenhum seletor descendente o alcanca.
+   stroke-width fica no CSS porque esse herda, e CSS vence atributo de
+   apresentacao.
+
+   Tres tamanhos e nao mais: 20 e o icone de controle, 16 o de metadado
+   e 24 o de cabecalho. A caixa e quadrada e `flex: none`, entao um
+   rotulo comprido ao lado nunca esmaga o desenho.
+
+   Uso, e o sprite precisa vir por http (um <use> externo nao resolve em
+   file://):
+
+     <svg class="icon" aria-hidden="true"><use href="pure/icons.svg#search"/></svg>
+
+   aria-hidden por padrao porque o icone quase sempre acompanha um
+   rotulo que ja diz a mesma coisa. Icone sozinho num controle e o caso
+   em que ele carrega significado: ali o controle leva aria-label, nao o
+   desenho. */
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex: none;
+  inline-size: var(--text-20);
+  block-size: var(--text-20);
+  stroke-width: var(--stroke);
+  color: inherit;
+}
+
+.icon-sm {
+  inline-size: var(--text-16);
+  block-size: var(--text-16);
+}
+
+.icon-lg {
+  inline-size: var(--text-24);
+  block-size: var(--text-24);
+}
+
 /* ---------- conteudo ----------
 
    Todo container de texto recebe conteudo curto, medio e longo demais.
@@ -925,6 +1436,7 @@ dl, dd { margin: 0; }
    continua rolando a pagina atras quando o painel chega ao fim. */
 
 .overlay {
+  --surface-context: var(--surface-glass);
   position: fixed;
   inset: 0;
   z-index: 80;
@@ -932,8 +1444,8 @@ dl, dd { margin: 0; }
   place-items: center;
   padding: var(--space-24);
   background-image: var(--glass-fill-deep);
-  backdrop-filter: blur(var(--blur-pill)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--blur-pill)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--blur-pill)) saturate(var(--glass-saturate));
 }
 
 .modal, .drawer {
@@ -965,6 +1477,106 @@ dl, dd { margin: 0; }
 /* o grupo fica quente enquanto uma dica dele acabou de abrir; ate esfriar,
    as vizinhas entram sem espera. Quem marca data-warm e o script. */
 .tip-group[data-warm="true"] .tip [role="tooltip"] { transition-delay: 0ms; }
+
+/* ---------- tabela ----------
+
+   A linguagem nao tinha tabela ate 1.5.0, e a consequencia era previsivel:
+   cada projeto escrevia a sua e todas transbordavam no estreito. No guia,
+   medido em 553px, a tabela de regras terminava em 576: o conteudo nao
+   rolava, ficava FORA da tela e inalcancavel, que e pior que uma barra de
+   rolagem.
+
+   A regra de oficio diz que o corpo da pagina nunca rola na horizontal.
+   Ela so e cumprivel se alguem rolar no lugar dele, e esse alguem e
+   .table-scroll. O contentor rola, a pagina nao, e overscroll-behavior-x
+   impede o gesto de vazar para a navegacao do navegador.
+
+   Toda tabela mora dentro de um .table-scroll. Nao e opcional e nao
+   depende de a tabela ser larga hoje: uma coluna a mais amanha e o
+   defeito volta em silencio. */
+
+.table-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-13);
+  text-align: left;
+}
+
+.table th {
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  font-weight: var(--weight-regular);
+  color: var(--muted);
+  padding: var(--space-8) var(--space-12) var(--space-8) 0;
+  border-bottom: var(--hairline) solid var(--border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--space-10) var(--space-12) var(--space-10) 0;
+  border-bottom: var(--hairline) solid var(--border);
+  vertical-align: top;
+}
+
+.table tr:last-child td { border-bottom: 0; }
+
+/* numero que se compara e tabular e alinha a direita: e a unica coluna
+   em que a virgula precisa cair sempre na mesma posicao */
+.table .num,
+.table th.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  padding-right: 0;
+}
+
+/* ---------- estreito ----------
+
+   O estreito nao e o largo encolhido, e ate 1.5.0 a linguagem nao tinha
+   uma unica consulta de largura: --breakpoint-stack existia em
+   tokens.css e em tokens.json e nao era lido por nada. Um token que
+   nada resolve e um token que mente, e este mentia sobre a coisa mais
+   visivel da tela.
+
+   O NUMERO ABAIXO E LITERAL PORQUE PRECISA SER: uma consulta de midia
+   nao le var(), e nao ha polyfill que valha um passo de build. Ele
+   precisa bater com --breakpoint-stack, e check.mjs reprova quando os
+   dois divergem, como faz com theme-color e com os filtros goo.
+
+   O que decide por LARGURA mora aqui. O que decide por TOQUE mora no
+   bloco pointer: coarse acima, e os dois nao se misturam. */
+
+@media (max-width: 768px) {
+  /* Vidro fundo custa caro em tela pequena. .glass-deep e --blur-pill
+     numa barra de largura total derrubam a taxa de quadros num aparelho
+     de entrada, e o ganho visual num retangulo de 375px de largura e
+     praticamente nulo. A textura desce um degrau; a classe continua a
+     mesma, entao nenhuma marcacao muda. */
+  .glass.glass-deep,
+  .glass-deep {
+    -webkit-backdrop-filter: blur(var(--glass-blur-frost)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur-frost)) saturate(var(--glass-saturate));
+  }
+
+  .overlay {
+    -webkit-backdrop-filter: blur(var(--blur-card)) saturate(var(--blur-saturate));
+    backdrop-filter: blur(var(--blur-card)) saturate(var(--blur-saturate));
+  }
+
+  /* o aglomerado liquido encosta na borda antes de qualquer outra coisa,
+     porque a folga do filtro e desenho e nao margem */
+  .liquid { padding: var(--liquid-bridge); }
+
+  /* uma sobreposicao no estreito e uma folha, nao um cartao centralizado:
+     ela ocupa a largura e ancora embaixo, onde o polegar alcanca */
+  .overlay { max-width: 100%; }
+}
 
 /* ---------- acesso ----------
 
@@ -1014,12 +1626,20 @@ dl, dd { margin: 0; }
   to   { opacity: 1; transform: scale(1); }
 }
 
+/* O preenchimento e `backwards`, nao `both`, e a diferenca nao e cosmetica.
+   O quadro final destas duas entradas e `translateY(0)` e `opacity: 1`, que ja
+   sao o padrao do elemento, entao `forwards` nao acrescenta nada ao que se ve
+   e cobra caro: transform preenchido para sempre cria contexto de empilhamento
+   permanente, e ai um elemento posicionado DENTRO do bloco (menu, sugestao,
+   dica) fica preso nele por mais alto que seja o seu z-index, aparecendo atras
+   do bloco seguinte. `backwards` mantem o que importa, que e segurar o estado
+   inicial durante o atraso da escada, e some depois sem deixar residuo. */
 .fade-up {
-  animation: pure-fade-up var(--duration-6) var(--ease-out-soft) both;
+  animation: pure-fade-up var(--duration-6) var(--ease-out-soft) backwards;
 }
 
 .fade-scale {
-  animation: pure-fade-scale var(--duration-4) var(--ease-out-expo) both;
+  animation: pure-fade-scale var(--duration-4) var(--ease-out-expo) backwards;
 }
 
 /* escada de entrada: 60ms por item, no maximo seis degraus */
@@ -1050,6 +1670,15 @@ dl, dd { margin: 0; }
   }
   .skeleton {
     animation-duration: var(--duration-6) !important;
+    animation-iteration-count: infinite !important;
+  }
+
+  /* o pulso do liquido e indicador de espera, como o esqueleto: ele
+     desacelera em vez de morrer, porque um indicador parado mente
+     sobre o estado. O inchaco tambem encolhe, para o movimento residual
+     ficar perto do limiar de percepcao. */
+  .liquid-pulse .liquid-blob {
+    animation-duration: calc(var(--duration-6) * 4) !important;
     animation-iteration-count: infinite !important;
   }
 }
