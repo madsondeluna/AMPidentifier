@@ -87,6 +87,7 @@ PAGE = """<!DOCTYPE html>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,300..400&family=Public+Sans:wght@300;400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/pure/tokens.css?v={{ asset_v }}">
 <link rel="stylesheet" href="/pure/patterns.css?v={{ asset_v }}">
+<link rel="stylesheet" href="/pure/motion.css?v={{ asset_v }}">
 <style>
   /* =========================================================
      Pure Design 1.4.2. Nenhum literal de cor, tipo, raio, sombra
@@ -144,7 +145,7 @@ PAGE = """<!DOCTYPE html>
      linha estica o espaco entre as palavras, e a linha do registro INPI
      chegava a quase o dobro do espaco normal. Hifenizar devolve o espaco
      de palavra ao tamanho de sempre, que e o que justifica justificar. */
-  .prose-justify { -webkit-hyphens: auto; hyphens: auto; }
+  .prose-justify { -webkit-hyphens: auto; hyphens: auto; text-wrap: pretty; }
 
   /* ---------- cabecalho ---------- */
 
@@ -303,6 +304,7 @@ PAGE = """<!DOCTYPE html>
     color: var(--text);
     word-break: break-all;
   }
+  .share-url-box.open { display: block; }
   .share-form { display: none; margin-top: var(--space-12); gap: var(--space-8); align-items: center; flex-wrap: wrap; }
   .share-form .pill { align-self: stretch; }
   .share-form.open { display: flex; }
@@ -476,6 +478,10 @@ PAGE = """<!DOCTYPE html>
   #usageMap .gloss-mid { stop-color: var(--glass-specular); stop-opacity: 0.25; }
   #usageMap .gloss-out { stop-color: var(--glass-specular); stop-opacity: 0; }
   #usageMap .spot:hover .ring { fill-opacity: 0.36; stroke-opacity: 0.95; }
+  /* o anel desenhado tem o tamanho do dado; o alvo do ponteiro tem o
+     tamanho da mao. O segundo circulo e invisivel e so recebe o toque. */
+  #usageMap .ring-hit { fill: var(--text); fill-opacity: 0; pointer-events: all; }
+
   .map-tip {
     position: absolute;
     pointer-events: none;
@@ -684,8 +690,8 @@ PAGE = """<!DOCTYPE html>
           <button class="pill" onclick="toggleShareForm()" id="shareEmailBtn">Share by email</button>
         </div>
       </div>
-      <div class="share-url-box mono" id="shareUrlBox"></div>
-      <div class="share-form" id="shareForm">
+      <div class="share-url-box mono motion-dropdown" id="shareUrlBox"></div>
+      <div class="share-form motion-dropdown" id="shareForm">
         <span class="select-shell">
           <select class="select" id="shareLang" title="Email language">
             <option value="en">English</option>
@@ -735,7 +741,7 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
       <div id="status" aria-live="polite"></div>
     </div>
 
-    <div id="results"></div>
+    <div id="results" class="motion-lines"></div>
   </main>
 
   <footer class="step-2">
@@ -754,7 +760,7 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
            espaco entre as palavras para fechar a margem -->
       <p>This tool is officially registered with the <strong lang="pt-BR">INPI &ndash; Instituto Nacional da Propriedade Industrial</strong> (Brazilian National Institute of Industrial Property), Registration No. <strong>BR 51 2025 005859-4</strong>. It is a property of the <strong lang="pt-BR">Universidade Federal de Pernambuco (UFPE)</strong> and the <strong lang="pt-BR">Laboratório de Genética e Biotecnologia Vegetal (LGBV)</strong>.</p>
       <p>Your data is encrypted during transfer (HTTPS/TLS) and never shared. Sequences are not stored.</p>
-      <p>Developer: <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a> &nbsp;·&nbsp; <a href="https://madsondeluna.com" target="_blank">madsondeluna.com</a> &nbsp;·&nbsp; <button class="feedback-link" onclick="openFeedback()">Report issue or suggestion</button> &nbsp;·&nbsp; <span class="version">v{{ version }}</span></p>
+      <p>Developer: <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a> &nbsp;·&nbsp; <a href="https://madsondeluna.com" target="_blank">madsondeluna.com</a> &nbsp;·&nbsp; <button class="feedback-link hit" onclick="openFeedback()">Report issue or suggestion</button> &nbsp;·&nbsp; <span class="version">v{{ version }}</span></p>
     </div>
     <!-- a categoria de cada marca sai do alt, que continua completo: o
          rotulo visivel repetia o que a imagem ja diz e cobrava altura -->
@@ -765,6 +771,7 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
           <img src="/img/pure/ufpe.png"     alt="Universidade Federal de Pernambuco">
           <img src="/img/pure/ufmg.png"     alt="Universidade Federal de Minas Gerais">
           <img src="/img/pure/upe-logo.png" alt="Universidade de Pernambuco" class="logo-stacked">
+          <img src="/img/pure/lncc.png"     alt="Laboratório Nacional de Computação Científica">
         </div>
       </div>
       <div class="logo-group">
@@ -772,6 +779,8 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
         <div class="logo-row">
           <img src="/img/pure/dqf.png"   alt="Departamento de Química Fundamental, UFPE" class="logo-stacked">
           <img src="/img/pure/dgen.jpeg" alt="Departamento de Genética, UFPE"            class="logo-stacked">
+          <img src="/img/pure/icb.png"   alt="Instituto de Ciências Biológicas, UFMG"    class="logo-stacked">
+          <img src="/img/pure/ppgbioinfo.png" alt="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG" class="logo-stacked">
         </div>
       </div>
       <div class="logo-group">
@@ -795,8 +804,8 @@ KRIVQRIKDFLRNLVPRTES" oninput="updateCounter();validateFasta();"></textarea>
 </div>
 
 <!-- Feedback modal -->
-<div class="modal-overlay" id="feedbackOverlay" onclick="closeFeedbackOutside(event)">
-  <div class="modal modal-card surface" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+<div class="modal-overlay motion-scrim" id="feedbackOverlay" onclick="closeFeedbackOutside(event)">
+  <div class="modal modal-card surface motion-modal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
     <h2 id="feedbackTitle">Report issue or suggestion</h2>
     <div class="field">
       <label class="field-label" for="feedbackType">Type</label>
@@ -955,15 +964,24 @@ function initUsageMap() {
     const rings = [];
 
     // rings scale with the map, with a floor in screen pixels so the smallest
-    // ones stay visible when the SVG shrinks on narrow viewports
+    // ones stay visible when the SVG shrinks on narrow viewports.
+    // the hit circle has its own floor, read from the interaction token:
+    // the drawn ring carries the datum, the invisible one carries the hand.
+    const hitFloorPx = function() {
+      const root = getComputedStyle(document.documentElement);
+      const key = window.matchMedia('(pointer: coarse)').matches ? '--hit-min-touch' : '--hit-min';
+      return (parseFloat(root.getPropertyValue(key)) || 0) / 2;
+    };
     const sizeRings = function() {
       const unit = (svg.getBoundingClientRect().width || world.w) / world.w;
       if (!unit) return;
       const floor = 4.5 / unit;
+      const hitFloor = hitFloorPx() / unit;
       rings.forEach(function(item) {
         const r = Math.max(item.r, floor);
         item.node.setAttribute('r', r);
         item.gloss.setAttribute('r', r);
+        item.hit.setAttribute('r', Math.max(r, hitFloor));
       });
     };
 
@@ -978,7 +996,8 @@ function initUsageMap() {
                           'aria-label': place + ', ' + value }, svg);
       const ring = el('circle', { cx: x, cy: y, r: r, class: 'ring' }, g);
       const lit  = el('circle', { cx: x, cy: y, r: r, class: 'gloss' }, g);
-      rings.push({ node: ring, gloss: lit, r: r });
+      const hit  = el('circle', { cx: x, cy: y, r: r, class: 'ring-hit' }, g);
+      rings.push({ node: ring, gloss: lit, hit: hit, r: r });
       const show = function() { showTip(ring, place, value); };
       g.addEventListener('mouseenter', show);
       g.addEventListener('focus',      show);
@@ -1072,12 +1091,22 @@ function clearAll() {
 /* vazio, carregando, cheio e erro sao quatro desenhos. O vazio oferece o
    proximo passo, mas nao repete um botao: "Load example" ja esta na fila
    de acoes logo acima, visivel ao mesmo tempo que este aviso. */
+/* O escalonamento so corre no resultado final. O esqueleto entra sem
+   replay: dois escalonamentos seguidos no mesmo painel leem como falha
+   de carregamento, nao como sequencia. */
+function revealResults(replay) {
+  const box = document.getElementById('results');
+  if (replay) { box.classList.remove('is-open'); void box.offsetWidth; }
+  box.classList.add('is-open');
+}
+
 function showEmptyResults() {
   document.getElementById('results').innerHTML =
     '<div class="empty">' +
       '<div><div class="empty-head">No predictions yet</div>' +
       '<div>Paste FASTA sequences above, or start from the example.</div></div>' +
     '</div>';
+  revealResults(true);
 }
 
 function showResultsSkeleton() {
@@ -1089,6 +1118,7 @@ function showResultsSkeleton() {
       '<div class="sk-grid">' + stat + stat + stat + '</div>' +
     '</div>' +
     '<div class="sk-rows">' + row + row + row + row + '</div>';
+  revealResults(false);
 }
 
 async function runPrediction() {
@@ -1226,6 +1256,7 @@ function renderResults(data) {
       'Bear in mind that proteins whose primary function is not antimicrobial activity may still harbour potential antimicrobial features in specific sequence regions. A full benchmark is available in Luna-Arago et al. (2026), <a href="https://doi.org/10.1021/acs.jcim.XXXXXXX" target="_blank">doi:10.1021/acs.jcim.XXXXXXX</a>.' +
     '</div>';
 
+  revealResults(true);
   applyFilter(currentFilter);
 }
 
@@ -1341,26 +1372,50 @@ async function sendCsvByEmail() {
   }
 }
 
+/* Abrir e fechar com as receitas de pure/motion.css. O display continua
+   sendo a chave: a superficie sai do fluxo fechada, entao o teclado nao
+   a alcanca. O reflow entre ligar o display e ligar is-open e o que faz
+   a transicao correr em vez de saltar. A saida le a duracao do token,
+   nunca um numero escrito aqui. */
+function motionExitMs() {
+  const v = getComputedStyle(document.documentElement).getPropertyValue('--duration-2');
+  return parseFloat(v) || 0;
+}
+function motionOpen(el) {
+  el.classList.remove('is-closing');
+  el.classList.add('open');
+  void el.offsetWidth;
+  el.classList.add('is-open');
+}
+function motionClose(el, done) {
+  el.classList.remove('is-open');
+  el.classList.add('is-closing');
+  window.setTimeout(function() {
+    el.classList.remove('open', 'is-closing');
+    if (done) done();
+  }, motionExitMs());
+}
+
 function copyLink() {
   const url = window.location.origin + '/';
   const box = document.getElementById('shareUrlBox');
   const btn = document.getElementById('copyLinkBtn');
   navigator.clipboard.writeText(url).then(() => {
     box.textContent = url + '  (copied)';
-    box.style.display = 'block';
+    motionOpen(box);
     btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Copy link'; box.style.display = 'none'; }, 2500);
+    setTimeout(() => { btn.textContent = 'Copy link'; motionClose(box); }, 2500);
   }).catch(() => {
     box.textContent = url;
-    box.style.display = 'block';
+    motionOpen(box);
   });
 }
 
 function toggleShareForm() {
   const form = document.getElementById('shareForm');
-  const opening = !form.classList.contains('open');
-  form.classList.toggle('open');
-  if (opening) document.getElementById('shareFriendEmail').focus();
+  if (form.classList.contains('open')) { motionClose(form); return; }
+  motionOpen(form);
+  document.getElementById('shareFriendEmail').focus();
 }
 
 async function sendShareEmail() {
@@ -1395,12 +1450,22 @@ async function sendShareEmail() {
 }
 
 function openFeedback() {
-  document.getElementById('feedbackOverlay').classList.add('open');
+  const overlay = document.getElementById('feedbackOverlay');
+  const card = overlay.querySelector('.modal');
+  card.classList.remove('is-closing');
+  motionOpen(overlay);
+  card.classList.add('is-open');
   document.getElementById('feedbackMsg').focus();
 }
 function closeFeedback() {
-  document.getElementById('feedbackOverlay').classList.remove('open');
-  document.getElementById('feedbackMsg').value = '';
+  const overlay = document.getElementById('feedbackOverlay');
+  const card = overlay.querySelector('.modal');
+  card.classList.remove('is-open');
+  card.classList.add('is-closing');
+  motionClose(overlay, function() {
+    card.classList.remove('is-closing');
+    document.getElementById('feedbackMsg').value = '';
+  });
 }
 function closeFeedbackOutside(e) {
   if (e.target === document.getElementById('feedbackOverlay')) closeFeedback();
