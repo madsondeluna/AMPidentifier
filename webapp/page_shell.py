@@ -734,7 +734,7 @@ STYLE = """  /* =========================================================
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-48);
+    gap: var(--space-64);
     flex-wrap: nowrap;
     width: 100%;
     overflow-x: auto;
@@ -744,10 +744,16 @@ STYLE = """  /* =========================================================
   .footer-strip .logo-group { flex: 0 0 auto; gap: var(--space-6); }
   .footer-strip .logo-group-label { white-space: nowrap; color: var(--text); opacity: 0.72; }
 
-  /* na barra de chrome a regua inteira desce um degrau: no rodape em
-     fluxo a fita e conteudo e pode ocupar 48px de altura, aqui ela
-     divide 96 com o rotulo e nao pode ser a coisa maior da barra. */
-  .footer-strip .logo-row { min-height: var(--space-40); gap: var(--space-10); }
+  /* A altura de cada marca sai de area de caixa constante, nao da altura
+     igual: h = raiz(A / proporcao), com A fechada para a marca mais
+     quadrada cair no degrau mais alto. Altura igual faz um logotipo de
+     uma linha gastar tudo numa fileira de letras e um empilhado dividir
+     a mesma altura entre marca e legenda, saindo com metade do tamanho
+     aparente. Area de CAIXA, nao de tinta: area de tinta mede espessura
+     de traco e infla uma marca de traco fino ate ela virar a maior da
+     fita. Os tres degraus sao os que a escala de espaco oferece perto
+     dos valores calculados, e o calculo esta em cada arquivo. */
+  .footer-strip .logo-row { min-height: var(--space-40); gap: var(--space-16); }
   .footer-strip .logo-row img { height: var(--space-24); }
   .footer-strip .logo-row img.logo-lockup { height: var(--space-32); }
   .footer-strip .logo-row img.logo-stacked { height: var(--space-40); }
@@ -758,6 +764,41 @@ STYLE = """  /* =========================================================
   /* ancora sob barra fixa: o alvo para na borda de baixo da navbar em
      vez de escorregar para tras dela. */
   #main, [id] { scroll-margin-top: calc(var(--chrome-top) + var(--space-16)); }
+
+  /* Os dois icones ficam no DOM e trocam por opacidade e escala, nunca
+     por display: alternar display nao anima e a caixa do botao pula. Um
+     e absoluto sobre o outro, dentro da unidade liquida de tamanho fixo. */
+  .mode-btn { position: relative; border: none; background: none; cursor: pointer; }
+
+  .mode-btn .icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transition:
+      opacity   var(--duration-3) var(--ease-out-expo),
+      transform var(--duration-3) var(--ease-out-expo),
+      filter    var(--duration-3) var(--ease-out-expo);
+    --icon-swap-x: -50%;
+    --icon-swap-y: -50%;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .mode-btn .icon-moon { opacity: 0; transform: translate(-50%, -50%) scale(0.25); filter: blur(var(--motion-blur-2)); }
+  .mode-btn .icon-sun  { opacity: 1; filter: blur(0); }
+
+  :root.dark .mode-btn .icon-sun  { opacity: 0; transform: translate(-50%, -50%) scale(0.25); filter: blur(var(--motion-blur-2)); }
+  :root.dark .mode-btn .icon-moon { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
+
+  /* As marcas institucionais sao tinta escura sobre fundo transparente:
+     no modo escuro elas desaparecem no proprio fundo. Inverter devolve a
+     mesma marca em tinta clara, que e como cada instituicao publica a
+     versao monocromatica dela para fundo escuro. */
+  :root.dark .footer-strip .logo-row img,
+  :root.dark .nav-wordmark,
+  :root.dark .nav-symbol { filter: grayscale(1) invert(1); }
+
+  :root.dark .footer-strip .logo-row img { opacity: 0.72; }
+  :root.dark .footer-strip .logo-row img:hover { opacity: 1; }
 
   @media (max-width: 768px) {
     .nav-wordmark { display: none; }
@@ -875,6 +916,7 @@ NAV = """<nav class="navbar glass-deep" aria-label="Main">
         <div class="liquid-sheet" aria-hidden="true">
           <span class="liquid-blob"></span>
           <span class="liquid-blob"></span>
+          <span class="liquid-blob"></span>
         </div>
         <div class="liquid-content">
           <a class="liquid-item" href="https://github.com/madsondeluna/AMPidentifier" target="_blank" rel="noopener" aria-label="Source on GitHub">
@@ -883,6 +925,10 @@ NAV = """<nav class="navbar glass-deep" aria-label="Main">
           <a class="liquid-item" href="https://pypi.org/project/ampidentifier/" target="_blank" rel="noopener" aria-label="Package on PyPI">
             <svg class="icon" aria-hidden="true"><use href="/pure/icons.svg#code"></use></svg>
           </a>
+          <button class="liquid-item mode-btn" type="button" id="modeBtn" aria-label="Switch to dark mode" aria-pressed="false">
+            <svg class="icon icon-sun" aria-hidden="true"><use href="/pure/icons.svg#sun"></use></svg>
+            <svg class="icon icon-moon" aria-hidden="true"><use href="/pure/icons.svg#moon"></use></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -907,8 +953,8 @@ FOOTER_BAR = """<footer class="footer-bar glass-deep">
           <div class="logo-group-label">Departments</div>
           <div class="logo-row">
             <img src="/img/pure/dqf.png"   alt="Departamento de Química Fundamental, UFPE" class="logo-lockup">
-            <img src="/img/pure/dgen.jpeg" alt="Departamento de Genética, UFPE" class="logo-lockup">
-            <img src="/img/pure/icb.png"   alt="Instituto de Ciências Biológicas, UFMG" class="logo-stacked">
+            <img src="/img/pure/dgen.png" alt="Departamento de Genética, UFPE" class="logo-lockup">
+            <img src="/img/pure/icb.png"   alt="Instituto de Ciências Biológicas, UFMG" class="logo-lockup">
             <img src="/img/pure/ppgbioinfo.png" alt="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG" class="logo-stacked">
           </div>
         </div>
@@ -916,7 +962,7 @@ FOOTER_BAR = """<footer class="footer-bar glass-deep">
           <div class="logo-group-label">Funding</div>
           <div class="logo-row">
             <img src="/img/pure/facepe.png"  alt="FACEPE">
-            <img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-stacked">
+            <img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-lockup">
           </div>
         </div>
         <div class="logo-group">
@@ -955,7 +1001,50 @@ MODAL = """<!-- Feedback modal -->
   </div>
 </div>"""
 
-SHELL_JS = """async function checkServerStatus() {
+SHELL_JS = """/* ---------- modo: o estado mora no endereco ----------
+   Dois modos, claro e escuro. Sem ?mode o navegador decide pela
+   preferencia do sistema, e a escolha explicita sobrescreve. A moldura
+   do navegador acompanha, lendo --bg computado em vez de um literal. */
+
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+const modeProbe = document.createElement('div');
+modeProbe.style.cssText = 'position:absolute;visibility:hidden';
+document.body.appendChild(modeProbe);
+
+function resolveToken(name) {
+  modeProbe.style.color = 'var(' + name + ')';
+  const m = getComputedStyle(modeProbe).color.match(/\d+(\.\d+)?/g);
+  if (!m) return null;
+  return '#' + m.slice(0, 3).map(c => (+c).toString(16).padStart(2, '0')).join('');
+}
+
+function applyMode(mode, record) {
+  document.documentElement.className = mode === 'dark' ? 'dark' : '';
+  const btn = document.getElementById('modeBtn');
+  if (btn) {
+    btn.setAttribute('aria-pressed', String(mode === 'dark'));
+    btn.setAttribute('aria-label', mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  }
+  const bg = resolveToken('--bg');
+  if (themeMeta && bg) themeMeta.setAttribute('content', bg);
+  if (!record) return;
+  const url = new URL(location.href);
+  if (mode === 'dark') url.searchParams.set('mode', 'dark');
+  else url.searchParams.delete('mode');
+  history.replaceState(null, '', url);
+}
+
+(function initMode() {
+  const asked = new URL(location.href).searchParams.get('mode');
+  const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
+  applyMode(asked === 'dark' || asked === '' ? asked : system, false);
+  const btn = document.getElementById('modeBtn');
+  if (btn) btn.addEventListener('click', function () {
+    applyMode(document.documentElement.classList.contains('dark') ? '' : 'dark', true);
+  });
+})();
+
+async function checkServerStatus() {
   const dot = document.getElementById('statusDot');
   const lbl = document.getElementById('statusLabel');
   const t0 = performance.now();
