@@ -239,35 +239,39 @@ BODY = """
           <div class="author-name">Madson Allan de Luna Arag&atilde;o</div>
           <div class="author-role">Lead developer and maintainer</div>
           <div class="author-affil">Institute of Biological Sciences, Universidade Federal de Minas Gerais (UFMG), Belo Horizonte<br>Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife</div>
-          <div class="author-links"><a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">ORCID</a></div>
+          <div class="author-links"><svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#tag"></use></svg><a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">0000-0001-5313-3913</a></div>
         </div>
 
         <div class="card-glass author">
           <div class="author-name">Rafael Lucas da Silva</div>
+          <div class="author-role">Undergraduate assistant</div>
           <div class="author-affil">Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife</div>
         </div>
 
         <div class="card-glass author">
           <div class="author-name">Jo&atilde;o Pacifico Bezerra Neto</div>
-          <div class="author-role">Original prototype</div>
+          <div class="author-role">Original prototype and co-advisor</div>
           <div class="author-affil">Universidade de Pernambuco (UPE), Petrolina</div>
-          <div class="author-links"><a href="https://orcid.org/0000-0003-3861-4879" target="_blank" rel="noopener">ORCID</a></div>
+          <div class="author-links"><svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#tag"></use></svg><a href="https://orcid.org/0000-0003-3861-4879" target="_blank" rel="noopener">0000-0003-3861-4879</a></div>
         </div>
 
         <div class="card-glass author">
           <div class="author-name">Carlos Andr&eacute; dos Santos-Silva</div>
+          <div class="author-role">Co-advisor</div>
           <div class="author-affil">Centro Universit&aacute;rio CESMAC, Macei&oacute;</div>
         </div>
 
         <div class="card-glass author">
           <div class="author-name">Denys Ewerton da Silva Santos</div>
+          <div class="author-role">Co-advisor</div>
           <div class="author-affil">Department of Fundamental Chemistry, Universidade Federal de Pernambuco (UFPE), Recife</div>
         </div>
 
         <div class="card-glass author">
           <div class="author-name">Ana Maria Benko-Iseppon</div>
+          <div class="author-role">Project leader and advisor</div>
           <div class="author-affil">Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife</div>
-          <div class="author-links"><a href="https://orcid.org/0000-0002-0575-3197" target="_blank" rel="noopener">ORCID</a></div>
+          <div class="author-links"><svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#tag"></use></svg><a href="https://orcid.org/0000-0002-0575-3197" target="_blank" rel="noopener">0000-0002-0575-3197</a></div>
         </div>
 
       </div>
@@ -396,7 +400,19 @@ CSS = """
   .author-name { font-size: var(--text-15); color: var(--text); }
   .author-role { font-family: var(--font-mono); font-size: var(--text-11); color: var(--muted); }
   .author-affil { font-size: var(--text-12); color: var(--muted); line-height: var(--leading-snug); }
-  .author-links { font-family: var(--font-mono); font-size: var(--text-11); }
+  /* mesmo desenho da lista do mantenedor: icone em coluna propria, em
+     --muted, e o identificador na tinta do texto */
+  .author-links {
+    display: grid;
+    grid-template-columns: var(--space-20) 1fr;
+    align-items: center;
+    gap: var(--space-6);
+    font-family: var(--font-mono);
+    font-size: var(--text-11);
+  }
+
+  .author-links .icon { color: var(--muted); }
+  .author-links a { color: var(--text); }
 
   @media (max-width: 768px) {
     .metrics-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-8); }
@@ -543,6 +559,14 @@ PARAGRAPHS = [
      'compartilhado com terceiros.'),
 ]
 
+LABELS_ALL = [
+    ('>Project leader and advisor</div>', '>L&iacute;der do projeto e orientadora</div>'),
+    ('>Lead developer and maintainer</div>', '>Desenvolvedor principal e mantenedor</div>'),
+    ('>Original prototype and co-advisor</div>', '>Prot&oacute;tipo original e coorientador</div>'),
+    ('>Undergraduate assistant</div>', '>Assistente de gradua&ccedil;&atilde;o</div>'),
+    ('>Co-advisor</div>', '>Coorientador</div>'),
+]
+
 LABELS = [
     ('>About AMPidentifier</h1>', '>Sobre o AMPidentifier</h1>'),
     ('>Manifesto</div>', '>Manifesto</div>'),
@@ -566,8 +590,8 @@ LABELS = [
     ('>Scope</div>', '>Abrang&ecirc;ncia</div>'),
     ('>Origin</div>', '>Origem</div>'),
     ('>Maintainer</div>', '>Mantenedor</div>'),
-    ('>Lead developer and maintainer</div>', '>Desenvolvedor principal e mantenedor</div>'),
-    ('>Original prototype</div>', '>Prot&oacute;tipo original</div>'),
+
+
     ('>Education</div>', '>Forma&ccedil;&atilde;o</div>'),
     ('>PhD student in Bioinformatics</span>', '>Doutorando em Bioinform&aacute;tica</span>'),
     ('>MBA in Software Engineering</span>', '>MBA em Engenharia de Software</span>'),
@@ -605,6 +629,11 @@ for _anchor, _novo in PARAGRAPHS:
 for _a, _b in LABELS:
     assert _a in BODY_PT, _a
     BODY_PT = BODY_PT.replace(_a, _b, 1)
+# Rotulo que aparece mais de uma vez troca em todas: com count=1 o segundo
+# cartao ficava em ingles no meio da pagina em portugues.
+for _a, _b in LABELS_ALL:
+    assert _a in BODY_PT, _a
+    BODY_PT = BODY_PT.replace(_a, _b)
 BODY_PT = BODY_PT.replace('href="/beta"', 'href="/pt/beta"').replace('href="/">o preditor', 'href="/pt">o preditor')
 
 
