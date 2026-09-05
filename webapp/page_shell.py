@@ -897,15 +897,16 @@ DEFS = """<svg class="pure-defs" aria-hidden="true" focusable="false" width="0" 
 
 NAV = """<nav class="navbar glass-deep" aria-label="Main">
   <div class="nav-inner">
-    <a class="nav-brand" href="/beta" aria-label="AMPidentifier, home">
+    <a class="nav-brand" href="/" aria-label="AMPidentifier, home">
       <img src="/img/logo.svg" alt="AMPidentifier" class="nav-wordmark">
       <img src="/img/symbol.svg" alt="AMPidentifier" class="nav-symbol">
     </a>
 
     <div class="nav-links">
-      <a class="nav-link lit lit-edge" href="/beta" data-nav="predict">Predict</a>
-      <a class="nav-link lit lit-edge" href="/beta/about" data-nav="about">About</a>
-      <a class="nav-link lit lit-edge" href="/beta/suggestions" data-nav="suggestions">Suggestions</a>
+      <a class="nav-link lit lit-edge" href="/" data-nav="predict">Predict</a>
+      <a class="nav-link lit lit-edge" href="/about" data-nav="about">About</a>
+      <a class="nav-link lit lit-edge" href="/suggestions" data-nav="suggestions">Suggestions</a>
+      <a class="nav-link lit lit-edge" href="/beta" data-nav="beta">Next</a>
     </div>
 
     <div class="nav-side">
@@ -1142,7 +1143,7 @@ def page(title, description, path, body, schema='', css='', js=''):
     # aria-current um leitor de tela nao tem como saber onde esta.
     # o alvo e o data-nav e nao o href, porque href="/beta" aparece antes
     # no link da marca e a marca nao e a rota corrente
-    slug = {'/beta': 'predict', '/beta/about': 'about', '/beta/suggestions': 'suggestions'}.get(path, '')
+    slug = {'/': 'predict', '/about': 'about', '/suggestions': 'suggestions', '/beta': 'beta'}.get(path, '')
     nav = NAV.replace('data-nav="%s"' % slug, 'data-nav="%s" aria-current="page"' % slug, 1) if slug else NAV
     return (
         '<!DOCTYPE html>\n' + head + '\n<style>\n' + STYLE + css + '\n</style>\n'

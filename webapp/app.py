@@ -18,13 +18,14 @@ import urllib.request
 from datetime import datetime, timezone
 import uuid
 
-from flask import Flask, make_response, request, jsonify, render_template_string, send_from_directory
+from flask import Flask, make_response, redirect, request, jsonify, render_template_string, send_from_directory
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from amp_identifier.core import run_prediction_pipeline
 from amp_identifier.data_io import load_fasta_sequences
-from webapp.page_beta import PAGE as PAGE_BETA
+from webapp.page_main import PAGE as PAGE_MAIN
+from webapp.page_teaser import PAGE as PAGE_TEASER
 from webapp.page_about import PAGE as PAGE_ABOUT
 from webapp.page_suggestions import PAGE as PAGE_SUGGESTIONS
 
@@ -1425,8 +1426,24 @@ function submitFeedback() {
 </html>"""
 
 
+# A raiz serve a pagina nova. O markup anterior continua neste arquivo em
+# PAGE e agora atende em /legacy: voltar atras e trocar PAGE_MAIN por PAGE
+# nesta linha.
 @app.route('/')
 def index():
+    resp = make_response(render_template_string(PAGE_MAIN, version=VERSION,
+                                                asset_v=_pure_version()))
+    if not request.cookies.get('_amp_sid'):
+        resp.set_cookie('_amp_sid', str(uuid.uuid4()), max_age=365 * 24 * 3600, samesite='Lax', httponly=True)
+    return resp
+
+
+# O layout anterior continua servido, em endereco proprio. O canonico
+# dele aponta para a raiz, que e o que diz ao indexador qual das duas
+# paginas e a versao a indexar.
+@app.route('/legacy')
+@app.route('/legacy/')
+def legacy():
     resp = make_response(render_template_string(PAGE, version=VERSION))
     if not request.cookies.get('_amp_sid'):
         resp.set_cookie('_amp_sid', str(uuid.uuid4()), max_age=365 * 24 * 3600, samesite='Lax', httponly=True)
@@ -1452,27 +1469,41 @@ def pure_assets(filename):
     return resp
 
 
-# Both rules point at the same view: with only the bare one, /beta/ is a 404.
-@app.route('/beta/about')
-@app.route('/beta/about/')
-def beta_about():
+# Both rules point at the same view: with only the bare one, /about/ is a 404.
+@app.route('/about')
+@app.route('/about/')
+def about():
     resp = make_response(render_template_string(PAGE_ABOUT, version=VERSION,
                                                 asset_v=_pure_version()))
     return resp
 
 
-@app.route('/beta/suggestions')
-@app.route('/beta/suggestions/')
-def beta_suggestions():
+@app.route('/suggestions')
+@app.route('/suggestions/')
+def suggestions():
     resp = make_response(render_template_string(PAGE_SUGGESTIONS, version=VERSION,
                                                 asset_v=_pure_version()))
     return resp
 
 
+# /beta/about e /beta/suggestions estao indexados. Eles mudam de lugar,
+# nao deixam de existir: 301 permanente para o endereco novo.
+@app.route('/beta/about')
+@app.route('/beta/about/')
+def beta_about_moved():
+    return redirect('/about', code=301)
+
+
+@app.route('/beta/suggestions')
+@app.route('/beta/suggestions/')
+def beta_suggestions_moved():
+    return redirect('/suggestions', code=301)
+
+
 @app.route('/beta')
 @app.route('/beta/')
 def beta():
-    resp = make_response(render_template_string(PAGE_BETA, version=VERSION,
+    resp = make_response(render_template_string(PAGE_TEASER, version=VERSION,
                                                 asset_v=_pure_version()))
     if not request.cookies.get('_amp_sid'):
         resp.set_cookie('_amp_sid', str(uuid.uuid4()), max_age=365 * 24 * 3600, samesite='Lax', httponly=True)
@@ -1513,19 +1544,19 @@ def sitemap():
         '    <priority>1.0</priority>\n'
         '  </url>\n'
         '  <url>\n'
-        '    <loc>https://www.ampidentifier.com/beta</loc>\n'
-        '    <changefreq>weekly</changefreq>\n'
-        '    <priority>0.8</priority>\n'
-        '  </url>\n'
-        '  <url>\n'
-        '    <loc>https://www.ampidentifier.com/beta/about</loc>\n'
+        '    <loc>https://www.ampidentifier.com/about</loc>\n'
         '    <changefreq>monthly</changefreq>\n'
-        '    <priority>0.6</priority>\n'
+        '    <priority>0.7</priority>\n'
         '  </url>\n'
         '  <url>\n'
-        '    <loc>https://www.ampidentifier.com/beta/suggestions</loc>\n'
+        '    <loc>https://www.ampidentifier.com/suggestions</loc>\n'
         '    <changefreq>monthly</changefreq>\n'
         '    <priority>0.5</priority>\n'
+        '  </url>\n'
+        '  <url>\n'
+        '    <loc>https://www.ampidentifier.com/beta</loc>\n'
+        '    <changefreq>weekly</changefreq>\n'
+        '    <priority>0.4</priority>\n'
         '  </url>\n'
         '</urlset>\n'
     )

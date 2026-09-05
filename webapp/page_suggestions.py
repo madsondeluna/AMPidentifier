@@ -1,4 +1,4 @@
-"""Suggestions page, served at /beta/suggestions.
+"""Suggestions page, served at /suggestions.
 
 The form posts to /send_suggestion, which mails the developer through the
 same Resend path already used by /send_recommendation. The GitHub issue
@@ -124,7 +124,7 @@ PAGE = page(
     title='Suggestions | AMPidentifier',
     description=('Send a feature request, a note on prediction quality or an '
                  'interface problem straight to the developer of AMPidentifier.'),
-    path='/beta/suggestions',
+    path='/suggestions',
     body=BODY,
     css=CSS,
     js=JS,

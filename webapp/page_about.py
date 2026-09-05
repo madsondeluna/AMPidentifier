@@ -1,4 +1,4 @@
-"""About page, served at /beta/about.
+"""About page, served at /about.
 
 Only the body lives here. Head, style, navbar, footer bar and modal come
 from page_shell.py and are the same on every route under /beta.
@@ -266,7 +266,7 @@ BODY = """
       <div class="card-glass prose-block prose-justify">
         <p class="install"><span class="install-lead">Python package:</span> <code>pip install ampidentifier</code></p>
         <p class="install"><span class="install-lead">Source and command line:</span> <a href="https://github.com/madsondeluna/AMPidentifier" target="_blank" rel="noopener">github.com/madsondeluna/AMPidentifier</a></p>
-        <p class="install"><span class="install-lead">Web:</span> <a href="/">stable version</a> and <a href="/beta">beta layout</a></p>
+        <p class="install"><span class="install-lead">Web:</span> <a href="/">the predictor</a> and <a href="/beta">what is coming next</a></p>
       </div>
     </div>
 
@@ -371,7 +371,7 @@ PAGE = page(
     description=('How AMPidentifier predicts antimicrobial peptides: the voting '
                  'ensemble, the 22 descriptors, the benchmark figures, the scope '
                  'of the training data and the privacy terms.'),
-    path='/beta/about',
+    path='/about',
     body=BODY.replace('%(photo)s', PHOTO_TAG),
     css=CSS,
 )

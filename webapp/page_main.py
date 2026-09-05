@@ -1,14 +1,12 @@
-"""Beta front end: the Pure Design page, served at /beta.
+"""Main front end: the Pure Design page, served at /.
 
-The production page lives in app.py and is not touched by this file. Both
-render against the same API routes (/predict, /stats, /locations, /health,
-/send_csv, /send_recommendation), so only the markup differs. Assets that
-diverge from production carry their own path: the ink-cropped logos under
-/img/pure/ and the design tokens under /pure/.
+This is the page the site serves at the root. The previous markup is
+still in app.py as PAGE, unrouted, so the old layout can be restored by
+pointing / back at it.
 
 O head, a folha, a barra de cima, a barra de baixo e o modal moram em
-page_shell.py e sao os mesmos de /beta/about e /beta/suggestions. Aqui
-fica so o miolo desta pagina e o javascript dela.
+page_shell.py e sao os mesmos de /about e /suggestions. Aqui fica so o
+miolo desta pagina e o javascript dela.
 """
 
 from webapp.page_shell import page
@@ -27,7 +25,8 @@ BODY = """  <header>
       <div class="install-stack">
         <p class="install"><span class="install-lead">For <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>:</span> <code>pip install ampidentifier</code></p>
         <p class="install"><span class="install-lead">For terminal use:</span> <a href="https://github.com/madsondeluna/AMPIdentifier" target="_blank">CLI version</a></p>
-        <p class="install"><span class="install-lead">This is the beta layout:</span> <a href="/">Access the stable version</a></p>
+        <p class="install"><span class="install-lead">In testing:</span> <a href="/beta">what is coming next</a></p>
+      <p class="install"><span class="install-lead">Previous layout:</span> <a href="/legacy">legacy version</a></p>
       </div>
      </div>
     </div>
@@ -722,11 +721,11 @@ async function sendShareEmail() {
 }"""
 
 PAGE = page(
-    title='AMPidentifier BETA | Antimicrobial Peptide Prediction Tool',
+    title='AMPidentifier | Antimicrobial Peptide Prediction Tool',
     description=('AMPidentifier is a free web tool for antimicrobial peptide (AMP) '
                  'prediction using machine learning ensemble models. Submit FASTA '
                  'sequences and classify AMPs in seconds.'),
-    path='/beta',
+    path='/',
     body=BODY,
     js=JS,
 )
