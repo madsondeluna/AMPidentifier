@@ -76,6 +76,7 @@ BODY = """
       <div class="metrics-label">Tool decay</div>
       <div class="card-glass prose-block prose-justify">
         <p>Bioinformatics web tools stop working. Kern, Fehlmann and Keller
+        (2020, <a href="https://doi.org/10.1093/nar/gkaa1125" target="_blank" rel="noopener">doi:10.1093/nar/gkaa1125</a>)
         monitored 2,396 tools published from 2010 onward over 133 days and found
         25.7% unreachable at first access. Availability tracks age almost
         linearly: tools published in 2019 and 2020 were around 90% available,
@@ -94,24 +95,21 @@ BODY = """
     </div>
 
     <div class="metrics-band step-2">
-      <div class="metrics-label">Candidate tools that could not be evaluated, March 2026</div>
-      <div class="card-glass table-card">
-        <div class="table-scroll">
-          <table class="decay-table">
-            <thead><tr><th>Tool</th><th>Year</th><th>Reason</th></tr></thead>
-            <tbody>
-              <tr><td>iAMP-2L</td><td class="num">2013</td><td>Web server unreachable, DNS resolution failure</td></tr>
-              <tr><td>CS-AMPPred</td><td class="num">2012</td><td>Server unreachable</td></tr>
-              <tr><td>MLAMP</td><td class="num">2016</td><td>Shared infrastructure with iAMP-2L, server offline</td></tr>
-              <tr><td>iAMPpred</td><td class="num">2017</td><td>DNS failure, server unreachable</td></tr>
-              <tr><td>AMAP</td><td class="num">2019</td><td>Web server unavailable</td></tr>
-              <tr><td>PEPred-Suite</td><td class="num">2019</td><td>Connection timeout, server unreachable</td></tr>
-              <tr><td>Deep-AmPEP30</td><td class="num">2020</td><td>Web server unreachable</td></tr>
-              <tr><td>AI4AMP</td><td class="num">2021</td><td>No open-source release, tool permanently inaccessible</td></tr>
-              <tr><td>iAMPCN</td><td class="num">2023</td><td>Source code not publicly distributed, web server offline</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="metrics-label">This project's external benchmark, March 2026</div>
+      <div class="metrics-grid metrics-4">
+        <div class="card-glass metric"><span class="num metric-val">20</span><span class="metric-lbl">Candidate tools</span></div>
+        <div class="card-glass metric"><span class="num metric-val">9</span><span class="metric-lbl">Could not be run</span></div>
+        <div class="card-glass metric"><span class="num metric-val">45%</span><span class="metric-lbl">Of the candidates</span></div>
+        <div class="card-glass metric"><span class="num metric-val">2012&ndash;2023</span><span class="metric-lbl">Their publication years</span></div>
+      </div>
+    </div>
+
+    <div class="metrics-band step-2">
+      <div class="metrics-label">Published survey of 2,396 bioinformatics web services</div>
+      <div class="metrics-grid metrics-3">
+        <div class="card-glass metric"><span class="num metric-val">25.7%</span><span class="metric-lbl">Unreachable at first access</span></div>
+        <div class="card-glass metric"><span class="num metric-val">50%</span><span class="metric-lbl">Availability of 2010 tools</span></div>
+        <div class="card-glass metric"><span class="num metric-val">51.1%</span><span class="metric-lbl">Restored once authors were asked</span></div>
       </div>
     </div>
 
@@ -295,14 +293,10 @@ CSS = """
   .lead-text > p + p, .lead-role + p { margin-top: var(--space-10); }
   .lead-links { font-size: var(--text-13); }
 
-  .table-card { padding: var(--space-16) var(--space-24); }
-  .decay-table { width: 100%; border-collapse: collapse; font-size: var(--text-13); }
-  .decay-table th { text-align: left; font-family: var(--font-mono); font-size: var(--text-11); color: var(--muted); font-weight: var(--weight-regular); padding: 0 var(--space-16) var(--space-8) 0; }
-  .decay-table td { padding: var(--space-8) var(--space-16) var(--space-8) 0; border-top: var(--hairline) solid var(--border); vertical-align: top; }
-  .decay-table td:last-child { color: var(--muted); padding-right: 0; }
-
   /* seis autores em duas colunas: uma coluna so faz seis cartoes de duas
      linhas cada e a lista fica mais alta que o manifesto que a precede */
+  .metrics-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-8); }
+
   .author-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -315,7 +309,9 @@ CSS = """
   .author-links { font-family: var(--font-mono); font-size: var(--text-11); }
 
   @media (max-width: 768px) {
-    .author-grid { grid-template-columns: 1fr; }
+    .metrics-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-8); }
+
+  .author-grid { grid-template-columns: 1fr; }
     .lead-card { flex-direction: column; align-items: flex-start; }
   }
 """
