@@ -71,6 +71,67 @@ BODY = """
       </div>
     </div>
 
+
+    <div class="metrics-band step-2">
+      <div class="metrics-label">Tool decay</div>
+      <div class="card-glass prose-block prose-justify">
+        <p>Bioinformatics web tools stop working. Kern, Fehlmann and Keller
+        monitored 2,396 tools published from 2010 onward over 133 days and found
+        25.7% unreachable at first access. Availability tracks age almost
+        linearly: tools published in 2019 and 2020 were around 90% available,
+        those from 2010 around 50%. When the authors of 47 broken recent tools
+        were contacted, 51.1% were restored, which means half of those failures
+        were not technical problems but abandoned maintenance.</p>
+
+        <p>The same pattern appeared inside this project. Building the external
+        benchmark, 20 published antimicrobial peptide predictors were identified
+        as candidates. Nine of them, 45%, could not be evaluated at all: web
+        servers unreachable, DNS resolution failing, or no public code release to
+        run locally. Their papers span 2012 to 2023, and the check was made in
+        March 2026. The remaining 11 configurations were benchmarked against the
+        same independent set of 4,736 sequences.</p>
+      </div>
+    </div>
+
+    <div class="metrics-band step-2">
+      <div class="metrics-label">Candidate tools that could not be evaluated, March 2026</div>
+      <div class="card-glass table-card">
+        <div class="table-scroll">
+          <table class="decay-table">
+            <thead><tr><th>Tool</th><th>Year</th><th>Reason</th></tr></thead>
+            <tbody>
+              <tr><td>iAMP-2L</td><td class="num">2013</td><td>Web server unreachable, DNS resolution failure</td></tr>
+              <tr><td>CS-AMPPred</td><td class="num">2012</td><td>Server unreachable</td></tr>
+              <tr><td>MLAMP</td><td class="num">2016</td><td>Shared infrastructure with iAMP-2L, server offline</td></tr>
+              <tr><td>iAMPpred</td><td class="num">2017</td><td>DNS failure, server unreachable</td></tr>
+              <tr><td>AMAP</td><td class="num">2019</td><td>Web server unavailable</td></tr>
+              <tr><td>PEPred-Suite</td><td class="num">2019</td><td>Connection timeout, server unreachable</td></tr>
+              <tr><td>Deep-AmPEP30</td><td class="num">2020</td><td>Web server unreachable</td></tr>
+              <tr><td>AI4AMP</td><td class="num">2021</td><td>No open-source release, tool permanently inaccessible</td></tr>
+              <tr><td>iAMPCN</td><td class="num">2023</td><td>Source code not publicly distributed, web server offline</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics-band step-2">
+      <div class="metrics-label">What follows from it</div>
+      <div class="card-glass prose-block prose-justify">
+        <p>A tool that exists only as a web server dies with the server. This one
+        is distributed three ways on purpose: the web page, a command line
+        program and a Python package on PyPI, with the training code, the
+        datasets and the model files in the repository. If this page goes down,
+        <code>pip install ampidentifier</code> still reproduces every number
+        printed here, and the repository can be forked by anyone who wants to
+        keep it alive.</p>
+        <p>Reference: Kern, F., Fehlmann, T. &amp; Keller, A. (2020). On the
+        lifetime of bioinformatics web services. <em>Nucleic Acids Research</em>
+        48(22), 12523&ndash;12533.
+        <a href="https://doi.org/10.1093/nar/gkaa1125" target="_blank" rel="noopener">doi:10.1093/nar/gkaa1125</a></p>
+      </div>
+    </div>
+
     <div class="metrics-band step-2">
       <div class="metrics-label">Model</div>
       <div class="card-glass prose-block prose-justify">
@@ -233,6 +294,12 @@ CSS = """
   .lead-role { font-family: var(--font-mono); font-size: var(--text-12); color: var(--muted); margin-bottom: var(--space-10); }
   .lead-text > p + p, .lead-role + p { margin-top: var(--space-10); }
   .lead-links { font-size: var(--text-13); }
+
+  .table-card { padding: var(--space-16) var(--space-24); }
+  .decay-table { width: 100%; border-collapse: collapse; font-size: var(--text-13); }
+  .decay-table th { text-align: left; font-family: var(--font-mono); font-size: var(--text-11); color: var(--muted); font-weight: var(--weight-regular); padding: 0 var(--space-16) var(--space-8) 0; }
+  .decay-table td { padding: var(--space-8) var(--space-16) var(--space-8) 0; border-top: var(--hairline) solid var(--border); vertical-align: top; }
+  .decay-table td:last-child { color: var(--muted); padding-right: 0; }
 
   /* seis autores em duas colunas: uma coluna so faz seis cartoes de duas
      linhas cada e a lista fica mais alta que o manifesto que a precede */
