@@ -120,6 +120,64 @@ document.getElementById('suggestionForm').addEventListener('submit', async funct
 });
 """
 
+# ---------------------------------------------------------------------------
+# Versao em portugues. A traducao e por substituicao sobre o mesmo corpo,
+# com asserto em cada par: se o texto de origem mudar e o par deixar de
+# casar, o modulo falha ao importar em vez de servir uma pagina meio
+# traduzida.
+# ---------------------------------------------------------------------------
+
+BODY_PAIRS = [
+    ('Suggestions</h1>', 'Sugest&otilde;es</h1>'),
+    ('>Topic</span>', '>Assunto</span>'),
+    ('>Feature request</option>', '>Pedido de funcionalidade</option>'),
+    ('>Model or prediction quality</option>', '>Modelo ou qualidade da predi&ccedil;&atilde;o</option>'),
+    ('>Data or export</option>', '>Dados ou exporta&ccedil;&atilde;o</option>'),
+    ('>Other</option>', '>Outro</option>'),
+    ('>Message</span>', '>Mensagem</span>'),
+    ('placeholder="What should change, and why"',
+     'placeholder="O que deveria mudar, e por qu&ecirc;"'),
+    ('>Your email, to get a reply</span>', '>Seu email, para receber resposta</span>'),
+    ('>Send</button>', '>Enviar</button>'),
+    ('>Other routes</div>', '>Outros caminhos</div>'),
+    ('>Bug with a reproduction:</span>', '>Defeito com passos para reproduzir:</span>'),
+    ('>open an issue on GitHub</a>', '>abra uma issue no GitHub</a>'),
+    ('>Direct email:</span>', '>Email direto:</span>'),
+]
+
+BODY_LONG = (
+    'Feature requests, missing models, wrong results, anything about the',
+    'Pedidos de funcionalidade, modelos que faltam, resultados errados, qualquer',
+)
+
+JS_PAIRS = [
+    ('Write a message before sending.', 'Escreva uma mensagem antes de enviar.'),
+    ('That email address is not valid.', 'Esse endere\u00e7o de email n\u00e3o \u00e9 v\u00e1lido.'),
+    ("'Sending'", "'Enviando'"),
+    ("'Sent. Thank you.'", "'Enviado. Obrigado.'"),
+    ("'Failed to send.'", "'Falha ao enviar.'"),
+]
+
+BODY_PT = BODY
+for _a, _b in BODY_PAIRS:
+    assert _a in BODY_PT, _a
+    BODY_PT = BODY_PT.replace(_a, _b, 1)
+
+_INTRO_EN = ('Feature requests, missing models, wrong results, anything about the\n'
+             '      interface. The message goes straight to the developer. A reply address is\n'
+             '      optional and is used only to answer this message.')
+_INTRO_PT = ('Pedidos de funcionalidade, modelos que faltam, resultados errados, qualquer\n'
+             '      coisa sobre a interface. A mensagem vai direto para o desenvolvedor. O\n'
+             '      endere&ccedil;o de resposta &eacute; opcional e serve s&oacute; para responder a esta mensagem.')
+assert _INTRO_EN in BODY_PT
+BODY_PT = BODY_PT.replace(_INTRO_EN, _INTRO_PT, 1)
+
+JS_PT = JS
+for _a, _b in JS_PAIRS:
+    assert _a in JS_PT, _a
+    JS_PT = JS_PT.replace(_a, _b, 1)
+
+
 PAGE = page(
     title='Suggestions | AMPidentifier',
     description=('Send a feature request, a note on prediction quality or an '
@@ -128,4 +186,16 @@ PAGE = page(
     body=BODY,
     css=CSS,
     js=JS,
+)
+
+PAGE_PT = page(
+    title='Sugest\u00f5es | AMPidentifier',
+    description=('Envie um pedido de funcionalidade, uma observa\u00e7\u00e3o sobre a '
+                 'qualidade da predi\u00e7\u00e3o ou um problema de interface direto para '
+                 'o desenvolvedor do AMPidentifier.'),
+    path='/suggestions',
+    body=BODY_PT,
+    css=CSS,
+    js=JS_PT,
+    lang='pt',
 )

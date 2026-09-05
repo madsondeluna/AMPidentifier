@@ -10,6 +10,72 @@ O head e gabarito de %(nome)s, nao de Jinja: as chaves duplas do Jinja
 continuam intactas e sao resolvidas depois, por render_template_string.
 """
 
+# ---------------------------------------------------------------------------
+# Copia do shell nos dois idiomas.
+#
+# Nao se traduz: nome da marca, nome de instituicao, sigla de metrica,
+# codigo de sequencia, rotulo de rota tecnica como /health. Sao registros,
+# e traduzir registro quebra o casamento com a fonte que o declara.
+# ---------------------------------------------------------------------------
+
+LANGS = ('en', 'pt')
+
+STRINGS = {
+    'nav_predict':      {'en': 'Predict',            'pt': 'Prever'},
+    'nav_about':        {'en': 'About',              'pt': 'Sobre'},
+    'nav_suggestions':  {'en': 'Suggestions',        'pt': 'Sugestões'},
+    'nav_beta':         {'en': 'Beta Version',       'pt': 'Versão beta'},
+    'nav_home':         {'en': 'AMPidentifier, home', 'pt': 'AMPidentifier, início'},
+    'nav_label':        {'en': 'Main',               'pt': 'Principal'},
+    'skip':             {'en': 'Skip to content',    'pt': 'Ir para o conteúdo'},
+
+    'status_checking':  {'en': 'Checking',           'pt': 'Verificando'},
+    'status_online':    {'en': 'Online: model loaded, predictions ready',
+                         'pt': 'Online: modelo carregado, predições prontas'},
+    'status_offline':   {'en': 'Offline: backend unreachable, try again shortly',
+                         'pt': 'Offline: servidor inalcançável, tente em instantes'},
+    'status_wait':      {'en': 'Checking server status',
+                         'pt': 'Verificando o estado do servidor'},
+    'status_latency':   {'en': '(Xms) = current /health round-trip latency',
+                         'pt': '(Xms) = latência atual de ida e volta em /health'},
+
+    'src_github':       {'en': 'Source on GitHub',   'pt': 'Código no GitHub'},
+    'src_pypi':         {'en': 'Package on PyPI',    'pt': 'Pacote no PyPI'},
+    'mode_to_dark':     {'en': 'Switch to dark mode', 'pt': 'Mudar para o modo escuro'},
+    'mode_to_light':    {'en': 'Switch to light mode', 'pt': 'Mudar para o modo claro'},
+    'lang_switch':      {'en': 'Ver em português',   'pt': 'Read in English'},
+
+    'group_inst':       {'en': 'Institutions',       'pt': 'Instituições'},
+    'group_dept':       {'en': 'Departments',        'pt': 'Departamentos'},
+    'group_fund':       {'en': 'Funding',            'pt': 'Financiamento'},
+    'group_labs':       {'en': 'Research groups',    'pt': 'Grupos de pesquisa'},
+
+    'modal_title':      {'en': 'Report issue or suggestion',
+                         'pt': 'Relatar problema ou sugestão'},
+    'modal_type':       {'en': 'Type',               'pt': 'Tipo'},
+    'modal_bug':        {'en': 'Bug report',         'pt': 'Relato de defeito'},
+    'modal_feature':    {'en': 'Feature request',    'pt': 'Pedido de funcionalidade'},
+    'modal_other':      {'en': 'Other',              'pt': 'Outro'},
+    'modal_desc':       {'en': 'Description',        'pt': 'Descrição'},
+    'modal_placeholder':{'en': 'Describe the issue or your suggestion...',
+                         'pt': 'Descreva o problema ou a sua sugestão...'},
+    'modal_cancel':     {'en': 'Cancel',             'pt': 'Cancelar'},
+    'modal_submit':     {'en': 'Open on GitHub',     'pt': 'Abrir no GitHub'},
+}
+
+
+def t(key, lang):
+    return STRINGS[key][lang]
+
+
+# A rota em portugues e a mesma com prefixo. A raiz e o unico caso
+# especial: /pt e nao /pt/.
+def localised(path, lang):
+    if lang == 'en':
+        return path
+    return '/pt' if path == '/' else '/pt' + path
+
+
 HEAD = """<html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -842,6 +908,17 @@ STYLE = """  /* =========================================================
      e absoluto sobre o outro, dentro da unidade liquida de tamanho fixo. */
   .mode-btn { position: relative; border: none; background: none; cursor: pointer; }
 
+  /* a sigla e texto dentro de uma unidade de tamanho fixo, e o liquido so
+     espelha o que tem tamanho fixo: por isso ela e sigla e nao o nome do
+     idioma por extenso */
+  .lang-btn {
+    font-family: var(--font-mono);
+    font-size: var(--text-11);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text);
+    text-decoration: none;
+  }
+
   .mode-btn .icon {
     position: absolute;
     top: 50%;
@@ -957,29 +1034,29 @@ DEFS = """<svg class="pure-defs" aria-hidden="true" focusable="false" width="0" 
 </defs></svg>
 <div class="lit-cursor" aria-hidden="true"></div>"""
 
-NAV = """<nav class="navbar glass glass-thin" aria-label="Main">
+NAV = """<nav class="navbar glass glass-thin" aria-label="__nav_label__">
   <div class="nav-inner">
-    <a class="nav-brand" href="/" aria-label="AMPidentifier, home">
+    <a class="nav-brand" href="/" aria-label="__nav_home__">
       <img src="/img/logo.svg" alt="AMPidentifier" class="nav-wordmark">
       <img src="/img/symbol.svg" alt="AMPidentifier" class="nav-symbol">
     </a>
 
     <div class="nav-links">
-      <a class="nav-link lit lit-edge" href="/" data-nav="predict">Predict</a>
-      <a class="nav-link lit lit-edge" href="/about" data-nav="about">About</a>
-      <a class="nav-link lit lit-edge" href="/suggestions" data-nav="suggestions">Suggestions</a>
-      <a class="nav-link lit lit-edge" href="/beta" data-nav="beta">Beta Version</a>
+      <a class="nav-link lit lit-edge" href="/" data-nav="predict">__nav_predict__</a>
+      <a class="nav-link lit lit-edge" href="/about" data-nav="about">__nav_about__</a>
+      <a class="nav-link lit lit-edge" href="/suggestions" data-nav="suggestions">__nav_suggestions__</a>
+      <a class="nav-link lit lit-edge" href="/beta" data-nav="beta">__nav_beta__</a>
     </div>
 
     <div class="nav-side">
       <span class="tip status-tip" tabindex="0" aria-describedby="statusTip">
         <span class="status-dot" id="statusDot"></span>
-        <span class="status-label" id="statusLabel">Checking</span>
+        <span class="status-label" id="statusLabel">__status_checking__</span>
         <span id="statusTip" role="tooltip">
-          <span class="tt-row"><span class="tt-dot c-good"></span> Online: model loaded, predictions ready</span>
-          <span class="tt-row"><span class="tt-dot c-crit"></span> Offline: backend unreachable, try again shortly</span>
-          <span class="tt-row"><span class="tt-dot c-idle"></span> Checking server status</span>
-          <span class="tt-row tt-note">(Xms) = current /health round-trip latency</span>
+          <span class="tt-row"><span class="tt-dot c-good"></span> __status_online__</span>
+          <span class="tt-row"><span class="tt-dot c-crit"></span> __status_offline__</span>
+          <span class="tt-row"><span class="tt-dot c-idle"></span> __status_wait__</span>
+          <span class="tt-row tt-note">__status_latency__</span>
         </span>
       </span>
 
@@ -990,15 +1067,18 @@ NAV = """<nav class="navbar glass glass-thin" aria-label="Main">
           <span class="liquid-blob"></span>
           <span class="liquid-blob"></span>
           <span class="liquid-blob"></span>
+          <span class="liquid-blob"></span>
         </div>
         <div class="liquid-content">
-          <a class="liquid-item" href="https://github.com/madsondeluna/AMPidentifier" target="_blank" rel="noopener" aria-label="Source on GitHub">
+          <a class="liquid-item" href="https://github.com/madsondeluna/AMPidentifier" target="_blank" rel="noopener" aria-label="__src_github__">
             <svg class="icon" aria-hidden="true"><use href="/pure/icons.svg#branch"></use></svg>
           </a>
-          <a class="liquid-item" href="https://pypi.org/project/ampidentifier/" target="_blank" rel="noopener" aria-label="Package on PyPI">
+          <a class="liquid-item" href="https://pypi.org/project/ampidentifier/" target="_blank" rel="noopener" aria-label="__src_pypi__">
             <svg class="icon" aria-hidden="true"><use href="/pure/icons.svg#code"></use></svg>
           </a>
-          <button class="liquid-item mode-btn" type="button" id="modeBtn" aria-label="Switch to dark mode" aria-pressed="false">
+          <a class="liquid-item lang-btn" id="langBtn" href="__lang_href__"
+             aria-label="__lang_switch__" hreflang="__lang_other__" lang="__lang_other__">__lang_code__</a>
+          <button class="liquid-item mode-btn" type="button" id="modeBtn" aria-label="__mode_to_dark__" aria-pressed="false">
             <svg class="icon icon-sun" aria-hidden="true"><use href="/pure/icons.svg#sun"></use></svg>
             <svg class="icon icon-moon" aria-hidden="true"><use href="/pure/icons.svg#moon"></use></svg>
           </button>
@@ -1014,7 +1094,7 @@ FOOTER_BAR = """<footer class="footer-bar glass glass-thin">
            rotulo visivel repetia o que a imagem ja diz e cobrava altura -->
       <div class="footer-strip">
         <div class="logo-group">
-          <div class="logo-group-label">Institutions</div>
+          <div class="logo-group-label">__group_inst__</div>
           <div class="logo-row">
             <a class="logo-link" href="https://www.ufpe.br" target="_blank" rel="noopener" title="Universidade Federal de Pernambuco"><img src="/img/pure/ufpe.png"     alt="Universidade Federal de Pernambuco" class="logo-lockup"></a>
             <a class="logo-link" href="https://www.ufmg.br" target="_blank" rel="noopener" title="Universidade Federal de Minas Gerais"><img src="/img/pure/ufmg.png"     alt="Universidade Federal de Minas Gerais"></a>
@@ -1023,7 +1103,7 @@ FOOTER_BAR = """<footer class="footer-bar glass glass-thin">
           </div>
         </div>
         <div class="logo-group">
-          <div class="logo-group-label">Departments</div>
+          <div class="logo-group-label">__group_dept__</div>
           <div class="logo-row">
             <a class="logo-link" href="https://www.ufpe.br/dqf" target="_blank" rel="noopener" title="Departamento de Química Fundamental, UFPE"><img src="/img/pure/dqf.png"   alt="Departamento de Química Fundamental, UFPE" class="logo-lockup"></a>
             <a class="logo-link" href="https://www.ufpe.br/dep-genetica" target="_blank" rel="noopener" title="Departamento de Genética, UFPE"><img src="/img/pure/dgen.png" alt="Departamento de Genética, UFPE" class="logo-lockup"></a>
@@ -1032,14 +1112,14 @@ FOOTER_BAR = """<footer class="footer-bar glass glass-thin">
           </div>
         </div>
         <div class="logo-group">
-          <div class="logo-group-label">Funding</div>
+          <div class="logo-group-label">__group_fund__</div>
           <div class="logo-row">
             <a class="logo-link" href="https://www.facepe.br" target="_blank" rel="noopener" title="FACEPE"><img src="/img/pure/facepe.png"  alt="FACEPE"></a>
             <a class="logo-link" href="https://fapemig.br" target="_blank" rel="noopener" title="FAPEMIG"><img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-stacked"></a>
           </div>
         </div>
         <div class="logo-group">
-          <div class="logo-group-label">Research groups</div>
+          <div class="logo-group-label">__group_labs__</div>
           <div class="logo-row">
             <a class="logo-link" href="https://lgbv-ufpe.net" target="_blank" rel="noopener" title="Laboratório de Genética e Biotecnologia Vegetal"><img src="/img/pure/lgbv.png" alt="Laboratório de Genética e Biotecnologia Vegetal"></a>
             <img src="/img/pure/lcm3.png" alt="LCM3" class="logo-lockup">
@@ -1052,24 +1132,24 @@ FOOTER_BAR = """<footer class="footer-bar glass glass-thin">
 MODAL = """<!-- Feedback modal -->
 <div class="modal-overlay motion-scrim" id="feedbackOverlay" onclick="closeFeedbackOutside(event)">
   <div class="modal modal-card surface motion-modal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
-    <h2 id="feedbackTitle">Report issue or suggestion</h2>
+    <h2 id="feedbackTitle">__modal_title__</h2>
     <div class="field">
-      <label class="field-label" for="feedbackType">Type</label>
+      <label class="field-label" for="feedbackType">__modal_type__</label>
       <span class="select-shell">
         <select class="select" id="feedbackType">
-          <option value="bug">Bug report</option>
-          <option value="feature">Feature request</option>
-          <option value="other">Other</option>
+          <option value="bug">__modal_bug__</option>
+          <option value="feature">__modal_feature__</option>
+          <option value="other">__modal_other__</option>
         </select>
       </span>
     </div>
     <div class="field">
-      <label class="field-label" for="feedbackMsg">Description</label>
-      <textarea class="textarea" id="feedbackMsg" placeholder="Describe the issue or your suggestion..."></textarea>
+      <label class="field-label" for="feedbackMsg">__modal_desc__</label>
+      <textarea class="textarea" id="feedbackMsg" placeholder="__modal_placeholder__"></textarea>
     </div>
     <div class="modal-actions">
-      <button class="pill" onclick="closeFeedback()">Cancel</button>
-      <button class="pill glass-accent" onclick="submitFeedback()">Open on GitHub</button>
+      <button class="pill" onclick="closeFeedback()">__modal_cancel__</button>
+      <button class="pill glass-accent" onclick="submitFeedback()">__modal_submit__</button>
     </div>
   </div>
 </div>"""
@@ -1201,22 +1281,60 @@ function submitFeedback() {
 }"""
 
 
-def page(title, description, path, body, schema='', css='', js=''):
-    """Monta uma pagina inteira a partir do miolo dela."""
-    head = HEAD % {'title': title, 'description': description, 'path': path}
+def page(title, description, path, body, schema='', css='', js='', lang='en'):
+    """Monta uma pagina inteira a partir do miolo dela, no idioma pedido."""
+    other = 'pt' if lang == 'en' else 'en'
+    here = localised(path, lang)
+    fills = {k: t(k, lang) for k in STRINGS}
+    fills.update({
+        'lang_href': localised(path, other),
+        'lang_other': 'pt-BR' if other == 'pt' else 'en',
+        'lang_code': other.upper(),
+    })
+
+    def fill(tpl):
+        for k, v in fills.items():
+            tpl = tpl.replace('__%s__' % k, v)
+        return tpl
+
+    head = HEAD % {'title': title, 'description': description, 'path': here}
+    head = head.replace('<html lang="en">',
+                        '<html lang="%s">' % ('pt-BR' if lang == 'pt' else 'en'))
+
+    # hreflang reciproco: a anotacao de uma rota so vale se a irma apontar
+    # de volta, e x-default fica no ingles, que e a lingua da ferramenta.
+    alt = ''.join(
+        '<link rel="alternate" hreflang="%s" href="https://www.ampidentifier.com%s">\n' % (h, u)
+        for h, u in (('en', localised(path, 'en')),
+                     ('pt-BR', localised(path, 'pt')),
+                     ('x-default', localised(path, 'en')))
+    )
+    head = head.replace('<link rel="canonical"', alt + '<link rel="canonical"')
+
     # a rota corrente se marca no proprio link, e nao por javascript: sem
     # aria-current um leitor de tela nao tem como saber onde esta.
-    # o alvo e o data-nav e nao o href, porque href="/beta" aparece antes
-    # no link da marca e a marca nao e a rota corrente
-    slug = {'/': 'predict', '/about': 'about', '/suggestions': 'suggestions', '/beta': 'beta'}.get(path, '')
-    nav = NAV.replace('data-nav="%s"' % slug, 'data-nav="%s" aria-current="page"' % slug, 1) if slug else NAV
+    # o alvo e o data-nav e nao o href, porque href="/" aparece antes no
+    # link da marca e a marca nao e a rota corrente
+    slug = {'/': 'predict', '/about': 'about', '/suggestions': 'suggestions',
+            '/beta': 'beta'}.get(path, '')
+    nav = fill(NAV)
+    if slug:
+        nav = nav.replace('data-nav="%s"' % slug,
+                          'data-nav="%s" aria-current="page"' % slug, 1)
+    if lang != 'en':
+        nav = nav.replace('href="/beta"', 'href="/pt/beta"')
+        nav = nav.replace('href="/about"', 'href="/pt/about"')
+        nav = nav.replace('href="/suggestions"', 'href="/pt/suggestions"')
+        nav = nav.replace('href="/" data-nav', 'href="/pt" data-nav')
+        nav = nav.replace('class="nav-brand" href="/"', 'class="nav-brand" href="/pt"')
+
     return (
         '<!DOCTYPE html>\n' + head + '\n<style>\n' + STYLE + css + '\n</style>\n'
         + schema + '</head>\n<body>\n'
         + DEFS + '\n'
-        + '<a class="skip-link pill" href="#main">Skip to content</a>\n\n'
+        + fill('<a class="skip-link pill" href="#main">__skip__</a>') + '\n\n'
         + nav + '\n\n<div class="shell">\n' + body + '\n</div>\n\n'
-        + FOOTER_BAR + '\n\n' + MODAL + '\n\n'
+        + fill(FOOTER_BAR) + '\n\n' + fill(MODAL) + '\n\n'
         + '{% raw %}<script>\n' + SHELL_JS + '\n' + js + '\n</script>{% endraw %}\n'
         + '<script src="/pure/light.js?v={{ asset_v }}" defer></script>\n'
         + '</body>\n</html>'

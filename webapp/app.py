@@ -24,10 +24,10 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from amp_identifier.core import run_prediction_pipeline
 from amp_identifier.data_io import load_fasta_sequences
-from webapp.page_main import PAGE as PAGE_MAIN
-from webapp.page_teaser import PAGE as PAGE_TEASER
-from webapp.page_about import PAGE as PAGE_ABOUT
-from webapp.page_suggestions import PAGE as PAGE_SUGGESTIONS
+from webapp.page_main import PAGE as PAGE_MAIN, PAGE_PT as PAGE_MAIN_PT
+from webapp.page_teaser import PAGE as PAGE_TEASER, PAGE_PT as PAGE_TEASER_PT
+from webapp.page_about import PAGE as PAGE_ABOUT, PAGE_PT as PAGE_ABOUT_PT
+from webapp.page_suggestions import PAGE as PAGE_SUGGESTIONS, PAGE_PT as PAGE_SUGGESTIONS_PT
 
 VERSION = "2.0.0"
 
@@ -1510,6 +1510,45 @@ def beta():
     return resp
 
 
+# ---------------------------------------------------------------------------
+# Rotas em portugues. Mesmo prefixo do site pessoal: caminho, nao subdominio
+# nem parametro. Cada uma declara canonico proprio e o conjunto hreflang
+# completo, e o conjunto e reciproco: sem a rota em ingles apontando de
+# volta, a anotacao da rota em portugues e descartada pelo indexador.
+# ---------------------------------------------------------------------------
+
+@app.route('/pt')
+@app.route('/pt/')
+def index_pt():
+    resp = make_response(render_template_string(PAGE_MAIN_PT, version=VERSION,
+                                                asset_v=_pure_version()))
+    if not request.cookies.get('_amp_sid'):
+        resp.set_cookie('_amp_sid', str(uuid.uuid4()), max_age=365 * 24 * 3600,
+                        samesite='Lax', httponly=True)
+    return resp
+
+
+@app.route('/pt/about')
+@app.route('/pt/about/')
+def about_pt():
+    return make_response(render_template_string(PAGE_ABOUT_PT, version=VERSION,
+                                                asset_v=_pure_version()))
+
+
+@app.route('/pt/suggestions')
+@app.route('/pt/suggestions/')
+def suggestions_pt():
+    return make_response(render_template_string(PAGE_SUGGESTIONS_PT, version=VERSION,
+                                                asset_v=_pure_version()))
+
+
+@app.route('/pt/beta')
+@app.route('/pt/beta/')
+def beta_pt():
+    return make_response(render_template_string(PAGE_TEASER_PT, version=VERSION,
+                                                asset_v=_pure_version()))
+
+
 @app.route('/google2a0f51da71f41d93.html')
 def google_verify():
     return make_response(
@@ -1558,7 +1597,17 @@ def sitemap():
         '    <changefreq>weekly</changefreq>\n'
         '    <priority>0.4</priority>\n'
         '  </url>\n'
-        '</urlset>\n'
+        + ''.join(
+            '  <url>\n'
+            '    <loc>https://www.ampidentifier.com%s</loc>\n'
+            '    <changefreq>%s</changefreq>\n'
+            '    <priority>%s</priority>\n'
+            '  </url>\n' % (u, f, p)
+            for u, f, p in (('/pt', 'weekly', '0.9'),
+                            ('/pt/about', 'monthly', '0.6'),
+                            ('/pt/suggestions', 'monthly', '0.4'),
+                            ('/pt/beta', 'weekly', '0.3')))
+        + '</urlset>\n'
     )
     return make_response(content, 200, {'Content-Type': 'application/xml'})
 

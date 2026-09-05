@@ -346,14 +346,38 @@ HEAD_EXTRA = (
     'react-dom.production.min.js" crossorigin></script>\n'
 )
 
-PAGE = page(
-    title='AMPidentifier BETA | More is yet to come',
-    description=('The AMPidentifier beta. A new batch of trained models and a '
-                 'prediction mode built on a protein language model are in '
-                 'testing. The stable predictor runs at ampidentifier.com.'),
-    path='/beta',
-    body=BODY,
-    css=CSS,
-    js=JS,
-    schema=HEAD_EXTRA,
-)
+COPY = {
+    'title': {'en': 'AMPidentifier BETA | More is yet to come',
+              'pt': 'AMPidentifier BETA | Ainda vem mais por aí'},
+    'description': {
+        'en': ('The AMPidentifier beta. A new batch of trained models and a '
+               'prediction mode built on a protein language model are in '
+               'testing. The stable predictor runs at ampidentifier.com.'),
+        'pt': ('A beta do AMPidentifier. Um novo conjunto de modelos treinados e '
+               'um modo de predição sobre modelo de linguagem de proteína estão '
+               'em teste. O preditor estável roda em ampidentifier.com.')},
+    # A frase da sopa nao se traduz: ela e a marca da pagina e as quinze
+    # letras sao o desenho. O que se traduz e o que a explica.
+    'aside': {'en': 'Something that fills that in is in training.',
+              'pt': 'Algo que preenche isso está em treinamento.'},
+    'done': {'en': 'You just did what it is being trained to do.',
+             'pt': 'Você acabou de fazer o que ele está aprendendo a fazer.'},
+    'mask_label': {'en': 'Masked residue, position 7 of LL-37. Reveal it: arginine.',
+                   'pt': 'Resíduo mascarado, posição 7 da LL-37. Revele: arginina.'},
+    'fallback': {'en': 'More is yet to come.', 'pt': 'Ainda vem mais por aí.'},
+}
+
+
+def build(lang):
+    c = {k: v[lang] for k, v in COPY.items()}
+    body = (BODY
+            .replace('Something that fills that in is in training.', c['aside'])
+            .replace('You just did what it is being trained to do.', c['done'])
+            .replace('Masked residue, position 7 of LL-37. Reveal it: arginine.', c['mask_label'])
+            .replace('>More is yet to come.<', '>' + c['fallback'] + '<'))
+    return page(title=c['title'], description=c['description'], path='/beta',
+                body=body, css=CSS, js=JS, schema=HEAD_EXTRA, lang=lang)
+
+
+PAGE = build('en')
+PAGE_PT = build('pt')

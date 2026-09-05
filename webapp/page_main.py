@@ -720,6 +720,81 @@ async function sendShareEmail() {
   }
 }"""
 
+# ---------------------------------------------------------------------------
+# Versao em portugues.
+#
+# Nao se traduz: nome da marca, sigla de metrica (AUC-ROC, MCC), nome de
+# modelo (Random forest, XGBoost), nome de instituicao, numero de registro
+# no INPI, a citacao e o codigo FASTA. Sao registros, e traduzir registro
+# quebra o casamento com a fonte que o declara.
+# ---------------------------------------------------------------------------
+
+BODY_PAIRS = [
+    ('>AMPidentifier, antimicrobial peptide prediction</h1>',
+     '>AMPidentifier, predi&ccedil;&atilde;o de pept&iacute;deos antimicrobianos</h1>'),
+    ('is a toolkit for antimicrobial peptide prediction using ensemble machine learning.',
+     '&eacute; um conjunto de ferramentas para predi&ccedil;&atilde;o de pept&iacute;deos antimicrobianos com aprendizado de m&aacute;quina em ensemble.'),
+    ('>For <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>:</span>',
+     '>No <a href="https://pypi.org/project/ampidentifier/" target="_blank">PyPI</a>:</span>'),
+    ('>For terminal use:</span>', '>Para uso no terminal:</span>'),
+    ('>CLI version</a>', '>vers&atilde;o de linha de comando</a>'),
+    ('>In testing:</span>', '>Em teste:</span>'),
+    ('>what is coming next</a>', '>o que vem por a&iacute;</a>'),
+    ('>Previous layout:</span>', '>Layout anterior:</span>'),
+    ('>legacy version</a>', '>vers&atilde;o legada</a>'),
+    ('>Benchmark, voting ensemble (RF + SVM + GB + XGB + LGBM)</div>',
+     '>Benchmark, ensemble por vota&ccedil;&atilde;o (RF + SVM + GB + XGB + LGBM)</div>'),
+    ('>Sensitivity</span>', '>Sensibilidade</span>'),
+    ('>Specificity</span>', '>Especificidade</span>'),
+    ('>Usage</div>', '>Uso</div>'),
+    ('>Sequences classified</span>', '>Sequ&ecirc;ncias lidas</span>'),
+    ('>Unique users</span>', '>Usu&aacute;rios &uacute;nicos</span>'),
+    ('>Prediction runs</span>', '>Execu&ccedil;&otilde;es</span>'),
+    ('>Descriptors</span>', '>Descritores</span>'),
+    ('>FASTA sequences</label>', '>Sequ&ecirc;ncias FASTA</label>'),
+    ('>Voting ensemble</option>', '>Ensemble por vota&ccedil;&atilde;o</option>'),
+    ('>Run</button>', '>Executar</button>'),
+    ('>Clear</button>', '>Limpar</button>'),
+    ('>Load example</button>', '>Carregar exemplo</button>'),
+    ('>Upload .fasta</button>', '>Enviar .fasta</button>'),
+    ('>Find AMPidentifier useful?</div>', '>Achou o AMPidentifier &uacute;til?</div>'),
+    ('>Copy link</button>', '>Copiar link</button>'),
+    ('>Share by email</button>', '>Compartilhar por email</button>'),
+    ('>Recipient email</span>', '>Email do destinat&aacute;rio</span>'),
+    ('>Send</button>', '>Enviar</button>'),
+    ('>Where AMPidentifier is being used</div>', '>Onde o AMPidentifier est&aacute; sendo usado</div>'),
+    ('>In testing</div>', '>Em teste</div>'),
+    ('This round changes the interface only. Models, thresholds and predictions are the same as the stable version.',
+     'Esta rodada muda apenas a interface. Modelos, limiares e predi&ccedil;&otilde;es s&atilde;o os mesmos da vers&atilde;o est&aacute;vel.'),
+    ('This tool is officially registered with the',
+     'Esta ferramenta est&aacute; registrada no'),
+    ('(Brazilian National Institute of Industrial Property), Registration No.',
+     '(Instituto Nacional da Propriedade Industrial), sob o n&uacute;mero'),
+    ('. It is a property of the', '. &Eacute; propriedade da'),
+    ('Your data is encrypted during transfer (HTTPS/TLS) and never shared. Sequences are not stored.',
+     'Seus dados s&atilde;o criptografados na transfer&ecirc;ncia (HTTPS/TLS) e nunca compartilhados. Sequ&ecirc;ncias n&atilde;o s&atilde;o armazenadas.'),
+    ('>Developer: <a href="mailto:', '>Desenvolvedor: <a href="mailto:'),
+    ('>Report issue or suggestion</button>', '>Relatar problema ou sugest&atilde;o</button>'),
+]
+
+CHANGELOG_PAIRS = [
+    ('The front end was rebuilt on a token-based design system',
+     'A interface foi reconstru&iacute;da sobre um sistema de design baseado em tokens'),
+    ('Coming soon: a new batch of trained models will reach the beta before the stable version, and a prediction mode built on a protein language model (PLLM) goes into testing here.',
+     'Em breve: um novo conjunto de modelos treinados chega &agrave; beta antes da vers&atilde;o est&aacute;vel, e um modo de predi&ccedil;&atilde;o sobre modelo de linguagem de prote&iacute;na (PLLM) entra em teste aqui.'),
+]
+
+BODY_PT = BODY
+for _a, _b in BODY_PAIRS + CHANGELOG_PAIRS:
+    if _a in BODY_PT:
+        BODY_PT = BODY_PT.replace(_a, _b, 1)
+
+# os dois links da caixa de instalacao apontam para a rota em portugues
+BODY_PT = (BODY_PT
+           .replace('<a href="/beta">', '<a href="/pt/beta">')
+           .replace('<a href="/legacy">', '<a href="/legacy">'))
+
+
 PAGE = page(
     title='AMPidentifier | Antimicrobial Peptide Prediction Tool',
     description=('AMPidentifier is a free web tool for antimicrobial peptide (AMP) '
@@ -728,4 +803,15 @@ PAGE = page(
     path='/',
     body=BODY,
     js=JS,
+)
+
+PAGE_PT = page(
+    title='AMPidentifier | Predi\u00e7\u00e3o de pept\u00eddeos antimicrobianos',
+    description=('O AMPidentifier \u00e9 uma ferramenta web gratuita para predi\u00e7\u00e3o de '
+                 'pept\u00eddeos antimicrobianos com modelos de aprendizado de m\u00e1quina em '
+                 'ensemble. Envie sequ\u00eancias FASTA e classifique em segundos.'),
+    path='/',
+    body=BODY_PT,
+    js=JS,
+    lang='pt',
 )
