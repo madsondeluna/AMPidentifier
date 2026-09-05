@@ -11,11 +11,11 @@ Pointing /beta back at it is one line in app.py.
 
 from webapp.page_shell import page
 
-PHRASE = 'more is yet to come'
+PHRASE = 'sooooooooonnnnnnnn'
 
 BODY = """
   <main class="step-2 soup-main" id="main" tabindex="-1">
-    <div class="soup" id="soup" role="img" aria-label="More is yet to come"></div>
+    <div class="soup" id="soup" role="img" aria-label="More is yet to come, soon"></div>
 
     <!-- A piada nao se explica: um residuo mascarado no meio da LL-37 e a
          tarefa com que um modelo de linguagem de proteina e treinado, e a
@@ -26,9 +26,9 @@ BODY = """
              aria-label="Masked residue, position 7 of LL-37. Reveal it: arginine.">
         <span class="mask-face mask-face-hidden" aria-hidden="true">[MASK]</span>
         <span class="mask-face mask-face-shown" aria-hidden="true">R</span>
-      </button>KSKEKIGKEF</span>
+      </button>KSKEKIGKEFKRIVQRIKDFLRNLVPRTES</span>
       <span class="soup-aside" role="status">
-        <span class="mask-face mask-line-rest" aria-hidden="true">Something that fills that in is in training.</span>
+        <span class="mask-face mask-line-rest" aria-hidden="true" id="asideScramble" data-text="Something that fills that in is in training."></span>
         <span class="mask-face mask-line-done" aria-hidden="true">You just did what it is being trained to do.</span>
       </span>
     </p>
@@ -100,6 +100,13 @@ CSS = """
   /* a legenda troca junto, e por isso a piada se explica sozinha para
      quem nao a pegou de primeira. Sem :has() o token ainda troca, so a
      legenda fica parada: a degradacao perde a explicacao, nao o gesto. */
+
+  /* a legenda embaralha com o mesmo desenho do slogan da raiz: letra
+     assentada em tinta cheia, letra girando em --muted */
+  .soup-aside { font-family: var(--font-mono); }
+  .mask-line-rest .done { color: var(--text); }
+  .mask-line-rest.is-out { opacity: 0; }
+
   .soup-aside {
     display: inline-grid;
     font-size: var(--text-13);
@@ -201,6 +208,84 @@ CSS = """
 """
 
 JS = """
+/* ---------- a legenda se resolve como o slogan da raiz ----------
+   Mesmo alfabeto e mesmo ciclo da frase que abre a pagina principal:
+   uma coisa so, escrita em dois lugares. Aqui ela para enquanto o
+   ponteiro esta sobre o residuo mascarado, porque nesse momento a
+   legenda ja foi trocada pela outra face e embaralhar o que esta
+   escondido e trabalho jogado fora. */
+
+(function () {
+  var AMINO = 'ACDEFGHIKLMNPQRSTVWY';
+  var TICK = 45;
+  var PER_CHAR = 2;
+  var HOLD = 3200;
+  var GAP = 500;
+
+  var host = document.getElementById('asideScramble');
+  var token = document.querySelector('.soup-token');
+  if (!host) return;
+  var text = host.dataset.text || '';
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (still) { host.textContent = text; return; }
+
+  var timer = null;
+  var parado = false;
+
+  function rand() { return AMINO[Math.floor(Math.random() * AMINO.length)]; }
+
+  function frame(resolvidas) {
+    var out = '';
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (ch === ' ' || ch === '.') { out += ch; continue; }
+      out += i < resolvidas ? '<span class="done">' + ch + '</span>' : rand();
+    }
+    host.innerHTML = out;
+  }
+
+  function run() {
+    if (parado) return;
+    var passo = 0;
+    host.classList.remove('is-out');
+    timer = window.setInterval(function () {
+      var resolvidas = Math.floor(passo / PER_CHAR);
+      frame(resolvidas);
+      passo++;
+      if (resolvidas > text.length) {
+        window.clearInterval(timer);
+        frame(text.length);
+        timer = window.setTimeout(function () {
+          host.classList.add('is-out');
+          timer = window.setTimeout(run, GAP);
+        }, HOLD);
+      }
+    }, TICK);
+  }
+
+  function stop(fixa) {
+    window.clearInterval(timer);
+    window.clearTimeout(timer);
+    timer = null;
+    if (fixa) { host.classList.remove('is-out'); host.textContent = text; }
+  }
+
+  if (token) {
+    token.addEventListener('pointerenter', function () { parado = true; stop(true); });
+    token.addEventListener('focus', function () { parado = true; stop(true); });
+    token.addEventListener('pointerleave', function () { parado = false; run(); });
+    token.addEventListener('blur', function () { parado = false; run(); });
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stop(true);
+    else if (!timer && !parado) run();
+  });
+
+  run();
+})();
+
 /* ---------- sopa de letrinhas ----------
    React so existe aqui pelo que a folha de estilo nao alcanca: a
    distancia de cada ladrilho ate o ponteiro, recalculada por quadro. O
@@ -212,7 +297,7 @@ JS = """
    lido por uma folha de estilo. */
 
 (function () {
-  var PHRASE = 'more is yet to come';
+  var PHRASE = 'More is yet to come soon';
   var REACH = 160;
   var PUSH = 34;
   var TILT = 14;
@@ -333,7 +418,7 @@ JS = """
   } else if (host) {
     /* React nao carregou: a frase entra como texto e a pagina continua
        dizendo o que veio dizer */
-    host.textContent = 'More is yet to come.';
+    host.textContent = 'Soon.';
     host.className = 'soup-fallback';
   }
 })();
@@ -346,14 +431,38 @@ HEAD_EXTRA = (
     'react-dom.production.min.js" crossorigin></script>\n'
 )
 
-PAGE = page(
-    title='AMPidentifier BETA | More is yet to come',
-    description=('The AMPidentifier beta. A new batch of trained models and a '
-                 'prediction mode built on a protein language model are in '
-                 'testing. The stable predictor runs at ampidentifier.com.'),
-    path='/beta',
-    body=BODY,
-    css=CSS,
-    js=JS,
-    schema=HEAD_EXTRA,
-)
+COPY = {
+    'title': {'en': 'AMPidentifier BETA | More is yet to come',
+              'pt': 'AMPidentifier BETA | Ainda vem mais por aí'},
+    'description': {
+        'en': ('The AMPidentifier beta. A new batch of trained models and a '
+               'prediction mode built on a protein language model are in '
+               'testing. The stable predictor runs at ampidentifier.com.'),
+        'pt': ('A beta do AMPidentifier. Um novo conjunto de modelos treinados e '
+               'um modo de predição sobre modelo de linguagem de proteína estão '
+               'em teste. O preditor estável roda em ampidentifier.com.')},
+    # A frase da sopa nao se traduz: ela e a marca da pagina e as quinze
+    # letras sao o desenho. O que se traduz e o que a explica.
+    'aside': {'en': 'Something that fills that in is in training.',
+              'pt': 'Algo que preenche isso está em treinamento.'},
+    'done': {'en': 'You just did what it is being trained to do.',
+             'pt': 'Você acabou de fazer o que ele está aprendendo a fazer.'},
+    'mask_label': {'en': 'Masked residue, position 7 of LL-37. Reveal it: arginine.',
+                   'pt': 'Resíduo mascarado, posição 7 da LL-37. Revele: arginina.'},
+    'fallback': {'en': 'Soon.', 'pt': 'Ainda vem mais por aí.'},
+}
+
+
+def build(lang):
+    c = {k: v[lang] for k, v in COPY.items()}
+    body = (BODY
+            .replace('Something that fills that in is in training.', c['aside'])
+            .replace('You just did what it is being trained to do.', c['done'])
+            .replace('Masked residue, position 7 of LL-37. Reveal it: arginine.', c['mask_label'])
+            .replace('>More is yet to come.<', '>' + c['fallback'] + '<'))
+    return page(title=c['title'], description=c['description'], path='/beta',
+                body=body, css=CSS, js=JS, schema=HEAD_EXTRA, lang=lang)
+
+
+PAGE = build('en')
+PAGE_PT = build('pt')

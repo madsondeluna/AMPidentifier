@@ -47,8 +47,8 @@ BODY = """
 
         <p>The FAIR principles are the practical form of that commitment.
         <strong>Findable</strong>: the software is deposited on PyPI and GitHub,
-        carries a citable identifier and a machine-readable
-        <code>CITATION.cff</code>. <strong>Accessible</strong>: the web tool needs
+        and carries a machine-readable <code>CITATION.cff</code> so that a
+        citation can be resolved without reading the page. <strong>Accessible</strong>: the web tool needs
         no account, no institutional login and no payment, and the package
         installs with one command. <strong>Interoperable</strong>: input is FASTA
         and output is CSV, two formats every other tool in the pipeline already
@@ -209,12 +209,24 @@ BODY = """
               <li><span class="edu-what">BSc in Biomedical Sciences</span><span class="edu-where">Center of Biosciences, UFPE</span><span class="num edu-when">2014&ndash;2021</span></li>
             </ul>
           </div>
-          <p class="lead-links">
-            <a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">ORCID 0000-0001-5313-3913</a>
-            &nbsp;&middot;&nbsp; <a href="https://github.com/madsondeluna" target="_blank" rel="noopener">GitHub</a>
-            &nbsp;&middot;&nbsp; <a href="https://madsondeluna.com" target="_blank" rel="noopener">madsondeluna.com</a>
-            &nbsp;&middot;&nbsp; <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a>
-          </p>
+          <ul class="lead-links">
+            <li>
+              <svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#tag"></use></svg>
+              <a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">0000-0001-5313-3913</a>
+            </li>
+            <li>
+              <svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#branch"></use></svg>
+              <a href="https://github.com/madsondeluna" target="_blank" rel="noopener">github.com/madsondeluna</a>
+            </li>
+            <li>
+              <svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#link"></use></svg>
+              <a href="https://madsondeluna.com" target="_blank" rel="noopener">madsondeluna.com</a>
+            </li>
+            <li>
+              <svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#mail"></use></svg>
+              <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
@@ -227,35 +239,39 @@ BODY = """
           <div class="author-name">Madson Allan de Luna Arag&atilde;o</div>
           <div class="author-role">Lead developer and maintainer</div>
           <div class="author-affil">Institute of Biological Sciences, Universidade Federal de Minas Gerais (UFMG), Belo Horizonte<br>Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife</div>
-          <div class="author-links"><a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">ORCID</a></div>
+          <div class="author-links"><svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#tag"></use></svg><a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">0000-0001-5313-3913</a></div>
         </div>
 
         <div class="card-glass author">
           <div class="author-name">Rafael Lucas da Silva</div>
+          <div class="author-role">Undergraduate assistant</div>
           <div class="author-affil">Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife</div>
         </div>
 
         <div class="card-glass author">
           <div class="author-name">Jo&atilde;o Pacifico Bezerra Neto</div>
-          <div class="author-role">Original prototype</div>
+          <div class="author-role">Original prototype and co-advisor</div>
           <div class="author-affil">Universidade de Pernambuco (UPE), Petrolina</div>
-          <div class="author-links"><a href="https://orcid.org/0000-0003-3861-4879" target="_blank" rel="noopener">ORCID</a></div>
+          <div class="author-links"><svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#tag"></use></svg><a href="https://orcid.org/0000-0003-3861-4879" target="_blank" rel="noopener">0000-0003-3861-4879</a></div>
         </div>
 
         <div class="card-glass author">
           <div class="author-name">Carlos Andr&eacute; dos Santos-Silva</div>
+          <div class="author-role">Co-advisor</div>
           <div class="author-affil">Centro Universit&aacute;rio CESMAC, Macei&oacute;</div>
         </div>
 
         <div class="card-glass author">
           <div class="author-name">Denys Ewerton da Silva Santos</div>
+          <div class="author-role">Co-advisor</div>
           <div class="author-affil">Department of Fundamental Chemistry, Universidade Federal de Pernambuco (UFPE), Recife</div>
         </div>
 
         <div class="card-glass author">
           <div class="author-name">Ana Maria Benko-Iseppon</div>
+          <div class="author-role">Project leader and advisor</div>
           <div class="author-affil">Department of Genetics, Universidade Federal de Pernambuco (UFPE), Recife</div>
-          <div class="author-links"><a href="https://orcid.org/0000-0002-0575-3197" target="_blank" rel="noopener">ORCID</a></div>
+          <div class="author-links"><svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#tag"></use></svg><a href="https://orcid.org/0000-0002-0575-3197" target="_blank" rel="noopener">0000-0002-0575-3197</a></div>
         </div>
 
       </div>
@@ -324,7 +340,35 @@ CSS = """
   .lead-name { font-size: var(--text-16); font-weight: var(--weight-medium); color: var(--text); }
   .lead-role { font-family: var(--font-mono); font-size: var(--text-12); color: var(--muted); margin-bottom: var(--space-10); }
   .lead-text > p + p, .lead-role + p { margin-top: var(--space-10); }
-  .lead-links { font-size: var(--text-13); }
+  /* Duas colunas, icone numa coluna propria de largura fixa: assim os
+     quatro enderecos comecam na mesma vertical e o icone nao empurra o
+     texto conforme muda de desenho. O icone e --muted e o endereco e
+     tinta cheia, porque quem se le e o endereco; o icone so diz de que
+     tipo ele e, e por isso leva aria-hidden. */
+  .lead-links {
+    list-style: none;
+    margin: var(--space-16) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-8) var(--space-24);
+    font-size: var(--text-13);
+  }
+
+  .lead-links li {
+    display: grid;
+    grid-template-columns: var(--space-20) 1fr;
+    align-items: center;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  .lead-links .icon { color: var(--muted); }
+  .lead-links a { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  @media (max-width: 768px) {
+    .lead-links { grid-template-columns: 1fr; }
+  }
 
   /* formacao: tres colunas, com o ano em coluna propria e alinhado a
      direita, porque ano se compara com ano e nao com o fim do texto que
@@ -356,7 +400,19 @@ CSS = """
   .author-name { font-size: var(--text-15); color: var(--text); }
   .author-role { font-family: var(--font-mono); font-size: var(--text-11); color: var(--muted); }
   .author-affil { font-size: var(--text-12); color: var(--muted); line-height: var(--leading-snug); }
-  .author-links { font-family: var(--font-mono); font-size: var(--text-11); }
+  /* mesmo desenho da lista do mantenedor: icone em coluna propria, em
+     --muted, e o identificador na tinta do texto */
+  .author-links {
+    display: grid;
+    grid-template-columns: var(--space-20) 1fr;
+    align-items: center;
+    gap: var(--space-6);
+    font-family: var(--font-mono);
+    font-size: var(--text-11);
+  }
+
+  .author-links .icon { color: var(--muted); }
+  .author-links a { color: var(--text); }
 
   @media (max-width: 768px) {
     .metrics-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-8); }
@@ -366,6 +422,221 @@ CSS = """
   }
 """
 
+# ---------------------------------------------------------------------------
+# Versao em portugues.
+#
+# Nao se traduz: nome de instituicao, nome de autor, titulo de artigo, nome
+# de periodico, DOI, sigla de metrica, numero de registro no INPI e a
+# citacao. Sao registros, e traduzir registro quebra o casamento com a
+# fonte que o declara.
+#
+# A prosa longa e trocada por PARAGRAFO inteiro, ancorada numa frase que so
+# aparece nele: casar espaco em branco em texto de dez linhas quebra ao
+# primeiro reflow do arquivo.
+# ---------------------------------------------------------------------------
+
+import re as _re
+
+PARAGRAPHS = [
+    ('AMPidentifier classifies peptide sequences',
+     'O AMPidentifier classifica sequ&ecirc;ncias de pept&iacute;deos como antimicrobianas ou n&atilde;o '
+     'antimicrobianas a partir da sequ&ecirc;ncia prim&aacute;ria de amino&aacute;cidos apenas. Ele roda como '
+     'ferramenta web, programa de linha de comando e pacote Python, sobre os mesmos modelos e os '
+     'mesmos limiares nos tr&ecirc;s.'),
+
+    ('Antimicrobial resistance kills people now',
+     'A resist&ecirc;ncia antimicrobiana mata gente hoje e vai matar mais. O espa&ccedil;o de sequ&ecirc;ncias '
+     'onde novos pept&iacute;deos antimicrobianos podem estar &eacute; muito maior do que qualquer '
+     'laborat&oacute;rio consegue rastrear, o que faz da triagem computacional parte do pipeline '
+     'experimental e n&atilde;o um acess&oacute;rio dele. Uma ferramenta que faz essa triagem s&oacute; serve na '
+     'medida em que outras pessoas conseguem execut&aacute;-la, conferi-la e discordar dela.'),
+
+    ('That is why every part of this project is in the open',
+     '&Eacute; por isso que cada parte deste projeto est&aacute; aberta. O c&oacute;digo de treino, os conjuntos de '
+     'dados, a extra&ccedil;&atilde;o de descritores, os arquivos de modelo e o servidor web est&atilde;o num '
+     'reposit&oacute;rio p&uacute;blico sob licen&ccedil;a permissiva. Os n&uacute;meros do benchmark nesta p&aacute;gina saem de '
+     'um conjunto de teste separado que acompanha o reposit&oacute;rio, ent&atilde;o qualquer um pode '
+     'reproduzi-los ou mostrar que eles n&atilde;o se sustentam. Uma predi&ccedil;&atilde;o que voc&ecirc; n&atilde;o pode '
+     'auditar &eacute; uma opini&atilde;o com casa decimal.'),
+
+    ('The FAIR principles are the practical form',
+     'Os princ&iacute;pios FAIR s&atilde;o a forma pr&aacute;tica desse compromisso. '
+     '<strong>Localiz&aacute;vel</strong>: o software est&aacute; depositado no PyPI e no GitHub, e traz um '
+     '<code>CITATION.cff</code> leg&iacute;vel por m&aacute;quina, de modo que a cita&ccedil;&atilde;o se resolve sem ler a '
+     'p&aacute;gina. <strong>Acess&iacute;vel</strong>: a ferramenta web n&atilde;o pede conta, nem login '
+     'institucional, nem pagamento, e o pacote instala com um comando. '
+     '<strong>Interoper&aacute;vel</strong>: a entrada &eacute; FASTA e a sa&iacute;da &eacute; CSV, dois formatos que toda '
+     'outra ferramenta do pipeline j&aacute; l&ecirc;. <strong>Reutiliz&aacute;vel</strong>: a licen&ccedil;a permite reuso '
+     'e modifica&ccedil;&atilde;o, os descritores est&atilde;o documentados, e o procedimento de treino &eacute; um '
+     'script e n&atilde;o um par&aacute;grafo numa se&ccedil;&atilde;o de m&eacute;todos.'),
+
+    ('Two commitments follow from this',
+     'Dois compromissos decorrem disso e limitam como a ferramenta &eacute; constru&iacute;da. Sequ&ecirc;ncias '
+     'enviadas aqui s&atilde;o processadas em mem&oacute;ria e nunca armazenadas: dado de sequ&ecirc;ncia n&atilde;o '
+     'publicado &eacute; a coisa mais valiosa que um grupo de pesquisa guarda, e pedir que algu&eacute;m o '
+     'envie para um servidor que o retenha &eacute; pedir demais. E a ferramenta continua gratuita, '
+     'porque uma etapa de triagem atr&aacute;s de paywall deixa de ser triagem justamente para os '
+     'laborat&oacute;rios que mais precisam dela.'),
+
+    ('Open development is not a licence file',
+     'Desenvolvimento aberto n&atilde;o &eacute; um arquivo de licen&ccedil;a. &Eacute; responder issues, publicar os '
+     'casos de falha junto com o benchmark, e tratar um relato de que o modelo errou como a '
+     'mensagem mais &uacute;til que o projeto recebe.'),
+
+    ('Bioinformatics web tools stop working',
+     'Ferramentas web de bioinform&aacute;tica param de funcionar. Kern, Fehlmann e Keller '
+     '(2020, <a href="https://doi.org/10.1093/nar/gkaa1125" target="_blank" rel="noopener">doi:10.1093/nar/gkaa1125</a>) '
+     'monitoraram 2.396 ferramentas publicadas a partir de 2010 ao longo de 133 dias e '
+     'encontraram 25,7% inalcan&ccedil;&aacute;veis no primeiro acesso. A disponibilidade acompanha a idade '
+     'quase linearmente: as publicadas em 2019 e 2020 estavam por volta de 90% dispon&iacute;veis, as '
+     'de 2010 por volta de 50%. Quando os autores de 47 ferramentas recentes quebradas foram '
+     'contatados, 51,1% voltaram ao ar, o que significa que metade daquelas falhas n&atilde;o era '
+     'problema t&eacute;cnico, era manuten&ccedil;&atilde;o abandonada.'),
+
+    ('The same pattern appeared inside this project',
+     'O mesmo padr&atilde;o apareceu dentro deste projeto. Ao montar o benchmark externo, 20 '
+     'preditores de pept&iacute;deos antimicrobianos publicados foram identificados como candidatos. '
+     'Nove deles, 45%, n&atilde;o puderam ser avaliados: servidores inalcan&ccedil;&aacute;veis, falha de resolu&ccedil;&atilde;o '
+     'de DNS, ou nenhuma libera&ccedil;&atilde;o p&uacute;blica de c&oacute;digo para rodar localmente. Os artigos deles v&atilde;o '
+     'de 2012 a 2023, e a verifica&ccedil;&atilde;o foi feita em mar&ccedil;o de 2026. As 11 configura&ccedil;&otilde;es '
+     'restantes foram avaliadas contra o mesmo conjunto independente de 4.736 sequ&ecirc;ncias.'),
+
+    ('A tool that exists only as a web server dies',
+     'Uma ferramenta que existe s&oacute; como servidor web morre com o servidor. Esta &eacute; distribu&iacute;da '
+     'de tr&ecirc;s formas de prop&oacute;sito: a p&aacute;gina web, um programa de linha de comando e um pacote '
+     'Python no PyPI, com o c&oacute;digo de treino, os conjuntos de dados e os arquivos de modelo no '
+     'reposit&oacute;rio. Se esta p&aacute;gina cair, <code>pip install ampidentifier</code> ainda reproduz '
+     'cada n&uacute;mero impresso aqui, e o reposit&oacute;rio pode ser bifurcado por quem quiser '
+     'mant&ecirc;-lo vivo.'),
+
+    ('The default mode is a soft-voting ensemble',
+     'O modo padr&atilde;o &eacute; um ensemble por vota&ccedil;&atilde;o suave de cinco classificadores: random forest, '
+     'support vector machine, gradient boosting, XGBoost e LightGBM. Cada sequ&ecirc;ncia &eacute; reduzida '
+     'a 22 descritores f&iacute;sico-qu&iacute;micos e composicionais, entre eles carga l&iacute;quida, '
+     'hidrofobicidade, momento hidrof&oacute;bico, ponto isoel&eacute;trico, &iacute;ndice alif&aacute;tico, &iacute;ndice de '
+     'instabilidade e composi&ccedil;&atilde;o de amino&aacute;cidos.'),
+
+    ('On the independent benchmark set of 4,736',
+     'No conjunto de benchmark independente de 4.736 sequ&ecirc;ncias o ensemble alcan&ccedil;a AUC-ROC '
+     '0,950, MCC 0,742, sensibilidade 94,9% e especificidade 78,4%. Modos de modelo &uacute;nico est&atilde;o '
+     'dispon&iacute;veis e pontuam menos em cada uma dessas quatro.'),
+
+    ('Training data comes from experimentally validated',
+     'Os dados de treino v&ecirc;m de pept&iacute;deos antimicrobianos validados experimentalmente em bases '
+     'p&uacute;blicas, contra sequ&ecirc;ncias n&atilde;o antimicrobianas. A cobertura inclui pept&iacute;deos '
+     'antibacterianos, antif&uacute;ngicos, antivirais e outros pept&iacute;deos de defesa do hospedeiro. Uma '
+     'prote&iacute;na cuja fun&ccedil;&atilde;o prim&aacute;ria n&atilde;o &eacute; antimicrobiana ainda pode carregar caracter&iacute;sticas '
+     'antimicrobianas em regi&otilde;es espec&iacute;ficas da sua sequ&ecirc;ncia, ent&atilde;o uma chamada positiva &eacute; uma '
+     'hip&oacute;tese para testar, n&atilde;o uma medida.'),
+
+    ('AMPidentifier began as a minimum viable product',
+     'O AMPidentifier come&ccedil;ou como um produto m&iacute;nimo vi&aacute;vel escrito por Jo&atilde;o Pacifico Bezerra '
+     'Neto nos anos 2020. Aquele prot&oacute;tipo &eacute; de onde a ferramenta vem: ele fixou o problema, '
+     'mostrou que descritores derivados da sequ&ecirc;ncia carregavam sinal suficiente para classificar '
+     'pept&iacute;deos antimicrobianos, e justificou construir o resto.'),
+
+    ('What is distributed today was rebuilt',
+     'O que se distribui hoje foi reconstru&iacute;do a partir daquele ponto de partida. O conjunto de '
+     'descritores, o pipeline de treino, o ensemble, o benchmark externo e os tr&ecirc;s canais de '
+     'distribui&ccedil;&atilde;o s&atilde;o uma implementa&ccedil;&atilde;o posterior e separada, mas a ideia &eacute; dele.'),
+
+    ('Wrote the three ways the tool ships',
+     'Escreveu as tr&ecirc;s formas pelas quais a ferramenta &eacute; distribu&iacute;da, o programa de linha de '
+     'comando, o pacote Python no PyPI e este servidor web, de modo que nenhuma delas seja ponto '
+     '&uacute;nico de falha para as outras.'),
+
+    ('Maintenance is the work, not what comes after it',
+     'Manuten&ccedil;&atilde;o &eacute; o trabalho, n&atilde;o o que vem depois dele. Metade das ferramentas quebradas do '
+     'levantamento acima voltou no momento em que algu&eacute;m respondeu um email, o que &eacute; a maior '
+     'parte da dist&acirc;ncia entre uma ferramenta publicada e uma ferramenta que funciona. Mant&eacute;m o '
+     'reposit&oacute;rio em dia, responde as issues, mant&eacute;m o servidor no ar, e sustenta as restri&ccedil;&otilde;es '
+     'contra as quais a ferramenta &eacute; constru&iacute;da: nenhuma sequ&ecirc;ncia &eacute; armazenada, nenhuma conta '
+     '&eacute; exigida, e nada &eacute; cobrado.'),
+
+    ('Sequences are processed in memory',
+     'Sequ&ecirc;ncias s&atilde;o processadas em mem&oacute;ria e n&atilde;o s&atilde;o armazenadas. A transfer&ecirc;ncia &eacute; '
+     'criptografada com HTTPS/TLS. Nenhuma conta &eacute; exigida e nenhum dado de sequ&ecirc;ncia &eacute; '
+     'compartilhado com terceiros.'),
+]
+
+LABELS_ALL = [
+    ('>Project leader and advisor</div>', '>L&iacute;der do projeto e orientadora</div>'),
+    ('>Lead developer and maintainer</div>', '>Desenvolvedor principal e mantenedor</div>'),
+    ('>Original prototype and co-advisor</div>', '>Prot&oacute;tipo original e coorientador</div>'),
+    ('>Undergraduate assistant</div>', '>Assistente de gradua&ccedil;&atilde;o</div>'),
+    ('>Co-advisor</div>', '>Coorientador</div>'),
+]
+
+LABELS = [
+    ('>About AMPidentifier</h1>', '>Sobre o AMPidentifier</h1>'),
+    ('>Manifesto</div>', '>Manifesto</div>'),
+    ('>Tool decay</div>', '>Ferramentas que somem</div>'),
+    (">This project's external benchmark, March 2026</div>",
+     '>Benchmark externo deste projeto, mar&ccedil;o de 2026</div>'),
+    ('>Candidate tools</span>', '>Ferramentas candidatas</span>'),
+    ('>Could not be run</span>', '>N&atilde;o puderam rodar</span>'),
+    ('>Of the candidates</span>', '>Das candidatas</span>'),
+    ('>In publications</span>', '>Em publica&ccedil;&otilde;es</span>'),
+    ('>Published survey of 2,396 bioinformatics web services</div>',
+     '>Levantamento publicado de 2.396 servi&ccedil;os web de bioinform&aacute;tica</div>'),
+    ('>Unreachable at first access</span>', '>Inalcan&ccedil;&aacute;veis no primeiro acesso</span>'),
+    ('>Availability of 2010 tools</span>', '>Disponibilidade das de 2010</span>'),
+    ('>Restored after contact</span>', '>Restauradas ap&oacute;s contato</span>'),
+    ('>What follows from it</div>', '>O que decorre disso</div>'),
+    ('>Model</div>', '>Modelo</div>'),
+    ('>Benchmark, voting ensemble</div>', '>Benchmark, ensemble por vota&ccedil;&atilde;o</div>'),
+    ('>Sensitivity</span>', '>Sensibilidade</span>'),
+    ('>Specificity</span>', '>Especificidade</span>'),
+    ('>Scope</div>', '>Abrang&ecirc;ncia</div>'),
+    ('>Origin</div>', '>Origem</div>'),
+    ('>Maintainer</div>', '>Mantenedor</div>'),
+
+
+    ('>Education</div>', '>Forma&ccedil;&atilde;o</div>'),
+    ('>PhD student in Bioinformatics</span>', '>Doutorando em Bioinform&aacute;tica</span>'),
+    ('>MBA in Software Engineering</span>', '>MBA em Engenharia de Software</span>'),
+    ('>Specialization in Data Science and Analytics</span>',
+     '>Especializa&ccedil;&atilde;o em Data Science e Analytics</span>'),
+    ('>MSc in Genetics and Molecular Biology</span>',
+     '>Mestrado em Gen&eacute;tica e Biologia Molecular</span>'),
+    ('>BSc in Biomedical Sciences</span>', '>Bacharelado em Ci&ecirc;ncias Biom&eacute;dicas</span>'),
+    ('>Authors</div>', '>Autores</div>'),
+    ('>Access</div>', '>Acesso</div>'),
+    ('>Python package:</span>', '>Pacote Python:</span>'),
+    ('>Source and command line:</span>', '>C&oacute;digo e linha de comando:</span>'),
+    ('>Web:</span>', '>Web:</span>'),
+    ('>the predictor</a>', '>o preditor</a>'),
+    ('>what is coming next</a>', '>o que vem por a&iacute;</a>'),
+    ('>Privacy</div>', '>Privacidade</div>'),
+    ('>Citation</div>', '>Cita&ccedil;&atilde;o</div>'),
+    ('Registered with the', 'Registrada no'),
+    ('under No.', 'sob o n&uacute;mero'),
+    ('property of the', 'propriedade da'),
+]
+
+
+def _swap(body, anchor, novo):
+    """Troca o paragrafo inteiro que contem a ancora."""
+    m = _re.search(r'<p([^>]*)>((?:(?!</p>).)*?' + _re.escape(anchor) + r'(?:(?!</p>).)*?)</p>',
+                   body, _re.S)
+    assert m, anchor
+    return body[:m.start()] + '<p%s>%s</p>' % (m.group(1), novo) + body[m.end():]
+
+
+BODY_PT = BODY
+for _anchor, _novo in PARAGRAPHS:
+    BODY_PT = _swap(BODY_PT, _anchor, _novo)
+for _a, _b in LABELS:
+    assert _a in BODY_PT, _a
+    BODY_PT = BODY_PT.replace(_a, _b, 1)
+# Rotulo que aparece mais de uma vez troca em todas: com count=1 o segundo
+# cartao ficava em ingles no meio da pagina em portugues.
+for _a, _b in LABELS_ALL:
+    assert _a in BODY_PT, _a
+    BODY_PT = BODY_PT.replace(_a, _b)
+BODY_PT = BODY_PT.replace('href="/beta"', 'href="/pt/beta"').replace('href="/">o preditor', 'href="/pt">o preditor')
+
+
 PAGE = page(
     title='About | AMPidentifier',
     description=('How AMPidentifier predicts antimicrobial peptides: the voting '
@@ -374,4 +645,15 @@ PAGE = page(
     path='/about',
     body=BODY.replace('%(photo)s', PHOTO_TAG),
     css=CSS,
+)
+
+PAGE_PT = page(
+    title='Sobre | AMPidentifier',
+    description=('Como o AMPidentifier prev\u00ea pept\u00eddeos antimicrobianos: o ensemble '
+                 'por vota\u00e7\u00e3o, os 22 descritores, os n\u00fameros do benchmark, a '
+                 'abrang\u00eancia dos dados de treino e os termos de privacidade.'),
+    path='/about',
+    body=BODY_PT.replace('%(photo)s', PHOTO_TAG),
+    css=CSS,
+    lang='pt',
 )

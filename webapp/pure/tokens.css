@@ -15,6 +15,13 @@
      e branco absoluto, e as superficies continuam saindo de --slate-50
      em diante, entao card e painel seguem se destacando do fundo. */
   --slate-0:   #ffffff;
+
+  /* Cor de marca do AMPidentifier, local como --slate-0 e pelo mesmo
+     motivo: nao pertence a linguagem, pertence a este projeto. A
+     linguagem ja tem precedente para isso na familia --tag-*, que existe
+     para um site so. Declarada uma vez aqui em vez de repetida em hex
+     dentro de cada arquivo de marca. */
+  --brand-teal: #0e6e66;
   --slate-50:  #f4f6f9;
   --slate-100: #ebeef3;
   --slate-150: #e1e5ec;

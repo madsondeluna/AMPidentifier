@@ -10,6 +10,74 @@ O head e gabarito de %(nome)s, nao de Jinja: as chaves duplas do Jinja
 continuam intactas e sao resolvidas depois, por render_template_string.
 """
 
+# ---------------------------------------------------------------------------
+# Copia do shell nos dois idiomas.
+#
+# Nao se traduz: nome da marca, nome de instituicao, sigla de metrica,
+# codigo de sequencia, rotulo de rota tecnica como /health. Sao registros,
+# e traduzir registro quebra o casamento com a fonte que o declara.
+# ---------------------------------------------------------------------------
+
+LANGS = ('en', 'pt')
+
+STRINGS = {
+    'nav_predict':      {'en': 'Predict',            'pt': 'Prever'},
+    'nav_about':        {'en': 'About',              'pt': 'Sobre'},
+    'nav_suggestions':  {'en': 'Suggestions',        'pt': 'Sugestões'},
+    'nav_beta':         {'en': 'Beta Version',       'pt': 'Versão beta'},
+    'nav_home':         {'en': 'AMPidentifier, home', 'pt': 'AMPidentifier, início'},
+    'nav_label':        {'en': 'Main',               'pt': 'Principal'},
+    'skip':             {'en': 'Skip to content',    'pt': 'Ir para o conteúdo'},
+
+    'status_checking':  {'en': 'Checking',           'pt': 'Verificando'},
+    'status_online':    {'en': 'Online: model loaded, predictions ready',
+                         'pt': 'Online: modelo carregado, predições prontas'},
+    'status_offline':   {'en': 'Offline: backend unreachable, try again shortly',
+                         'pt': 'Offline: servidor inalcançável, tente em instantes'},
+    'status_wait':      {'en': 'Checking server status',
+                         'pt': 'Verificando o estado do servidor'},
+    'status_latency':   {'en': '(Xms) = current /health round-trip latency',
+                         'pt': '(Xms) = latência atual de ida e volta em /health'},
+
+    'src_github':       {'en': 'Source on GitHub',   'pt': 'Código no GitHub'},
+    'src_pypi':         {'en': 'Package on PyPI',    'pt': 'Pacote no PyPI'},
+    'mode_to_dark':     {'en': 'Switch to dark mode', 'pt': 'Mudar para o modo escuro'},
+    'mode_to_light':    {'en': 'Switch to light mode', 'pt': 'Mudar para o modo claro'},
+    'slogan':           {'en': 'antimicrobial peptide prediction',
+                         'pt': 'predição de peptídeos antimicrobianos'},
+    'lang_switch':      {'en': 'Ver em português',   'pt': 'Read in English'},
+
+    'group_inst':       {'en': 'Institutions',       'pt': 'Instituições'},
+    'group_dept':       {'en': 'Departments',        'pt': 'Departamentos'},
+    'group_fund':       {'en': 'Funding',            'pt': 'Financiamento'},
+    'group_labs':       {'en': 'Research groups',    'pt': 'Grupos de pesquisa'},
+
+    'modal_title':      {'en': 'Report issue or suggestion',
+                         'pt': 'Relatar problema ou sugestão'},
+    'modal_type':       {'en': 'Type',               'pt': 'Tipo'},
+    'modal_bug':        {'en': 'Bug report',         'pt': 'Relato de defeito'},
+    'modal_feature':    {'en': 'Feature request',    'pt': 'Pedido de funcionalidade'},
+    'modal_other':      {'en': 'Other',              'pt': 'Outro'},
+    'modal_desc':       {'en': 'Description',        'pt': 'Descrição'},
+    'modal_placeholder':{'en': 'Describe the issue or your suggestion...',
+                         'pt': 'Descreva o problema ou a sua sugestão...'},
+    'modal_cancel':     {'en': 'Cancel',             'pt': 'Cancelar'},
+    'modal_submit':     {'en': 'Open on GitHub',     'pt': 'Abrir no GitHub'},
+}
+
+
+def t(key, lang):
+    return STRINGS[key][lang]
+
+
+# A rota em portugues e a mesma com prefixo. A raiz e o unico caso
+# especial: /pt e nao /pt/.
+def localised(path, lang):
+    if lang == 'en':
+        return path
+    return '/pt' if path == '/' else '/pt' + path
+
+
 HEAD = """<html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -84,7 +152,8 @@ HEAD = """<html lang="en">
   ]
 }
 </script>
-<link rel="icon" type="image/svg+xml" href="/img/symbol.svg">
+<link rel="icon" type="image/svg+xml" href="/img/symbol-fan.svg">
+<link rel="apple-touch-icon" href="/img/symbol-fan.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,300..400&family=Public+Sans:wght@300;400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -646,8 +715,14 @@ STYLE = """  /* =========================================================
 
   /* indice abaixo de 80, que e onde mora o veu do modal: barra acima
      dele cobriria o dialogo e o clique de fora deixaria de fechar. */
-  /* as duas barras sao vidro, e vidro carrega texto na tinta cheia */
-  .navbar .status-label { color: var(--text); }
+  /* As barras sao a textura mais fina do material, nao a mais funda.
+     Vidro fundo numa faixa de largura total desfoca 56px o tempo todo,
+     derruba a taxa de quadros em aparelho de entrada e le como painel
+     em vez de moldura. O que a pagina precisa aqui e translucidez leve:
+     o conteudo passa por baixo e ainda se ve.
+
+     as duas barras carregam texto, e texto sobre vidro vai na tinta cheia */
+  .navbar .status-label { color: var(--text); white-space: nowrap; }
 
   .navbar, .footer-bar {
     position: fixed;
@@ -655,6 +730,22 @@ STYLE = """  /* =========================================================
     right: 0;
     z-index: 40;
     border-radius: 0;
+  }
+
+  /* Desfoque fino deixa o conteudo atravessar, e numa barra que carrega
+     texto isso vira ilegibilidade que depende do que passa por baixo. As
+     duas ganham tinta propria: translucida o bastante para o conteudo se
+     insinuar, opaca o bastante para o rotulo nao depender dele.
+
+     --surface-context declara o que a barra realmente pinta: a varredura
+     de contraste anda pela ancestralidade e sem isto resolveria contra
+     --bg, aprovando uma pagina que na tela esta errada. */
+  /* Duas classes, e nao uma: `.glass:not(.card-glass)` pesa duas e zera o
+     background-color do material. Medido: a declaracao de uma classe nao
+     chegava a aplicar e a barra continuava sem tinta propria. */
+  .navbar.glass, .footer-bar.glass {
+    background-color: color-mix(in srgb, var(--surface) 74%, transparent);
+    --surface-context: var(--surface);
   }
 
   .navbar { top: 0; height: var(--chrome-top); border-bottom: var(--hairline) solid var(--border); }
@@ -666,8 +757,13 @@ STYLE = """  /* =========================================================
 
   /* a barra acompanha a coluna da pagina: mesma largura, mesma margem
      lateral, mesmo eixo esquerdo do cabecalho ao rodape. */
-  .nav-inner {
-    max-width: var(--container-md);
+  /* As duas barras sao chrome e usam a mesma ancora: largura inteira da
+     tela com a folga lateral de 24. Assim a esquerda da navbar cai na
+     mesma vertical da esquerda do rodape, e a direita das duas tambem.
+     Antes a navbar vivia numa coluna de 1280 centrada, o que a deixava
+     sem alinhamento nem com a coluna de texto nem com o rodape. */
+  .nav-inner, .footer-bar-inner {
+    max-width: var(--container-xl);
     height: 100%;
     margin: 0 auto;
     padding: 0 var(--space-24);
@@ -676,52 +772,88 @@ STYLE = """  /* =========================================================
     gap: var(--space-16);
   }
 
-  .nav-brand { display: flex; align-items: center; gap: var(--space-8); text-decoration: none; }
-  /* a barra estreita nao tem largura para a marca nominal, e encolher a
-     marca ate caber a deixa ilegivel: abaixo do ponto de quebra entra o
-     simbolo sozinho, que e a mesma marca sem a parte que nao cabe. */
-  .nav-wordmark { display: block; height: var(--space-32); width: auto; }
-  .nav-symbol { display: none; height: var(--space-32); width: auto; }
+  .nav-inner { gap: var(--space-16); }
 
-  .nav-links { display: flex; align-items: center; gap: var(--space-4); margin-left: var(--space-16); }
+  .nav-brand { display: flex; align-items: center; text-decoration: none; flex: 0 0 auto; }
 
-  .nav-link {
-    display: inline-flex;
+  /* O leque nu carrega a marca na barra, sem placa. Ele e a unica coisa
+     colorida ali e nao inverte no escuro: inverter uma marca de cor
+     devolve a complementar, nao a versao para fundo escuro. A palavra
+     nao se repete aqui porque ela abre a pagina no lockup do topo. */
+  .nav-fan { display: block; flex: 0 0 auto; height: var(--space-32); width: auto; }
+
+  /* A fileira de rotas nao quebra: rotulo de navegacao que vira duas
+     linhas estica a pilula e rompe a altura da barra, que e fixa. Quando
+     nao cabe, ela rola; o que nao pode e o rotulo se partir no meio. */
+  .nav-links {
+    display: flex;
     align-items: center;
-    min-height: var(--hit-min);
-    padding: var(--space-6) var(--space-10);
-    border-radius: var(--radius-control);
-    font-size: var(--text-12);
-    /* texto sobre vidro usa --text, sem excecao: --muted esta abaixo do
-       piso de 4,5 sobre a superficie de vidro em todos os modos. O que
-       separa a rota corrente das outras nao e cor, e peso. */
-    color: var(--text);
-    text-decoration: none;
-    opacity: 0.72;
-    transition: opacity var(--duration-5) var(--ease-out-soft);
+    gap: var(--space-4);
+    margin-left: var(--space-16);
+    /* a fileira nao cede largura: quem cede e a marca, e dentro dela o
+       slogan. So quando a marca ja encolheu a zero e a barra ainda nao
+       cabe e que a fileira rola. */
+    flex: 0 0 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
-  .nav-link:hover { opacity: 1; }
+  .nav-links::-webkit-scrollbar { display: none; }
 
-  /* a rota corrente e estado, entao ela tambem se le sem cor: o rotulo
-     sobe para a tinta cheia e ganha peso, e aria-current diz o mesmo
-     para quem nao ve nenhum dos dois. */
-  .nav-link[aria-current="page"] { opacity: 1; font-weight: var(--weight-medium); }
+  /* Pilula de vidro de verdade, flutuando sobre a barra. A tentativa
+     anterior deixou a sombra do vidro num elemento sem fundo e sem borda,
+     e o rotulo saia cercado de um borrao: sombra de vidro pede vidro.
+     Agora quem paga a sombra e a propria superficie, e .lit-edge volta a
+     ser legitima, porque .pill esta na lista de seletores dela. */
+  .nav-link {
+    font-family: var(--font-sans);
+    font-size: var(--text-12);
+    line-height: var(--text-16);
+    padding: var(--space-6) var(--space-12);
+    min-height: var(--hit-min);
+    text-decoration: none;
+    /* o rotulo nunca quebra: duas linhas esticam a pilula e rompem a
+       altura fixa da barra. Sem lugar, a fileira rola. */
+    white-space: nowrap;
+    flex: 0 0 auto;
+    /* --shadow-glass-rest e desenhada para cartao: a queda larga tem
+       18px de raio deslocada 6px, e a pilula tem 30px de altura. A
+       sombra fica maior que o objeto e le como borrao sob cada rotulo,
+       que e a mesma coisa que a linguagem ja registrou para a lente do
+       cursor. --shadow-lens e a resposta dela para vidro pequeno: sobra
+       o contato de 1px e as camadas internas, que dao corpo sem
+       projetar. */
+  }
 
-  .nav-side { display: flex; align-items: center; gap: var(--space-8); margin-left: auto; }
+  /* Duas classes, porque `.pill.lit-edge` pesa duas e declara box-shadow
+     propria. Com um seletor de uma classe a troca nao aplicava e a queda
+     larga continuava embaixo de cada rotulo. Quarta vez que esta
+     armadilha aparece nesta folha. */
+  .nav-link.pill { box-shadow: var(--shadow-lens); }
+  .nav-link.pill:hover { box-shadow: var(--shadow-glass-rest); }
+
+  /* A rota corrente e a unica tingida. Duas pistas e nenhuma so de cor:
+     o vidro assume o acento e o rotulo ganha peso, e aria-current diz o
+     mesmo para quem nao ve nenhuma das duas. */
+  .nav-link[aria-current="page"] {
+    font-weight: var(--weight-medium);
+    background-image: var(--glass-tint-accent);
+    border-color: var(--glass-edge-accent);
+  }
+
+  /* o lado direito nao quebra nem encolhe: ele e a ancora da barra, e a
+     fileira de rotas e que rola quando falta espaco */
+  .nav-side { display: flex; align-items: center; gap: var(--space-8); margin-left: auto; flex: 0 0 auto; }
+  .navbar .status-label { white-space: nowrap; }
+  .navbar .status-tip { flex: 0 0 auto; }
 
   /* o aglomerado liquido tem folga propria de 24px para a massa fundida
      caber; dentro de uma barra de 56 isso estoura, entao a folga cai e o
      tamanho da unidade desce junto. */
   .nav-actions { padding: var(--space-4); --liquid-size: var(--space-32); }
 
-  .footer-bar-inner {
-    height: 100%;
-    padding: 0 var(--space-24);
-    display: flex;
-    align-items: center;
-    gap: var(--space-24);
-  }
+  .footer-bar-inner { gap: var(--space-24); }
 
   /* doze marcas numa linha so nao cabem em tela estreita, e o corpo da
      pagina nunca rola na horizontal: quem rola e a fita. */
@@ -730,18 +862,26 @@ STYLE = """  /* =========================================================
      distancia e param de se ler como uma fita so. O vao entre grupos e
      fixo e maior que o vao entre marcas do mesmo grupo, que e o que faz
      o agrupamento aparecer sem precisar de linha divisoria. */
+  /* Ancorada nas pontas, como a navbar, e dentro da mesma coluna: assim
+     o primeiro grupo cai na vertical do leque e o ultimo na vertical do
+     aglomerado. Espalhar assim na largura INTEIRA da tela era o que
+     deixava os grupos a 500px um do outro; dentro da coluna limitada a
+     mesma regra alinha em vez de dispersar. */
   .footer-strip {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: var(--space-64);
+    justify-content: space-between;
+    gap: var(--space-48);
     flex-wrap: nowrap;
     width: 100%;
     overflow-x: auto;
     overscroll-behavior-x: contain;
   }
 
-  .footer-strip .logo-group { flex: 0 0 auto; gap: var(--space-6); }
+  /* o rotulo se centra sobre a fileira que ele nomeia, em vez de comecar
+     na borda esquerda dela: com grupos de larguras diferentes o rotulo
+     alinhado a esquerda parece solto do proprio conteudo */
+  .footer-strip .logo-group { flex: 0 0 auto; gap: var(--space-6); align-items: center; }
   .footer-strip .logo-group-label { white-space: nowrap; color: var(--text); opacity: 0.72; }
 
   /* cada marca leva ao site da propria instituicao. O alvo e a imagem,
@@ -762,11 +902,37 @@ STYLE = """  /* =========================================================
      aparente. Area de CAIXA, nao de tinta: area de tinta mede espessura
      de traco e infla uma marca de traco fino ate ela virar a maior da
      fita. Os tres degraus sao os que a escala de espaco oferece perto
-     dos valores calculados, e o calculo esta em cada arquivo. */
+     dos valores calculados, e o calculo esta em cada arquivo.
+
+     Quatro marcas sobem um degrau acima do que a area pede: ICB, FAPEMIG,
+     LCM3 e LNCC. Nas quatro, quem fixa a leitura nao e o simbolo, e uma
+     legenda em corpo pequeno ao lado ou abaixo dele, e a area da caixa
+     nao ve essa legenda. Marca de letreiro grande, como UFMG, FACEPE e
+     LGBV, nao precisa do degrau porque a propria letra e o tamanho. */
   .footer-strip .logo-row { min-height: var(--space-40); gap: var(--space-16); }
   .footer-strip .logo-row img { height: var(--space-24); }
   .footer-strip .logo-row img.logo-lockup { height: var(--space-32); }
   .footer-strip .logo-row img.logo-stacked { height: var(--space-40); }
+
+  /* Contorno de controle no modo claro.
+
+     A aresta do vidro e um realce BRANCO, desenhado para vidro sobre
+     fundo colorido. A divergencia local desta pagina faz --bg ser branco
+     absoluto, entao o realce cai em cima do proprio fundo: medido, o
+     contorno da pilula ficava em 1,00 contra a pagina, que nao e pouco
+     contraste, e contorno nenhum. No escuro o mesmo realce da 1,47 e o
+     botao se le, que e por que o defeito so aparece de um lado.
+
+     --secondary da 3,45 sobre a pagina, acima do piso de 3 para limite
+     de controle, e a linguagem ja a declara como cor de borda e nao de
+     texto. O escuro fica como esta. */
+  :root:not(.dark) .pill,
+  :root:not(.dark) .liquid-item,
+  :root:not(.dark) .input,
+  :root:not(.dark) .textarea,
+  :root:not(.dark) .select {
+    border-color: var(--secondary);
+  }
 
   /* o pulo de teclado passa por cima da barra de cima */
   .skip-link { z-index: 100; }
@@ -779,6 +945,17 @@ STYLE = """  /* =========================================================
      por display: alternar display nao anima e a caixa do botao pula. Um
      e absoluto sobre o outro, dentro da unidade liquida de tamanho fixo. */
   .mode-btn { position: relative; border: none; background: none; cursor: pointer; }
+
+  /* a sigla e texto dentro de uma unidade de tamanho fixo, e o liquido so
+     espelha o que tem tamanho fixo: por isso ela e sigla e nao o nome do
+     idioma por extenso */
+  .lang-btn {
+    font-family: var(--font-mono);
+    font-size: var(--text-11);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text);
+    text-decoration: none;
+  }
 
   .mode-btn .icon {
     position: absolute;
@@ -803,16 +980,12 @@ STYLE = """  /* =========================================================
      no modo escuro elas desaparecem no proprio fundo. Inverter devolve a
      mesma marca em tinta clara, que e como cada instituicao publica a
      versao monocromatica dela para fundo escuro. */
-  :root.dark .footer-strip .logo-row img,
-  :root.dark .nav-wordmark,
-  :root.dark .nav-symbol { filter: grayscale(1) invert(1); }
+  :root.dark .footer-strip .logo-row img { filter: grayscale(1) invert(1); }
 
   :root.dark .footer-strip .logo-row img { opacity: 0.72; }
   :root.dark .footer-strip .logo-row img:hover { opacity: 1; }
 
   @media (max-width: 768px) {
-    .nav-wordmark { display: none; }
-    .nav-symbol { display: block; }
     .nav-links { margin-left: var(--space-8); gap: 0; }
     .nav-link { padding: var(--space-6); }
     .status-label { display: none; }
@@ -895,29 +1068,28 @@ DEFS = """<svg class="pure-defs" aria-hidden="true" focusable="false" width="0" 
 </defs></svg>
 <div class="lit-cursor" aria-hidden="true"></div>"""
 
-NAV = """<nav class="navbar glass-deep" aria-label="Main">
+NAV = """<nav class="navbar glass glass-thin" aria-label="__nav_label__">
   <div class="nav-inner">
-    <a class="nav-brand" href="/" aria-label="AMPidentifier, home">
-      <img src="/img/logo.svg" alt="AMPidentifier" class="nav-wordmark">
-      <img src="/img/symbol.svg" alt="AMPidentifier" class="nav-symbol">
+    <a class="nav-brand" href="/" aria-label="__nav_home__">
+      <img src="/img/symbol-fan.svg" alt="AMPidentifier" class="nav-fan">
     </a>
 
     <div class="nav-links">
-      <a class="nav-link lit lit-edge" href="/" data-nav="predict">Predict</a>
-      <a class="nav-link lit lit-edge" href="/about" data-nav="about">About</a>
-      <a class="nav-link lit lit-edge" href="/suggestions" data-nav="suggestions">Suggestions</a>
-      <a class="nav-link lit lit-edge" href="/beta" data-nav="beta">Beta Version</a>
+      <a class="nav-link pill lit lit-edge" href="/" data-nav="predict">__nav_predict__</a>
+      <a class="nav-link pill lit lit-edge" href="/about" data-nav="about">__nav_about__</a>
+      <a class="nav-link pill lit lit-edge" href="/suggestions" data-nav="suggestions">__nav_suggestions__</a>
+      <a class="nav-link pill lit lit-edge" href="/beta" data-nav="beta">__nav_beta__</a>
     </div>
 
     <div class="nav-side">
       <span class="tip status-tip" tabindex="0" aria-describedby="statusTip">
         <span class="status-dot" id="statusDot"></span>
-        <span class="status-label" id="statusLabel">Checking</span>
+        <span class="status-label" id="statusLabel">__status_checking__</span>
         <span id="statusTip" role="tooltip">
-          <span class="tt-row"><span class="tt-dot c-good"></span> Online: model loaded, predictions ready</span>
-          <span class="tt-row"><span class="tt-dot c-crit"></span> Offline: backend unreachable, try again shortly</span>
-          <span class="tt-row"><span class="tt-dot c-idle"></span> Checking server status</span>
-          <span class="tt-row tt-note">(Xms) = current /health round-trip latency</span>
+          <span class="tt-row"><span class="tt-dot c-good"></span> __status_online__</span>
+          <span class="tt-row"><span class="tt-dot c-crit"></span> __status_offline__</span>
+          <span class="tt-row"><span class="tt-dot c-idle"></span> __status_wait__</span>
+          <span class="tt-row tt-note">__status_latency__</span>
         </span>
       </span>
 
@@ -928,15 +1100,18 @@ NAV = """<nav class="navbar glass-deep" aria-label="Main">
           <span class="liquid-blob"></span>
           <span class="liquid-blob"></span>
           <span class="liquid-blob"></span>
+          <span class="liquid-blob"></span>
         </div>
         <div class="liquid-content">
-          <a class="liquid-item" href="https://github.com/madsondeluna/AMPidentifier" target="_blank" rel="noopener" aria-label="Source on GitHub">
+          <a class="liquid-item" href="https://github.com/madsondeluna/AMPidentifier" target="_blank" rel="noopener" aria-label="__src_github__">
             <svg class="icon" aria-hidden="true"><use href="/pure/icons.svg#branch"></use></svg>
           </a>
-          <a class="liquid-item" href="https://pypi.org/project/ampidentifier/" target="_blank" rel="noopener" aria-label="Package on PyPI">
+          <a class="liquid-item" href="https://pypi.org/project/ampidentifier/" target="_blank" rel="noopener" aria-label="__src_pypi__">
             <svg class="icon" aria-hidden="true"><use href="/pure/icons.svg#code"></use></svg>
           </a>
-          <button class="liquid-item mode-btn" type="button" id="modeBtn" aria-label="Switch to dark mode" aria-pressed="false">
+          <a class="liquid-item lang-btn" id="langBtn" href="__lang_href__"
+             aria-label="__lang_switch__" hreflang="__lang_other__" lang="__lang_other__">__lang_code__</a>
+          <button class="liquid-item mode-btn" type="button" id="modeBtn" aria-label="__mode_to_dark__" aria-pressed="false">
             <svg class="icon icon-sun" aria-hidden="true"><use href="/pure/icons.svg#sun"></use></svg>
             <svg class="icon icon-moon" aria-hidden="true"><use href="/pure/icons.svg#moon"></use></svg>
           </button>
@@ -946,41 +1121,41 @@ NAV = """<nav class="navbar glass-deep" aria-label="Main">
   </div>
 </nav>"""
 
-FOOTER_BAR = """<footer class="footer-bar glass-deep">
+FOOTER_BAR = """<footer class="footer-bar glass glass-thin">
   <div class="footer-bar-inner">
       <!-- a categoria de cada marca sai do alt, que continua completo: o
            rotulo visivel repetia o que a imagem ja diz e cobrava altura -->
       <div class="footer-strip">
         <div class="logo-group">
-          <div class="logo-group-label">Institutions</div>
+          <div class="logo-group-label">__group_inst__</div>
           <div class="logo-row">
             <a class="logo-link" href="https://www.ufpe.br" target="_blank" rel="noopener" title="Universidade Federal de Pernambuco"><img src="/img/pure/ufpe.png"     alt="Universidade Federal de Pernambuco" class="logo-lockup"></a>
             <a class="logo-link" href="https://www.ufmg.br" target="_blank" rel="noopener" title="Universidade Federal de Minas Gerais"><img src="/img/pure/ufmg.png"     alt="Universidade Federal de Minas Gerais"></a>
             <a class="logo-link" href="https://upe.br" target="_blank" rel="noopener" title="Universidade de Pernambuco"><img src="/img/pure/upe-logo.png" alt="Universidade de Pernambuco" class="logo-lockup"></a>
-            <a class="logo-link" href="https://www.gov.br/lncc/pt-br" target="_blank" rel="noopener" title="Laboratório Nacional de Computação Científica"><img src="/img/pure/lncc.png"     alt="Laboratório Nacional de Computação Científica"></a>
+            <a class="logo-link" href="https://www.gov.br/lncc/pt-br" target="_blank" rel="noopener" title="Laboratório Nacional de Computação Científica"><img src="/img/pure/lncc.png"     alt="Laboratório Nacional de Computação Científica" class="logo-lockup"></a>
           </div>
         </div>
         <div class="logo-group">
-          <div class="logo-group-label">Departments</div>
+          <div class="logo-group-label">__group_dept__</div>
           <div class="logo-row">
             <a class="logo-link" href="https://www.ufpe.br/dqf" target="_blank" rel="noopener" title="Departamento de Química Fundamental, UFPE"><img src="/img/pure/dqf.png"   alt="Departamento de Química Fundamental, UFPE" class="logo-lockup"></a>
             <a class="logo-link" href="https://www.ufpe.br/dep-genetica" target="_blank" rel="noopener" title="Departamento de Genética, UFPE"><img src="/img/pure/dgen.png" alt="Departamento de Genética, UFPE" class="logo-lockup"></a>
-            <a class="logo-link" href="https://www.icb.ufmg.br" target="_blank" rel="noopener" title="Instituto de Ciências Biológicas, UFMG"><img src="/img/pure/icb.png"   alt="Instituto de Ciências Biológicas, UFMG" class="logo-lockup"></a>
+            <a class="logo-link" href="https://www.icb.ufmg.br" target="_blank" rel="noopener" title="Instituto de Ciências Biológicas, UFMG"><img src="/img/pure/icb.png"   alt="Instituto de Ciências Biológicas, UFMG" class="logo-stacked"></a>
             <a class="logo-link" href="https://www.pgbioinfo.icb.ufmg.br" target="_blank" rel="noopener" title="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG"><img src="/img/pure/ppgbioinfo.png" alt="Programa Interunidades de Pós-Graduação em Bioinformática, UFMG" class="logo-stacked"></a>
           </div>
         </div>
         <div class="logo-group">
-          <div class="logo-group-label">Funding</div>
+          <div class="logo-group-label">__group_fund__</div>
           <div class="logo-row">
             <a class="logo-link" href="https://www.facepe.br" target="_blank" rel="noopener" title="FACEPE"><img src="/img/pure/facepe.png"  alt="FACEPE"></a>
-            <a class="logo-link" href="https://fapemig.br" target="_blank" rel="noopener" title="FAPEMIG"><img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-lockup"></a>
+            <a class="logo-link" href="https://fapemig.br" target="_blank" rel="noopener" title="FAPEMIG"><img src="/img/pure/fapemig.png" alt="FAPEMIG" class="logo-stacked"></a>
           </div>
         </div>
         <div class="logo-group">
-          <div class="logo-group-label">Research groups</div>
+          <div class="logo-group-label">__group_labs__</div>
           <div class="logo-row">
             <a class="logo-link" href="https://lgbv-ufpe.net" target="_blank" rel="noopener" title="Laboratório de Genética e Biotecnologia Vegetal"><img src="/img/pure/lgbv.png" alt="Laboratório de Genética e Biotecnologia Vegetal"></a>
-            <img src="/img/pure/lcm3.png" alt="LCM3">
+            <img src="/img/pure/lcm3.png" alt="LCM3" class="logo-lockup">
           </div>
         </div>
       </div>
@@ -990,33 +1165,44 @@ FOOTER_BAR = """<footer class="footer-bar glass-deep">
 MODAL = """<!-- Feedback modal -->
 <div class="modal-overlay motion-scrim" id="feedbackOverlay" onclick="closeFeedbackOutside(event)">
   <div class="modal modal-card surface motion-modal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
-    <h2 id="feedbackTitle">Report issue or suggestion</h2>
+    <h2 id="feedbackTitle">__modal_title__</h2>
     <div class="field">
-      <label class="field-label" for="feedbackType">Type</label>
+      <label class="field-label" for="feedbackType">__modal_type__</label>
       <span class="select-shell">
         <select class="select" id="feedbackType">
-          <option value="bug">Bug report</option>
-          <option value="feature">Feature request</option>
-          <option value="other">Other</option>
+          <option value="bug">__modal_bug__</option>
+          <option value="feature">__modal_feature__</option>
+          <option value="other">__modal_other__</option>
         </select>
       </span>
     </div>
     <div class="field">
-      <label class="field-label" for="feedbackMsg">Description</label>
-      <textarea class="textarea" id="feedbackMsg" placeholder="Describe the issue or your suggestion..."></textarea>
+      <label class="field-label" for="feedbackMsg">__modal_desc__</label>
+      <textarea class="textarea" id="feedbackMsg" placeholder="__modal_placeholder__"></textarea>
     </div>
     <div class="modal-actions">
-      <button class="pill" onclick="closeFeedback()">Cancel</button>
-      <button class="pill glass-accent" onclick="submitFeedback()">Open on GitHub</button>
+      <button class="pill" onclick="closeFeedback()">__modal_cancel__</button>
+      <button class="pill glass-accent" onclick="submitFeedback()">__modal_submit__</button>
     </div>
   </div>
 </div>"""
 
-SHELL_JS = """/* ---------- modo: o estado mora no endereco ----------
-   Dois modos, claro e escuro. Sem ?mode o navegador decide pela
-   preferencia do sistema, e a escolha explicita sobrescreve. A moldura
-   do navegador acompanha, lendo --bg computado em vez de um literal. */
+SHELL_JS = """/* ---------- modo: o padrao e claro, a escolha persiste ----------
+   Toda pagina abre no claro e em ingles. A preferencia do sistema NAO
+   decide: a pagina foi desenhada e medida no claro, e as marcas do rodape
+   sao tinta escura invertida por filtro no escuro.
 
+   Depois que a pessoa escolhe, a escolha vale nas paginas seguintes. Ela
+   mora em dois lugares e a ordem importa: o endereco vence, porque um
+   link compartilhado tem de abrir do jeito que quem mandou estava vendo;
+   o armazenamento local entra so quando o endereco nao diz nada. Sem o
+   local, trocar de rota pela navbar perderia a escolha; sem o endereco,
+   um link compartilhado abriria no modo de quem recebe.
+
+   O idioma nao precisa deste mecanismo: ele mora no caminho, e os links
+   da navbar em portugues ja apontam para as rotas em portugues. */
+
+const MODE_KEY = 'amp-mode';
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 const modeProbe = document.createElement('div');
 modeProbe.style.cssText = 'position:absolute;visibility:hidden';
@@ -1029,29 +1215,57 @@ function resolveToken(name) {
   return '#' + m.slice(0, 3).map(c => (+c).toString(16).padStart(2, '0')).join('');
 }
 
+/* leitura e escrita do armazenamento sempre em try: em janela privada o
+   proprio acessor lança, e uma pagina que quebra por causa da memoria de
+   um interruptor e pior que um interruptor sem memoria */
+function storedMode() {
+  try { return window.localStorage.getItem(MODE_KEY); } catch (e) { return null; }
+}
+function storeMode(mode) {
+  try { window.localStorage.setItem(MODE_KEY, mode); } catch (e) {}
+}
+
+/* todo link interno carrega o modo: sem isto a escolha morre no primeiro
+   clique da navbar, e e justamente a navbar que leva as outras paginas */
+function carryMode(mode) {
+  document.querySelectorAll('a[href^="/"]').forEach(function (a) {
+    const url = new URL(a.getAttribute('href'), location.origin);
+    if (mode === 'dark') url.searchParams.set('mode', 'dark');
+    else url.searchParams.delete('mode');
+    a.setAttribute('href', url.pathname + (url.search || '') + (url.hash || ''));
+  });
+}
+
 function applyMode(mode, record) {
-  document.documentElement.className = mode === 'dark' ? 'dark' : '';
+  const dark = mode === 'dark';
+  document.documentElement.className = dark ? 'dark' : '';
   const btn = document.getElementById('modeBtn');
   if (btn) {
-    btn.setAttribute('aria-pressed', String(mode === 'dark'));
-    btn.setAttribute('aria-label', mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    btn.setAttribute('aria-pressed', String(dark));
+    btn.setAttribute('aria-label', dark ? '__mode_to_light__' : '__mode_to_dark__');
   }
   const bg = resolveToken('--bg');
   if (themeMeta && bg) themeMeta.setAttribute('content', bg);
+  carryMode(dark ? 'dark' : '');
   if (!record) return;
+  storeMode(dark ? 'dark' : 'light');
   const url = new URL(location.href);
-  if (mode === 'dark') url.searchParams.set('mode', 'dark');
+  if (dark) url.searchParams.set('mode', 'dark');
   else url.searchParams.delete('mode');
   history.replaceState(null, '', url);
 }
 
 (function initMode() {
   const asked = new URL(location.href).searchParams.get('mode');
-  const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : '';
-  applyMode(asked === 'dark' || asked === '' ? asked : system, false);
+  const remembered = storedMode();
+  const start = asked === 'dark' ? 'dark'
+              : asked === 'light' ? 'light'
+              : remembered === 'dark' ? 'dark'
+              : 'light';
+  applyMode(start, false);
   const btn = document.getElementById('modeBtn');
   if (btn) btn.addEventListener('click', function () {
-    applyMode(document.documentElement.classList.contains('dark') ? '' : 'dark', true);
+    applyMode(document.documentElement.classList.contains('dark') ? 'light' : 'dark', true);
   });
 })();
 
@@ -1136,23 +1350,66 @@ function submitFeedback() {
 }"""
 
 
-def page(title, description, path, body, schema='', css='', js=''):
-    """Monta uma pagina inteira a partir do miolo dela."""
-    head = HEAD % {'title': title, 'description': description, 'path': path}
+def page(title, description, path, body, schema='', css='', js='', lang='en'):
+    """Monta uma pagina inteira a partir do miolo dela, no idioma pedido."""
+    other = 'pt' if lang == 'en' else 'en'
+    here = localised(path, lang)
+    fills = {k: t(k, lang) for k in STRINGS}
+    fills.update({
+        'lang_href': localised(path, other),
+        'lang_other': 'pt-BR' if other == 'pt' else 'en',
+        'lang_code': other.upper(),
+    })
+
+    def fill(tpl):
+        for k, v in fills.items():
+            tpl = tpl.replace('__%s__' % k, v)
+        return tpl
+
+    head = HEAD % {'title': title, 'description': description, 'path': here}
+    head = head.replace('<html lang="en">',
+                        '<html lang="%s">' % ('pt-BR' if lang == 'pt' else 'en'))
+
+    # hreflang reciproco: a anotacao de uma rota so vale se a irma apontar
+    # de volta, e x-default fica no ingles, que e a lingua da ferramenta.
+    alt = ''.join(
+        '<link rel="alternate" hreflang="%s" href="https://www.ampidentifier.com%s">\n' % (h, u)
+        for h, u in (('en', localised(path, 'en')),
+                     ('pt-BR', localised(path, 'pt')),
+                     ('x-default', localised(path, 'en')))
+    )
+    head = head.replace('<link rel="canonical"', alt + '<link rel="canonical"')
+
     # a rota corrente se marca no proprio link, e nao por javascript: sem
     # aria-current um leitor de tela nao tem como saber onde esta.
-    # o alvo e o data-nav e nao o href, porque href="/beta" aparece antes
-    # no link da marca e a marca nao e a rota corrente
-    slug = {'/': 'predict', '/about': 'about', '/suggestions': 'suggestions', '/beta': 'beta'}.get(path, '')
-    nav = NAV.replace('data-nav="%s"' % slug, 'data-nav="%s" aria-current="page"' % slug, 1) if slug else NAV
+    # o alvo e o data-nav e nao o href, porque href="/" aparece antes no
+    # link da marca e a marca nao e a rota corrente
+    slug = {'/': 'predict', '/about': 'about', '/suggestions': 'suggestions',
+            '/beta': 'beta'}.get(path, '')
+    # A reescrita de prefixo corre ANTES do preenchimento, com o href da
+    # sigla de idioma ainda como marcador: feita depois, ela prefixava o
+    # proprio link de troca e a sigla apontava para a pagina onde ja se
+    # esta. Medido: em /pt/about a sigla EN levava a /pt/about.
+    nav = NAV
+    if slug:
+        nav = nav.replace('data-nav="%s"' % slug,
+                          'data-nav="%s" aria-current="page"' % slug, 1)
+    if lang != 'en':
+        nav = nav.replace('href="/beta"', 'href="/pt/beta"')
+        nav = nav.replace('href="/about"', 'href="/pt/about"')
+        nav = nav.replace('href="/suggestions"', 'href="/pt/suggestions"')
+        nav = nav.replace('href="/" data-nav', 'href="/pt" data-nav')
+        nav = nav.replace('class="nav-brand" href="/"', 'class="nav-brand" href="/pt"')
+    nav = fill(nav)
+
     return (
         '<!DOCTYPE html>\n' + head + '\n<style>\n' + STYLE + css + '\n</style>\n'
         + schema + '</head>\n<body>\n'
         + DEFS + '\n'
-        + '<a class="skip-link pill" href="#main">Skip to content</a>\n\n'
+        + fill('<a class="skip-link pill" href="#main">__skip__</a>') + '\n\n'
         + nav + '\n\n<div class="shell">\n' + body + '\n</div>\n\n'
-        + FOOTER_BAR + '\n\n' + MODAL + '\n\n'
-        + '{% raw %}<script>\n' + SHELL_JS + '\n' + js + '\n</script>{% endraw %}\n'
+        + fill(FOOTER_BAR) + '\n\n' + fill(MODAL) + '\n\n'
+        + '{% raw %}<script>\n' + fill(SHELL_JS) + '\n' + js + '\n</script>{% endraw %}\n'
         + '<script src="/pure/light.js?v={{ asset_v }}" defer></script>\n'
         + '</body>\n</html>'
     )
