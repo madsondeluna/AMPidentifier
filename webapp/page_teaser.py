@@ -129,10 +129,7 @@ CSS = """
 
   /* uma palavra nao quebra no meio: o espaco entre palavras e a folga do
      grupo, e dentro do grupo as letras ficam juntas */
-  /* A palavra esticada tem dezoito letras e nao cabe numa linha de 640.
-     Ela quebra dentro do proprio grupo; o grupo continua sendo o que
-     separa uma palavra da outra, pelo vao maior do contentor. */
-  .soup-word { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-4); }
+  .soup-word { display: flex; gap: var(--space-4); }
 
   /* o vao entre palavras e o do contentor e tem de ser maior que o vao
      entre letras, senao a frase le como uma palavra so */
@@ -300,7 +297,7 @@ JS = """
    lido por uma folha de estilo. */
 
 (function () {
-  var PHRASE = 'More is yet to come sooooooooooooonnnnnnnn';
+  var PHRASE = 'More is yet to come soon';
   var REACH = 160;
   var PUSH = 34;
   var TILT = 14;

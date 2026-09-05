@@ -209,12 +209,24 @@ BODY = """
               <li><span class="edu-what">BSc in Biomedical Sciences</span><span class="edu-where">Center of Biosciences, UFPE</span><span class="num edu-when">2014&ndash;2021</span></li>
             </ul>
           </div>
-          <p class="lead-links">
-            <a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">ORCID 0000-0001-5313-3913</a>
-            &nbsp;&middot;&nbsp; <a href="https://github.com/madsondeluna" target="_blank" rel="noopener">GitHub</a>
-            &nbsp;&middot;&nbsp; <a href="https://madsondeluna.com" target="_blank" rel="noopener">madsondeluna.com</a>
-            &nbsp;&middot;&nbsp; <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a>
-          </p>
+          <ul class="lead-links">
+            <li>
+              <svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#tag"></use></svg>
+              <a href="https://orcid.org/0000-0001-5313-3913" target="_blank" rel="noopener">0000-0001-5313-3913</a>
+            </li>
+            <li>
+              <svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#branch"></use></svg>
+              <a href="https://github.com/madsondeluna" target="_blank" rel="noopener">github.com/madsondeluna</a>
+            </li>
+            <li>
+              <svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#link"></use></svg>
+              <a href="https://madsondeluna.com" target="_blank" rel="noopener">madsondeluna.com</a>
+            </li>
+            <li>
+              <svg class="icon icon-sm" aria-hidden="true"><use href="/pure/icons.svg#mail"></use></svg>
+              <a href="mailto:madsondeluna@gmail.com">madsondeluna@gmail.com</a>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
@@ -324,7 +336,35 @@ CSS = """
   .lead-name { font-size: var(--text-16); font-weight: var(--weight-medium); color: var(--text); }
   .lead-role { font-family: var(--font-mono); font-size: var(--text-12); color: var(--muted); margin-bottom: var(--space-10); }
   .lead-text > p + p, .lead-role + p { margin-top: var(--space-10); }
-  .lead-links { font-size: var(--text-13); }
+  /* Duas colunas, icone numa coluna propria de largura fixa: assim os
+     quatro enderecos comecam na mesma vertical e o icone nao empurra o
+     texto conforme muda de desenho. O icone e --muted e o endereco e
+     tinta cheia, porque quem se le e o endereco; o icone so diz de que
+     tipo ele e, e por isso leva aria-hidden. */
+  .lead-links {
+    list-style: none;
+    margin: var(--space-16) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-8) var(--space-24);
+    font-size: var(--text-13);
+  }
+
+  .lead-links li {
+    display: grid;
+    grid-template-columns: var(--space-20) 1fr;
+    align-items: center;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  .lead-links .icon { color: var(--muted); }
+  .lead-links a { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  @media (max-width: 768px) {
+    .lead-links { grid-template-columns: 1fr; }
+  }
 
   /* formacao: tres colunas, com o ano em coluna propria e alinhado a
      direita, porque ano se compara com ano e nao com o fim do texto que
